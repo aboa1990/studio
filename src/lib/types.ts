@@ -27,6 +27,7 @@ export interface Document {
   taxAmount: number;
   total: number;
   notes?: string;
+  terms?: string;
 }
 
 export interface BankDetails {

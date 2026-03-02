@@ -7,6 +7,7 @@ import { Trash2, Plus, Save, FileCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Document, LineItem, DocumentType, DocumentStatus } from "@/lib/types"
@@ -39,6 +40,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
       subtotal: 0,
       taxAmount: 0,
       total: 0,
+      terms: "1. Please pay within 14 days.\n2. Bank transfer is preferred.\n3. Include invoice number as reference.",
     }
   )
 
@@ -259,6 +261,33 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
                 <span className="text-primary">{doc.currency} {doc.total?.toFixed(2)}</span>
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Additional Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="doc-terms">Terms & Conditions</Label>
+            <Textarea
+              id="doc-terms"
+              placeholder="Enter payment terms or other conditions..."
+              value={doc.terms}
+              onChange={e => setDoc(prev => ({ ...prev, terms: e.target.value }))}
+              className="min-h-[120px]"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="doc-notes">Internal Notes (Not visible on document)</Label>
+            <Textarea
+              id="doc-notes"
+              placeholder="Add internal reminders or details..."
+              value={doc.notes}
+              onChange={e => setDoc(prev => ({ ...prev, notes: e.target.value }))}
+            />
           </div>
         </CardContent>
       </Card>

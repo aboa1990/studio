@@ -141,34 +141,44 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
 
         {/* Bank & Payment Info */}
         {(company.bankDetails?.bankName || company.bankDetails?.accountNumber) && (
-          <div className="bg-slate-50 p-6 rounded mb-8 border border-slate-100">
-            <div className="text-slate-400 uppercase text-xs font-bold tracking-widest mb-3">Bank Transfer Details:</div>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+          <div className="bg-slate-50 p-6 rounded mb-6 border border-slate-100">
+            <div className="text-slate-900 font-bold text-sm mb-4 border-b border-slate-200 pb-2">BANK TRANSFER DETAILS</div>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
               <div className="flex flex-col">
-                <span className="text-slate-400 text-xs">Bank Name:</span>
-                <span className="font-semibold">{company.bankDetails?.bankName || "N/A"}</span>
+                <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Bank Name</span>
+                <span className="font-semibold text-slate-700">{company.bankDetails?.bankName || "N/A"}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-slate-400 text-xs">Account Name:</span>
-                <span className="font-semibold">{company.bankDetails?.accountName || company.name}</span>
+                <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Account Name</span>
+                <span className="font-semibold text-slate-700">{company.bankDetails?.accountName || company.name}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-slate-400 text-xs">Account Number:</span>
-                <span className="font-bold text-lg">{company.bankDetails?.accountNumber || "N/A"}</span>
+                <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Account Number</span>
+                <span className="font-bold text-lg text-slate-900">{company.bankDetails?.accountNumber || "N/A"}</span>
               </div>
               {company.bankDetails?.branchName && (
                 <div className="flex flex-col">
-                  <span className="text-slate-400 text-xs">Branch:</span>
-                  <span className="font-semibold">{company.bankDetails?.branchName}</span>
+                  <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Branch</span>
+                  <span className="font-semibold text-slate-700">{company.bankDetails?.branchName}</span>
                 </div>
               )}
             </div>
           </div>
         )}
 
+        {/* Terms and Conditions */}
+        {data.terms && (
+          <div className="mb-8">
+            <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1">TERMS & CONDITIONS</div>
+            <div className="text-xs text-slate-500 whitespace-pre-line leading-relaxed italic">
+              {data.terms}
+            </div>
+          </div>
+        )}
+
         {/* Footer */}
-        <div className="mt-auto pt-8 border-t border-slate-100 text-center text-slate-400 text-xs">
-          Thank you for your business. For any queries, please contact {company.email}.
+        <div className="mt-auto pt-8 border-t border-slate-100 text-center text-slate-400 text-[10px] uppercase tracking-widest font-bold">
+          Thank you for choosing {company.name}
         </div>
       </Card>
     </div>
