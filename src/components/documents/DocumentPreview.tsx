@@ -166,6 +166,21 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
           </div>
         )}
 
+        {/* Signature Section */}
+        <div className="flex justify-end mb-8">
+          <div className="text-center min-w-[200px] flex flex-col items-center">
+            {company.signatureUrl && (
+              <div className="relative h-16 w-40 mb-2">
+                <Image src={company.signatureUrl} alt="Signature" fill className="object-contain" />
+              </div>
+            )}
+            <div className="border-t border-slate-300 pt-1 w-full">
+              <div className="text-sm font-bold text-slate-900">{company.authorizedSignatory || "Authorized Signatory"}</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Authorized Signature</div>
+            </div>
+          </div>
+        </div>
+
         {/* Terms and Conditions */}
         {data.terms && (
           <div className="mb-8">

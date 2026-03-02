@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Save, Building2, Plus, Trash2, CheckCircle2, Upload, X } from "lucide-react"
+import { Save, Building2, Plus, Trash2, CheckCircle2, Upload, X, PenTool } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,6 +25,7 @@ export default function SettingsPage() {
     email: "",
     phone: "",
     gstNumber: "",
+    authorizedSignatory: "",
     bankDetails: {
       bankName: "",
       accountName: "",
@@ -74,6 +75,7 @@ export default function SettingsPage() {
       email: "",
       phone: "",
       gstNumber: "",
+      authorizedSignatory: "",
       bankDetails: {
         bankName: "",
         accountName: "",
@@ -132,8 +134,23 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, signatureUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const removeLogo = () => {
     setFormData(prev => ({ ...prev, logoUrl: undefined }));
+  };
+
+  const removeSignature = () => {
+    setFormData(prev => ({ ...prev, signatureUrl: undefined }));
   };
 
   const activeId = getActiveProfileId();
@@ -202,101 +219,130 @@ export default function SettingsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center border-b border-border pb-6">
-                    <div className="relative size-24 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
-                      {formData.logoUrl ? (
-                        <>
-                          <Image src={formData.logoUrl} alt="Logo" fill className="object-contain" />
-                          <button 
-                            type="button" 
-                            onClick={removeLogo}
-                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="size-3" />
-                          </button>
-                        </>
-                      ) : (
-                        <Building2 className="size-8 text-muted-foreground" />
-                      )}
-                      {formData.logoUrl && (
-                        <button 
-                          type="button" 
-                          onClick={removeLogo}
-                          className="absolute top-1 right-1 bg-destructive/80 text-destructive-foreground rounded-full p-1 hover:bg-destructive"
-                        >
-                          <X className="size-3" />
-                        </button>
-                      )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-b border-border pb-6">
+                    <div className="space-y-4">
+                      <Label className="text-sm font-semibold">Company Logo</Label>
+                      <div className="relative size-32 rounded-lg bg-muted flex items-center justify-center overflow-hidden border group">
+                        {formData.logoUrl ? (
+                          <>
+                            <Image src={formData.logoUrl} alt="Logo" fill className="object-contain" />
+                            <button 
+                              type="button" 
+                              onClick={removeLogo}
+                              className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="size-3" />
+                            </button>
+                          </>
+                        ) : (
+                          <Building2 className="size-10 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="logo-upload" className="cursor-pointer">
+                          <div className="flex items-center gap-2 text-primary font-medium hover:underline">
+                            <Upload className="size-4" />
+                            {formData.logoUrl ? "Change Logo" : "Upload Logo"}
+                          </div>
+                        </Label>
+                        <input id="logo-upload" type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                      </div>
                     </div>
-                    <div className="space-y-2 flex-1">
-                      <Label htmlFor="logo-upload" className="cursor-pointer">
-                        <div className="flex items-center gap-2 text-primary font-medium hover:underline">
-                          <Upload className="size-4" />
-                          {formData.logoUrl ? "Change Company Logo" : "Upload Company Logo"}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">Recommended size: 400x400px. JPG, PNG or SVG.</p>
-                      </Label>
-                      <input 
-                        id="logo-upload" 
-                        type="file" 
-                        accept="image/*" 
-                        className="hidden" 
-                        onChange={handleLogoUpload}
-                      />
+
+                    <div className="space-y-4">
+                      <Label className="text-sm font-semibold">Digital Signature</Label>
+                      <div className="relative size-32 rounded-lg bg-muted flex items-center justify-center overflow-hidden border group">
+                        {formData.signatureUrl ? (
+                          <>
+                            <Image src={formData.signatureUrl} alt="Signature" fill className="object-contain" />
+                            <button 
+                              type="button" 
+                              onClick={removeSignature}
+                              className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="size-3" />
+                            </button>
+                          </>
+                        ) : (
+                          <PenTool className="size-10 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signature-upload" className="cursor-pointer">
+                          <div className="flex items-center gap-2 text-accent font-medium hover:underline">
+                            <Upload className="size-4" />
+                            {formData.signatureUrl ? "Change Signature" : "Upload Signature"}
+                          </div>
+                        </Label>
+                        <input id="signature-upload" type="file" accept="image/*" className="hidden" onChange={handleSignatureUpload} />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="company-name">Business Name</Label>
-                    <Input 
-                      id="company-name" 
-                      value={formData.name}
-                      onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="company-address">Business Address</Label>
-                    <Textarea 
-                      id="company-address" 
-                      value={formData.address}
-                      onChange={e => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                      required
-                      className="min-h-[80px]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="company-email">Billing Email</Label>
+                      <Label htmlFor="company-name">Business Name</Label>
                       <Input 
-                        id="company-email" 
-                        type="email"
-                        value={formData.email}
-                        onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        id="company-name" 
+                        value={formData.name}
+                        onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
                         required
                       />
                     </div>
+
                     <div className="space-y-2">
-                      <Label htmlFor="company-phone">Contact Phone</Label>
-                      <Input 
-                        id="company-phone" 
-                        value={formData.phone}
-                        onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      <Label htmlFor="company-address">Business Address</Label>
+                      <Textarea 
+                        id="company-address" 
+                        value={formData.address}
+                        onChange={e => setFormData(prev => ({ ...prev, address: e.target.value }))}
                         required
+                        className="min-h-[80px]"
                       />
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="company-gst">GST Number (Optional)</Label>
-                    <Input 
-                      id="company-gst" 
-                      placeholder="GST-XXXXX-XXXX"
-                      value={formData.gstNumber || ""}
-                      onChange={e => setFormData(prev => ({ ...prev, gstNumber: e.target.value }))}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="company-email">Billing Email</Label>
+                        <Input 
+                          id="company-email" 
+                          type="email"
+                          value={formData.email}
+                          onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="company-phone">Contact Phone</Label>
+                        <Input 
+                          id="company-phone" 
+                          value={formData.phone}
+                          onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="company-gst">GST Number (Optional)</Label>
+                        <Input 
+                          id="company-gst" 
+                          placeholder="GST-XXXXX-XXXX"
+                          value={formData.gstNumber || ""}
+                          onChange={e => setFormData(prev => ({ ...prev, gstNumber: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="authorized-signatory">Authorized Signatory Name</Label>
+                        <Input 
+                          id="authorized-signatory" 
+                          placeholder="e.g. Managing Director"
+                          value={formData.authorizedSignatory || ""}
+                          onChange={e => setFormData(prev => ({ ...prev, authorizedSignatory: e.target.value }))}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

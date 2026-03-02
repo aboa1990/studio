@@ -44,6 +44,8 @@ export interface CompanyProfile {
   email: string;
   phone: string;
   logoUrl?: string;
+  signatureUrl?: string;
+  authorizedSignatory?: string;
   gstNumber?: string;
   bankDetails?: BankDetails;
 }
