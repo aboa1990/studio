@@ -1,4 +1,3 @@
-
 "use client"
 
 import { jsPDF } from "jspdf"
@@ -144,7 +143,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
 
         {/* Bank & Payment Info - Hidden for Tenders */}
         {data.type !== 'tender' && (company.bankDetails?.bankName || company.bankDetails?.accountNumber) && (
-          <div className="bg-slate-50 p-6 rounded mb-6 border border-slate-100">
+          <div className="bg-slate-50 p-6 rounded mb-8 border border-slate-100">
             <div className="text-slate-900 font-bold text-sm mb-4 border-b border-slate-200 pb-2">BANK TRANSFER DETAILS</div>
             <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
               <div className="flex flex-col">
@@ -169,7 +168,17 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
           </div>
         )}
 
-        {/* Signature Section */}
+        {/* Terms and Conditions (Now above Signature) */}
+        {data.terms && (
+          <div className="mb-12">
+            <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1 uppercase tracking-wider">TERMS & CONDITIONS</div>
+            <div className="text-xs text-slate-500 whitespace-pre-line leading-relaxed italic">
+              {data.terms}
+            </div>
+          </div>
+        )}
+
+        {/* Signature Section (Now at the bottom) */}
         <div className="flex justify-end mb-8">
           <div className="text-center min-w-[200px] flex flex-col items-center">
             {company.signatureUrl && (
@@ -183,16 +192,6 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
             </div>
           </div>
         </div>
-
-        {/* Terms and Conditions */}
-        {data.terms && (
-          <div className="mb-8">
-            <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1">TERMS & CONDITIONS</div>
-            <div className="text-xs text-slate-500 whitespace-pre-line leading-relaxed italic">
-              {data.terms}
-            </div>
-          </div>
-        )}
 
         {/* Footer */}
         <div className="mt-auto pt-8 border-t border-slate-100 text-center text-slate-400 text-[10px] uppercase tracking-widest font-bold">
