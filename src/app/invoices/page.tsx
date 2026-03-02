@@ -2,10 +2,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, ArrowUpRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { 
   Table, 
   TableBody, 
@@ -55,83 +55,90 @@ export default function InvoicesList() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'paid': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+      case 'paid': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       case 'overdue': return 'bg-destructive/10 text-destructive border-destructive/20';
-      case 'sent': return 'bg-primary/10 text-primary border-primary/20';
-      default: return 'bg-muted text-muted-foreground';
+      case 'sent': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      default: return 'bg-white/5 text-white/50 border-white/10';
     }
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-4xl font-headline font-black tracking-tight">Invoices</h1>
-          <p className="text-muted-foreground mt-1">Manage and track your customer billing.</p>
+    <div className="space-y-10 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+        <div className="space-y-1">
+          <h1 className="text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/40">Invoices</h1>
+          <p className="text-muted-foreground text-lg">Manage and track your customer billing lifecycle.</p>
         </div>
-        <Button asChild className="bg-primary text-primary-foreground">
+        <Button asChild className="rounded-full px-6 shadow-xl shadow-primary/10">
           <Link href="/invoices/new"><Plus className="mr-2 size-4" /> New Invoice</Link>
         </Button>
       </div>
 
-      <Card className="border-none shadow-lg bg-card/50 overflow-hidden">
-        <div className="p-4 border-b border-border bg-card/80">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search by client or number..." 
-              className="pl-10" 
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
+      <Card className="glass-card overflow-hidden shadow-2xl border-white/5">
+        <CardHeader className="border-b border-white/5 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <CardTitle>Invoice Records</CardTitle>
+              <CardDescription>A list of all your generated invoices.</CardDescription>
+            </div>
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search by client or reference..." 
+                className="pl-10 h-10 rounded-xl bg-white/5 border-white/5 focus:bg-white/10 transition-all" 
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
+        </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+            <TableHeader className="bg-white/[0.02]">
+              <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="font-bold text-[10px] uppercase tracking-[0.2em] h-14">Reference</TableHead>
+                <TableHead className="font-bold text-[10px] uppercase tracking-[0.2em] h-14">Client</TableHead>
+                <TableHead className="font-bold text-[10px] uppercase tracking-[0.2em] h-14">Issued On</TableHead>
+                <TableHead className="font-bold text-[10px] uppercase tracking-[0.2em] h-14">Total Amount</TableHead>
+                <TableHead className="font-bold text-[10px] uppercase tracking-[0.2em] h-14">Status</TableHead>
+                <TableHead className="text-right font-bold text-[10px] uppercase tracking-[0.2em] h-14 pr-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredDocs.map((doc) => (
-                <TableRow key={doc.id} className="group transition-colors">
-                  <TableCell className="font-medium">
-                    <Link href={`/invoices/${doc.id}`} className="text-primary hover:underline underline-offset-4">
-                      {doc.number}
+                <TableRow key={doc.id} className="border-white/5 hover:bg-white/[0.02] transition-colors group">
+                  <TableCell className="py-5">
+                    <Link href={`/invoices/${doc.id}`} className="font-black text-white group-hover:underline underline-offset-4 flex items-center gap-2">
+                      {doc.number} <ArrowUpRight className="size-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </Link>
                   </TableCell>
-                  <TableCell>{doc.clientName}</TableCell>
-                  <TableCell>{new Date(doc.date).toLocaleDateString()}</TableCell>
-                  <TableCell>MVR {doc.total.toLocaleString()}</TableCell>
+                  <TableCell className="font-medium">{doc.clientName}</TableCell>
+                  <TableCell className="text-muted-foreground">{new Date(doc.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
+                  <TableCell className="font-black">MVR {doc.total.toLocaleString()}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={getStatusColor(doc.status)}>
-                      {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                    <Badge variant="outline" className={`rounded-full px-3 py-1 font-bold text-[10px] uppercase tracking-widest ${getStatusColor(doc.status)}`}>
+                      {doc.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right pr-6">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button variant="ghost" className="h-9 w-9 p-0 rounded-lg hover:bg-white/10 transition-colors">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/invoices/${doc.id}`}><Eye className="mr-2 h-4 w-4" /> View</Link>
+                      <DropdownMenuContent align="end" className="glass-card w-48 rounded-xl shadow-2xl">
+                        <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator className="bg-white/5" />
+                        <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 p-3 rounded-lg">
+                          <Link href={`/invoices/${doc.id}`} className="flex items-center"><Eye className="mr-3 h-4 w-4" /> View Details</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/invoices/${doc.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link>
+                        <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 p-3 rounded-lg">
+                          <Link href={`/invoices/${doc.id}/edit`} className="flex items-center"><Edit className="mr-3 h-4 w-4" /> Edit Record</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(doc.id)}>
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                        <DropdownMenuSeparator className="bg-white/5" />
+                        <DropdownMenuItem className="text-destructive focus:bg-destructive/10 p-3 rounded-lg cursor-pointer" onClick={() => handleDelete(doc.id)}>
+                          <Trash2 className="mr-3 h-4 w-4" /> Delete Permanently
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -140,8 +147,12 @@ export default function InvoicesList() {
               ))}
               {filteredDocs.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                    No invoices found.
+                  <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
+                    <div className="flex flex-col items-center gap-3">
+                      <FileText className="size-12 opacity-10" />
+                      <p className="font-semibold">No invoices found matching your search.</p>
+                      <Button variant="outline" size="sm" className="rounded-full" onClick={() => setSearch("")}>Clear Search</Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
