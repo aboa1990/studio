@@ -32,14 +32,21 @@ export default function TendersList() {
   const { toast } = useToast()
   const [docs, setDocs] = useState<Document[]>([])
   const [search, setSearch] = useState("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setDocs(getDocuments().filter(d => d.type === 'tender'))
+    const fetchDocuments = async () => {
+      setLoading(true);
+      const documents = await getDocuments();
+      setDocs(documents.filter(d => d.type === 'tender'));
+      setLoading(false);
+    };
+    fetchDocuments();
   }, [])
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this tender?")) {
-      deleteDocument(id);
+      await deleteDocument(id);
       setDocs(prev => prev.filter(d => d.id !== id));
       toast({
         title: "Tender Deleted",
@@ -100,53 +107,60 @@ export default function TendersList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDocs.map((doc) => (
-                <TableRow key={doc.id} className="group transition-colors">
-                  <TableCell className="font-medium">
-                    <Link href={`/tenders/${doc.id}`} className="text-emerald-500 hover:underline underline-offset-4">
-                      {doc.number}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{doc.clientName}</TableCell>
-                  <TableCell>{new Date(doc.date).toLocaleDateString()}</TableCell>
-                  <TableCell>MVR {doc.total.toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={getStatusColor(doc.status)}>
-                      {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {doc.attachments && doc.attachments.length > 0 && (
-                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded">
-                          <FileText className="size-3" /> {doc.attachments.length}
-                        </div>
-                      )}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/tenders/${doc.id}`}><Eye className="mr-2 h-4 w-4" /> View Details</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/tenders/${doc.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Tender</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(doc.id)}>
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                    Loading tenders...
                   </TableCell>
                 </TableRow>
-              ))}
-              {filteredDocs.length === 0 && (
+              ) : filteredDocs.length > 0 ? (
+                filteredDocs.map((doc) => (
+                  <TableRow key={doc.id} className="group transition-colors">
+                    <TableCell className="font-medium">
+                      <Link href={`/tenders/${doc.id}`} className="text-emerald-500 hover:underline underline-offset-4">
+                        {doc.number}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{doc.clientName}</TableCell>
+                    <TableCell>{new Date(doc.date).toLocaleDateString()}</TableCell>
+                    <TableCell>MVR {doc.total.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={getStatusColor(doc.status)}>
+                        {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {doc.attachments && doc.attachments.length > 0 && (
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded">
+                            <FileText className="size-3" /> {doc.attachments.length}
+                          </div>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/tenders/${doc.id}`}><Eye className="mr-2 h-4 w-4" /> View Details</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/tenders/${doc.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Tender</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(doc.id)}>
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
                     No tenders found.

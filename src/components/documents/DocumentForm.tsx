@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Document, LineItem, DocumentType, DocumentStatus, Attachment, Client, LibraryDocument } from "@/lib/types"
 import { useRouter } from "next/navigation"
-import { saveDocument, getActiveProfileId, getClients, getLibraryDocuments } from "@/lib/store"
+import { saveDocument, getClients, getLibraryDocuments } from "@/lib/store"
 
 interface DocumentFormProps {
   initialData?: Document;
@@ -29,10 +29,10 @@ interface DocumentFormProps {
 
 export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const router = useRouter()
-  const activeProfileId = getActiveProfileId()
   const [savedClients, setSavedClients] = useState<Client[]>([])
   const [libraryDocs, setLibraryDocs] = useState<LibraryDocument[]>([])
   const [isLibraryOpen, setIsLibraryOpen] = useState(false)
+  const [loading, setLoading] = useState(false);
   
   const defaultTerms = type === 'tender' 
     ? "1. This proposal is valid for 90 days from the submission date.\n2. All prices are inclusive of GST.\n3. Delivery will be within the specified timeframe upon award."
@@ -43,7 +43,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const [doc, setDoc] = useState<Partial<Document>>(
     initialData || {
       id: uuidv4(),
-      profileId: activeProfileId,
+      profileId: '',
       type,
       number: `${type === 'invoice' ? 'INV' : type === 'tender' ? 'TDR' : type === 'boq' ? 'BOQ' : 'QT'}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`,
       clientName: "",
@@ -64,8 +64,12 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   )
 
   useEffect(() => {
-    setSavedClients(getClients())
-    setLibraryDocs(getLibraryDocuments())
+    const fetchData = async () => {
+      const [clients, libraryDocuments] = await Promise.all([getClients(), getLibraryDocuments()]);
+      setSavedClients(clients);
+      setLibraryDocs(libraryDocuments);
+    }
+    fetchData();
   }, [])
 
   useEffect(() => {
@@ -155,10 +159,12 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (doc.items && doc.items.length > 0) {
-      saveDocument(doc as Document);
+      setLoading(true);
+      await saveDocument(doc as Document);
+      setLoading(false);
       router.push(type === 'invoice' ? '/invoices' : type === 'tender' ? '/tenders' : type === 'boq' ? '/boqs' : '/quotations');
     }
   }
@@ -170,12 +176,11 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
           {initialData ? `Edit ${type.toUpperCase()}` : `New ${type.toUpperCase()}`}
         </h1>
         <div className="flex gap-4">
-          <Button variant="outline" type="button" onClick={() => router.back()}>
+          <Button variant="outline" type="button" onClick={() => router.back()} disabled={loading}>
             Cancel
           </Button>
-          <Button type="submit" className="bg-primary text-primary-foreground">
-            <Save className="mr-2 h-4 w-4" />
-            Save {type.toUpperCase()}
+          <Button type="submit" className="bg-primary text-primary-foreground" disabled={loading}>
+            {loading ? 'Saving...' : <><Save className="mr-2 h-4 w-4" />Save {type.toUpperCase()}</>}
           </Button>
         </div>
       </div>

@@ -31,27 +31,34 @@ export default function ClientsList() {
   const { toast } = useToast()
   const [clients, setClients] = useState<Client[]>([])
   const [search, setSearch] = useState("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setClients(getClients())
+    const fetchClients = async () => {
+      setLoading(true);
+      const clients = await getClients();
+      setClients(clients);
+      setLoading(false);
+    };
+    fetchClients();
   }, [])
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this client?")) {
-      deleteClient(id)
-      setClients(prev => prev.filter(c => c.id !== id))
+      await deleteClient(id);
+      setClients(prev => prev.filter(c => c.id !== id));
       toast({
         title: "Client Deleted",
         description: "The client record has been removed.",
-      })
+      });
     }
   }
 
   const filteredClients = clients.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
-    c.contactPerson?.toLowerCase().includes(search.toLowerCase()) ||
+    (c.contactPerson && c.contactPerson.toLowerCase().includes(search.toLowerCase())) ||
     c.email.toLowerCase().includes(search.toLowerCase())
-  )
+  );
 
   return (
     <div className="space-y-8">
@@ -89,46 +96,53 @@ export default function ClientsList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredClients.map((client) => (
-                <TableRow key={client.id} className="group transition-colors">
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <User className="size-4" />
-                      </div>
-                      {client.name}
-                    </div>
-                  </TableCell>
-                  <TableCell>{client.contactPerson || "—"}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col text-xs text-muted-foreground gap-1">
-                      <div className="flex items-center gap-1"><Mail className="size-3" /> {client.email}</div>
-                      <div className="flex items-center gap-1"><Phone className="size-3" /> {client.phone}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{client.gstNumber || "N/A"}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/clients/${client.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Details</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(client.id)}>
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete Client
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
+                    Loading clients...
                   </TableCell>
                 </TableRow>
-              ))}
-              {filteredClients.length === 0 && (
+              ) : filteredClients.length > 0 ? (
+                filteredClients.map((client) => (
+                  <TableRow key={client.id} className="group transition-colors">
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        <div className="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <User className="size-4" />
+                        </div>
+                        {client.name}
+                      </div>
+                    </TableCell>
+                    <TableCell>{client.contactPerson || "—"}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col text-xs text-muted-foreground gap-1">
+                        <div className="flex items-center gap-1"><Mail className="size-3" /> {client.email}</div>
+                        <div className="flex items-center gap-1"><Phone className="size-3" /> {client.phone}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{client.gstNumber || "N/A"}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/clients/${client.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Details</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(client.id)}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete Client
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
                     No clients found.

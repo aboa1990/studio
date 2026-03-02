@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -29,9 +30,16 @@ import {
 
 export default function Dashboard() {
   const [docs, setDocs] = useState<Document[]>([])
+  const [loading, setLoading] = useState(true)
   
   useEffect(() => {
-    setDocs(getDocuments())
+    const fetchDocuments = async () => {
+      setLoading(true);
+      const documents = await getDocuments();
+      setDocs(documents);
+      setLoading(false);
+    };
+    fetchDocuments();
   }, [])
 
   const invoices = docs.filter(d => d.type === 'invoice')
@@ -171,33 +179,36 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="px-4">
             <div className="space-y-3">
-              {docs.slice(0, 5).map((doc) => (
-                <Link 
-                  key={doc.id} 
-                  href={`/${doc.type}s/${doc.id}`}
-                  className="flex items-center gap-4 group p-4 rounded-[1.5rem] hover:bg-white/[0.04] transition-all border border-transparent hover:border-white/5"
-                >
-                  <div className={`size-12 rounded-[1rem] flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
-                    doc.type === 'invoice' ? 'bg-white/5 text-white' : 
-                    doc.type === 'tender' ? 'bg-emerald-500/10 text-emerald-400' :
-                    doc.type === 'boq' ? 'bg-blue-500/10 text-blue-400' :
-                    'bg-amber-500/10 text-amber-400'
-                  }`}>
-                    {doc.type === 'invoice' ? <FileText size={22} /> : 
-                     doc.type === 'tender' ? <Briefcase size={22} /> : 
-                     doc.type === 'boq' ? <ClipboardList size={22} /> : 
-                     <Quote size={22} />}
-                  </div>
-                  <div className="flex-1 space-y-1 min-w-0">
-                    <p className="text-sm font-black truncate group-hover:text-primary transition-colors">{doc.clientName}</p>
-                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.1em]">{doc.number} • {new Date(doc.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</p>
-                  </div>
-                  <div className="text-sm font-black text-white text-right whitespace-nowrap">
-                    {doc.total.toLocaleString()}
-                  </div>
-                </Link>
-              ))}
-              {docs.length === 0 && (
+              {loading ? (
+                 <div className="text-center py-24 text-muted-foreground">Loading...</div>
+              ) : docs.length > 0 ? (
+                docs.slice(0, 5).map((doc) => (
+                  <Link 
+                    key={doc.id} 
+                    href={`/${doc.type}s/${doc.id}`}
+                    className="flex items-center gap-4 group p-4 rounded-[1.5rem] hover:bg-white/[0.04] transition-all border border-transparent hover:border-white/5"
+                  >
+                    <div className={`size-12 rounded-[1rem] flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
+                      doc.type === 'invoice' ? 'bg-white/5 text-white' : 
+                      doc.type === 'tender' ? 'bg-emerald-500/10 text-emerald-400' :
+                      doc.type === 'boq' ? 'bg-blue-500/10 text-blue-400' :
+                      'bg-amber-500/10 text-amber-400'
+                    }`}>
+                      {doc.type === 'invoice' ? <FileText size={22} /> : 
+                       doc.type === 'tender' ? <Briefcase size={22} /> : 
+                       doc.type === 'boq' ? <ClipboardList size={22} /> : 
+                       <Quote size={22} />}
+                    </div>
+                    <div className="flex-1 space-y-1 min-w-0">
+                      <p className="text-sm font-black truncate group-hover:text-primary transition-colors">{doc.clientName}</p>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.1em]">{doc.number} • {new Date(doc.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</p>
+                    </div>
+                    <div className="text-sm font-black text-white text-right whitespace-nowrap">
+                      {doc.total.toLocaleString()}
+                    </div>
+                  </Link>
+                ))
+              ) : (
                 <div className="text-center py-24 text-muted-foreground space-y-4">
                   <div className="size-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5 opacity-20">
                     <FileText className="size-10" />

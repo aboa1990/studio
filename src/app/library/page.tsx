@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -23,16 +24,22 @@ import {
 import { getLibraryDocuments, saveLibraryDocument, deleteLibraryDocument, getActiveProfileId } from "@/lib/store"
 import { LibraryDocument } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
-import { v4 as uuidv4 } from "uuid"
 
 export default function DocumentLibraryPage() {
   const { toast } = useToast()
   const [docs, setDocs] = useState<LibraryDocument[]>([])
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("all")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setDocs(getLibraryDocuments())
+    const fetchLibraryDocs = async () => {
+      setLoading(true);
+      const libraryDocs = await getLibraryDocuments();
+      setDocs(libraryDocs);
+      setLoading(false);
+    };
+    fetchLibraryDocs();
   }, [])
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,18 +48,18 @@ export default function DocumentLibraryPage() {
 
     Array.from(files).forEach(file => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const newDoc: LibraryDocument = {
-          id: uuidv4(),
-          profileId: getActiveProfileId(),
+      reader.onloadend = async () => {
+        const activeProfileId = await getActiveProfileId();
+        const newDoc: Omit<LibraryDocument, 'id'> = {
           name: file.name,
           type: file.type,
           data: reader.result as string,
           category: "General",
-          uploadedAt: new Date().toISOString()
+          uploadedAt: new Date().toISOString(),
+          profileId: activeProfileId
         };
-        saveLibraryDocument(newDoc);
-        setDocs(getLibraryDocuments());
+        const savedDoc = await saveLibraryDocument(newDoc);
+        setDocs(prev => [...prev, savedDoc]);
         toast({
           title: "Document Uploaded",
           description: `${file.name} added to your library.`,
@@ -62,10 +69,10 @@ export default function DocumentLibraryPage() {
     });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this library document?")) {
-      deleteLibraryDocument(id);
-      setDocs(getLibraryDocuments());
+      await deleteLibraryDocument(id);
+      setDocs(prev => prev.filter(d => d.id !== id));
       toast({
         title: "Document Removed",
         description: "The document has been deleted from your library.",
@@ -147,35 +154,39 @@ export default function DocumentLibraryPage() {
         </Card>
 
         <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredDocs.map((doc) => (
-            <Card key={doc.id} className="glass-card group hover:scale-[1.02] transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center text-white border border-white/5 group-hover:bg-white/10 transition-colors">
-                    <FileText className="size-6" />
+          {loading ? (
+            <div className="col-span-full py-24 text-center space-y-6">
+              Loading library...
+            </div>
+          ) : filteredDocs.length > 0 ? (
+            filteredDocs.map((doc) => (
+              <Card key={doc.id} className="glass-card group hover:scale-[1.02] transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center text-white border border-white/5 group-hover:bg-white/10 transition-colors">
+                      <FileText className="size-6" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-white/10" onClick={() => downloadDoc(doc)}>
+                        <Download className="size-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-destructive/20 text-destructive" onClick={() => handleDelete(doc.id)}>
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-white/10" onClick={() => downloadDoc(doc)}>
-                      <Download className="size-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-destructive/20 text-destructive" onClick={() => handleDelete(doc.id)}>
-                      <Trash2 className="size-4" />
-                    </Button>
+                  <div className="space-y-1">
+                    <h3 className="font-bold text-base truncate text-white">{doc.name}</h3>
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-black tracking-[0.15em]">
+                      <span>{doc.category}</span>
+                      <span className="opacity-30">•</span>
+                      <span>{new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-1">
-                  <h3 className="font-bold text-base truncate text-white">{doc.name}</h3>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-black tracking-[0.15em]">
-                    <span>{doc.category}</span>
-                    <span className="opacity-30">•</span>
-                    <span>{new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {filteredDocs.length === 0 && (
+                </CardContent>
+              </Card>
+            ))
+          ) : (
             <div className="col-span-full py-24 text-center space-y-6">
               <div className="size-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
                 <FolderOpen className="size-10 opacity-20" />

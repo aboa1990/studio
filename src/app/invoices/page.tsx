@@ -2,7 +2,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, ArrowUpRight } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, ArrowUpRight, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -32,14 +32,21 @@ export default function InvoicesList() {
   const { toast } = useToast()
   const [docs, setDocs] = useState<Document[]>([])
   const [search, setSearch] = useState("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setDocs(getDocuments().filter(d => d.type === 'invoice'))
+    const fetchDocuments = async () => {
+      setLoading(true);
+      const documents = await getDocuments();
+      setDocs(documents.filter(d => d.type === 'invoice'));
+      setLoading(false);
+    };
+    fetchDocuments();
   }, [])
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this invoice?")) {
-      deleteDocument(id);
+      await deleteDocument(id);
       setDocs(prev => prev.filter(d => d.id !== id));
       toast({
         title: "Invoice Deleted",
@@ -105,53 +112,62 @@ export default function InvoicesList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDocs.map((doc) => (
-                <TableRow key={doc.id} className="border-white/5 hover:bg-white/[0.02] transition-colors group">
-                  <TableCell className="py-5">
-                    <Link href={`/invoices/${doc.id}`} className="font-black text-white group-hover:underline underline-offset-4 flex items-center gap-2">
-                      {doc.number} <ArrowUpRight className="size-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </Link>
-                  </TableCell>
-                  <TableCell className="font-medium">{doc.clientName}</TableCell>
-                  <TableCell className="text-muted-foreground">{new Date(doc.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
-                  <TableCell className="font-black">MVR {doc.total.toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={`rounded-full px-3 py-1 font-bold text-[10px] uppercase tracking-widest ${getStatusColor(doc.status)}`}>
-                      {doc.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right pr-6">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-9 w-9 p-0 rounded-lg hover:bg-white/10 transition-colors">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="glass-card w-48 rounded-xl shadow-2xl">
-                        <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator className="bg-white/5" />
-                        <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 p-3 rounded-lg">
-                          <Link href={`/invoices/${doc.id}`} className="flex items-center"><Eye className="mr-3 h-4 w-4" /> View Details</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 p-3 rounded-lg">
-                          <Link href={`/invoices/${doc.id}/edit`} className="flex items-center"><Edit className="mr-3 h-4 w-4" /> Edit Record</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-white/5" />
-                        <DropdownMenuItem className="text-destructive focus:bg-destructive/10 p-3 rounded-lg cursor-pointer" onClick={() => handleDelete(doc.id)}>
-                          <Trash2 className="mr-3 h-4 w-4" /> Delete Permanently
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
+                    Loading your invoices...
                   </TableCell>
                 </TableRow>
-              ))}
-              {filteredDocs.length === 0 && (
+              ) : filteredDocs.length > 0 ? (
+                filteredDocs.map((doc) => (
+                  <TableRow key={doc.id} className="border-white/5 hover:bg-white/[0.02] transition-colors group">
+                    <TableCell className="py-5">
+                      <Link href={`/invoices/${doc.id}`} className="font-black text-white group-hover:underline underline-offset-4 flex items-center gap-2">
+                        {doc.number} <ArrowUpRight className="size-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </Link>
+                    </TableCell>
+                    <TableCell className="font-medium">{doc.clientName}</TableCell>
+                    <TableCell className="text-muted-foreground">{new Date(doc.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
+                    <TableCell className="font-black">MVR {doc.total.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={`rounded-full px-3 py-1 font-bold text-[10px] uppercase tracking-widest ${getStatusColor(doc.status)}`}>
+                        {doc.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-6">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-9 w-9 p-0 rounded-lg hover:bg-white/10 transition-colors">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="glass-card w-48 rounded-xl shadow-2xl">
+                          <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator className="bg-white/5" />
+                          <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 p-3 rounded-lg">
+                            <Link href={`/invoices/${doc.id}`} className="flex items-center"><Eye className="mr-3 h-4 w-4" /> View Details</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 p-3 rounded-lg">
+                            <Link href={`/invoices/${doc.id}/edit`} className="flex items-center"><Edit className="mr-3 h-4 w-4" /> Edit Record</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-white/5" />
+                          <DropdownMenuItem className="text-destructive focus:bg-destructive/10 p-3 rounded-lg cursor-pointer" onClick={() => handleDelete(doc.id)}>
+                            <Trash2 className="mr-3 h-4 w-4" /> Delete Permanently
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-48 text-center text-muted-foreground">
                     <div className="flex flex-col items-center gap-3">
                       <FileText className="size-12 opacity-10" />
-                      <p className="font-semibold">No invoices found matching your search.</p>
-                      <Button variant="outline" size="sm" className="rounded-full" onClick={() => setSearch("")}>Clear Search</Button>
+                      <p className="font-semibold">No invoices found.</p>
+                      <Button asChild variant="outline" size="sm" className="rounded-full">
+                        <Link href="/invoices/new">Create First Invoice</Link>
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

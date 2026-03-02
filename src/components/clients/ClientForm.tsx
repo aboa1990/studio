@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { v4 as uuidv4 } from "uuid"
 import { Save, ChevronLeft } from "lucide-react"
@@ -21,12 +21,11 @@ interface ClientFormProps {
 export default function ClientForm({ initialData }: ClientFormProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const activeProfileId = getActiveProfileId()
-
+  
   const [formData, setFormData] = useState<Client>(
     initialData || {
       id: uuidv4(),
-      profileId: activeProfileId,
+      profileId: '',
       name: "",
       contactPerson: "",
       email: "",
@@ -37,9 +36,19 @@ export default function ClientForm({ initialData }: ClientFormProps) {
     }
   )
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!initialData) {
+      const setProfileId = async () => {
+        const activeProfileId = await getActiveProfileId();
+        setFormData(prev => ({ ...prev, profileId: activeProfileId }));
+      }
+      setProfileId();
+    }
+  }, [initialData]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    saveClient(formData)
+    await saveClient(formData)
     toast({
       title: initialData ? "Client Updated" : "Client Created",
       description: `${formData.name} has been saved successfully.`,

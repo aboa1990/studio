@@ -32,14 +32,21 @@ export default function QuotationsList() {
   const { toast } = useToast()
   const [docs, setDocs] = useState<Document[]>([])
   const [search, setSearch] = useState("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setDocs(getDocuments().filter(d => d.type === 'quotation'))
+    const fetchDocuments = async () => {
+      setLoading(true);
+      const documents = await getDocuments();
+      setDocs(documents.filter(d => d.type === 'quotation'));
+      setLoading(false);
+    };
+    fetchDocuments();
   }, [])
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this quotation?")) {
-      deleteDocument(id);
+      await deleteDocument(id);
       setDocs(prev => prev.filter(d => d.id !== id));
       toast({
         title: "Quotation Deleted",
@@ -98,46 +105,53 @@ export default function QuotationsList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDocs.map((doc) => (
-                <TableRow key={doc.id} className="group transition-colors">
-                  <TableCell className="font-medium">
-                    <Link href={`/quotations/${doc.id}`} className="text-accent hover:underline underline-offset-4">
-                      {doc.number}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{doc.clientName}</TableCell>
-                  <TableCell>{new Date(doc.date).toLocaleDateString()}</TableCell>
-                  <TableCell>MVR {doc.total.toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={getStatusColor(doc.status)}>
-                      {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/quotations/${doc.id}`}><Eye className="mr-2 h-4 w-4" /> View</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/quotations/${doc.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(doc.id)}>
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                    Loading quotations...
                   </TableCell>
                 </TableRow>
-              ))}
-              {filteredDocs.length === 0 && (
+              ) : filteredDocs.length > 0 ? (
+                filteredDocs.map((doc) => (
+                  <TableRow key={doc.id} className="group transition-colors">
+                    <TableCell className="font-medium">
+                      <Link href={`/quotations/${doc.id}`} className="text-accent hover:underline underline-offset-4">
+                        {doc.number}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{doc.clientName}</TableCell>
+                    <TableCell>{new Date(doc.date).toLocaleDateString()}</TableCell>
+                    <TableCell>MVR {doc.total.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={getStatusColor(doc.status)}>
+                        {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/quotations/${doc.id}`}><Eye className="mr-2 h-4 w-4" /> View</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/quotations/${doc.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(doc.id)}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
                     No quotations found.

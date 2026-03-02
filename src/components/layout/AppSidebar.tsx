@@ -92,9 +92,11 @@ export function AppSidebar() {
   const [activeProfileId, setActiveId] = React.useState("")
 
   React.useEffect(() => {
-    const loadProfiles = () => {
-      setProfiles(getProfiles())
-      setActiveId(getActiveProfileId())
+    const loadProfiles = async () => {
+      const fetchedProfiles = await getProfiles();
+      const fetchedActiveId = await getActiveProfileId();
+      setProfiles(fetchedProfiles);
+      setActiveId(fetchedActiveId);
     }
     
     loadProfiles()
