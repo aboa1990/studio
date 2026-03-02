@@ -2,7 +2,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, Search, Briefcase, MoreHorizontal, Eye, Edit, Trash2, FileText } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -102,7 +102,11 @@ export default function TendersList() {
             <TableBody>
               {filteredDocs.map((doc) => (
                 <TableRow key={doc.id} className="group transition-colors">
-                  <TableCell className="font-medium">{doc.number}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link href={`/tenders/${doc.id}`} className="text-emerald-500 hover:underline underline-offset-4">
+                      {doc.number}
+                    </Link>
+                  </TableCell>
                   <TableCell>{doc.clientName}</TableCell>
                   <TableCell>{new Date(doc.date).toLocaleDateString()}</TableCell>
                   <TableCell>MVR {doc.total.toLocaleString()}</TableCell>

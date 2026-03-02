@@ -7,7 +7,6 @@ import {
   Quote, 
   TrendingUp, 
   Clock, 
-  AlertCircle,
   Plus,
   Briefcase
 } from "lucide-react"
@@ -145,7 +144,11 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-6">
               {docs.slice(0, 5).map((doc) => (
-                <div key={doc.id} className="flex items-center gap-4">
+                <Link 
+                  key={doc.id} 
+                  href={`/${doc.type}s/${doc.id}`}
+                  className="flex items-center gap-4 group hover:bg-muted/30 p-2 -mx-2 rounded-lg transition-colors"
+                >
                   <div className={`size-10 rounded-full flex items-center justify-center ${
                     doc.type === 'invoice' ? 'bg-primary/10 text-primary' : 
                     doc.type === 'tender' ? 'bg-emerald-500/10 text-emerald-500' :
@@ -153,14 +156,14 @@ export default function Dashboard() {
                   }`}>
                     {doc.type === 'invoice' ? <FileText size={18} /> : doc.type === 'tender' ? <Briefcase size={18} /> : <Quote size={18} />}
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">{doc.clientName}</p>
+                  <div className="flex-1 space-y-1 overflow-hidden">
+                    <p className="text-sm font-medium leading-none truncate group-hover:text-primary transition-colors">{doc.clientName}</p>
                     <p className="text-xs text-muted-foreground">{doc.number} • {new Date(doc.date).toLocaleDateString()}</p>
                   </div>
-                  <div className="text-sm font-bold">
+                  <div className="text-sm font-bold shrink-0">
                     MVR {doc.total.toLocaleString()}
                   </div>
-                </div>
+                </Link>
               ))}
               {docs.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
