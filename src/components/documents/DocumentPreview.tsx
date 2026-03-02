@@ -90,7 +90,9 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
 
         {/* Client Info */}
         <div className="mb-12">
-          <div className="text-slate-400 uppercase text-xs font-bold tracking-widest mb-2">Bill To:</div>
+          <div className="text-slate-400 uppercase text-xs font-bold tracking-widest mb-2">
+            {data.type === 'tender' ? 'Agency / Authority:' : 'Bill To:'}
+          </div>
           <div className="text-xl font-bold text-slate-800">{data.clientName}</div>
           <div className="text-slate-500 whitespace-pre-line">{data.clientAddress}</div>
           <div className="text-slate-500 mt-1">{data.clientEmail}</div>
@@ -140,8 +142,8 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
           </div>
         </div>
 
-        {/* Bank & Payment Info */}
-        {(company.bankDetails?.bankName || company.bankDetails?.accountNumber) && (
+        {/* Bank & Payment Info - Hidden for Tenders */}
+        {data.type !== 'tender' && (company.bankDetails?.bankName || company.bankDetails?.accountNumber) && (
           <div className="bg-slate-50 p-6 rounded mb-6 border border-slate-100">
             <div className="text-slate-900 font-bold text-sm mb-4 border-b border-slate-200 pb-2">BANK TRANSFER DETAILS</div>
             <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">

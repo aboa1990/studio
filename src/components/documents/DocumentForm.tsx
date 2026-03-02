@@ -34,6 +34,10 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const [libraryDocs, setLibraryDocs] = useState<LibraryDocument[]>([])
   const [isLibraryOpen, setIsLibraryOpen] = useState(false)
   
+  const defaultTerms = type === 'tender' 
+    ? "1. This proposal is valid for 90 days from the submission date.\n2. All prices are inclusive of GST.\n3. Delivery will be within the specified timeframe upon award."
+    : "1. Please pay within 14 days.\n2. Bank transfer is preferred.\n3. Include reference number as reference.";
+
   const [doc, setDoc] = useState<Partial<Document>>(
     initialData || {
       id: uuidv4(),
@@ -52,7 +56,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
       subtotal: 0,
       taxAmount: 0,
       total: 0,
-      terms: "1. Please pay within 14 days.\n2. Bank transfer is preferred.\n3. Include reference number as reference.",
+      terms: defaultTerms,
       attachments: []
     }
   )
