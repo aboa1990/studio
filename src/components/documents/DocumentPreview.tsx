@@ -42,6 +42,8 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
     pdf.save(`${data.type.toUpperCase()}-${data.number}.pdf`)
   }
 
+  const isBOQ = data.type === 'boq';
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -108,48 +110,93 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
           <div className="text-slate-500 mt-1">{data.clientEmail}</div>
         </div>
 
-        {/* Items Table */}
+        {/* Specialized BOQ Section or Standard Table */}
         <div className="flex-1">
-          <table className="w-full mb-12">
-            <thead>
-              <tr className="border-b-2 border-slate-900">
-                <th className="text-left py-4 font-bold text-sm uppercase">Description</th>
-                <th className="text-center py-4 font-bold text-sm uppercase">Qty</th>
-                <th className="text-right py-4 font-bold text-sm uppercase">Rate</th>
-                <th className="text-right py-4 font-bold text-sm uppercase">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((item) => (
-                <tr key={item.id} className="border-b border-slate-100">
-                  <td className="py-4 text-slate-700">{item.description}</td>
-                  <td className="text-center py-4 text-slate-700">{item.quantity}</td>
-                  <td className="text-right py-4 text-slate-700">{data.currency} {item.price.toFixed(2)}</td>
-                  <td className="text-right py-4 font-medium text-slate-900">
-                    {data.currency} {(item.quantity * item.price).toFixed(2)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Summary */}
-          <div className="flex justify-end mb-12">
-            <div className="w-64 space-y-3">
-              <div className="flex justify-between text-slate-500">
-                <span>Subtotal:</span>
-                <span>{data.currency} {data.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-slate-500">
-                <span>GST ({data.taxRate}%):</span>
-                <span>{data.currency} {data.taxAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-2xl font-black border-t-2 border-slate-900 pt-3">
-                <span>Total:</span>
-                <span>{data.currency} {data.total.toFixed(2)}</span>
+          {isBOQ ? (
+            <div className="space-y-6">
+              <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">PRICING SUMMARY</h2>
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-300">
+                    <th className="text-left py-3 font-bold text-slate-900 w-24">Cost Code</th>
+                    <th className="text-left py-3 font-bold text-slate-900">Element</th>
+                    <th className="text-right py-3 font-bold text-slate-900">Subtotal (MVR)</th>
+                    <th className="text-right py-3 font-bold text-slate-900">Total (MVR)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.items.map((item) => (
+                    <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                      <td className="py-3 text-slate-600 font-medium">{item.costCode || '—'}</td>
+                      <td className="py-3 text-slate-800">{item.description}</td>
+                      <td className="py-3 text-right text-slate-600">{item.price.toFixed(2)}</td>
+                      <td className="py-3 text-right font-bold text-slate-900">
+                        {(item.quantity * item.price).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex justify-end pt-4 border-t-2 border-slate-900 mt-4">
+                <div className="w-full max-w-md space-y-4">
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="text-slate-500">Total (building works)</span>
+                    <span className="text-slate-900">MVR {data.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="text-slate-500">GST ({data.taxRate}%)</span>
+                    <span className="text-slate-900">MVR {data.taxAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xl font-black text-cyan-600 pt-4">
+                    <span>Total tender price, exclusive of VAT</span>
+                    <span>MVR {data.total.toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <table className="w-full mb-12">
+                <thead>
+                  <tr className="border-b-2 border-slate-900">
+                    <th className="text-left py-4 font-bold text-sm uppercase">Description</th>
+                    <th className="text-center py-4 font-bold text-sm uppercase">Qty</th>
+                    <th className="text-right py-4 font-bold text-sm uppercase">Rate</th>
+                    <th className="text-right py-4 font-bold text-sm uppercase">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.items.map((item) => (
+                    <tr key={item.id} className="border-b border-slate-100">
+                      <td className="py-4 text-slate-700">{item.description}</td>
+                      <td className="text-center py-4 text-slate-700">{item.quantity}</td>
+                      <td className="text-right py-4 text-slate-700">{data.currency} {item.price.toFixed(2)}</td>
+                      <td className="text-right py-4 font-medium text-slate-900">
+                        {data.currency} {(item.quantity * item.price).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="flex justify-end mb-12">
+                <div className="w-64 space-y-3">
+                  <div className="flex justify-between text-slate-500">
+                    <span>Subtotal:</span>
+                    <span>{data.currency} {data.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500">
+                    <span>GST ({data.taxRate}%):</span>
+                    <span>{data.currency} {data.taxAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-2xl font-black border-t-2 border-slate-900 pt-3">
+                    <span>Total:</span>
+                    <span>{data.currency} {data.total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Bank & Payment Info - Hidden for Tenders and BOQs */}

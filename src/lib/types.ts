@@ -5,6 +5,7 @@ export type DocumentStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'rejected' 
 
 export interface LineItem {
   id: string;
+  costCode?: string;
   description: string;
   quantity: number;
   price: number;

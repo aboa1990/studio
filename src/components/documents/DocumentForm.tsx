@@ -49,7 +49,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
       clientName: "",
       clientEmail: "",
       clientAddress: "",
-      items: [{ id: uuidv4(), description: "", quantity: 1, price: 0 }],
+      items: [{ id: uuidv4(), description: "", quantity: 1, price: 0, costCode: "" }],
       taxRate: 6,
       date: new Date().toISOString().split('T')[0],
       dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -92,7 +92,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const handleAddItem = () => {
     setDoc(prev => ({
       ...prev,
-      items: [...(prev.items || []), { id: uuidv4(), description: "", quantity: 1, price: 0 }]
+      items: [...(prev.items || []), { id: uuidv4(), description: "", quantity: 1, price: 0, costCode: "" }]
     }));
   }
 
@@ -310,7 +310,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Quantities / Line Items</CardTitle>
+          <CardTitle>{type === 'boq' ? 'Pricing Items' : 'Quantities / Line Items'}</CardTitle>
           <Button type="button" variant="outline" size="sm" onClick={handleAddItem}>
             <Plus className="h-4 w-4 mr-2" /> Add Item
           </Button>
@@ -319,10 +319,20 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
           <div className="space-y-4">
             {doc.items?.map((item, index) => (
               <div key={item.id} className="grid grid-cols-12 gap-4 items-end border-b pb-4 last:border-0 last:pb-0">
-                <div className="col-span-6 space-y-2">
-                  <Label>Description</Label>
+                {type === 'boq' && (
+                  <div className="col-span-2 space-y-2">
+                    <Label>Cost Code</Label>
+                    <Input
+                      placeholder="e.g. 1.1"
+                      value={item.costCode || ""}
+                      onChange={e => handleItemChange(item.id, 'costCode', e.target.value)}
+                    />
+                  </div>
+                )}
+                <div className={type === 'boq' ? "col-span-4 space-y-2" : "col-span-6 space-y-2"}>
+                  <Label>Description / Element</Label>
                   <Input
-                    placeholder="Description of work or material"
+                    placeholder="Description of work"
                     value={item.description}
                     onChange={e => handleItemChange(item.id, 'description', e.target.value)}
                   />
