@@ -11,7 +11,8 @@ import {
   BarChart3,
   Check,
   ChevronsUpDown,
-  Building2
+  Building2,
+  Briefcase
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -55,6 +56,11 @@ const items = [
     title: "Quotations",
     url: "/quotations",
     icon: Quote,
+  },
+  {
+    title: "Tenders & Bids",
+    url: "/tenders",
+    icon: Briefcase,
   },
   {
     title: "Settings",
@@ -185,6 +191,14 @@ export function AppSidebar() {
                   <Link href="/quotations/new" className="text-accent hover:text-accent">
                     <PlusCircle />
                     <span>Create Quotation</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="New Tender">
+                  <Link href="/tenders/new" className="text-emerald-500 hover:text-emerald-400">
+                    <PlusCircle />
+                    <span>Create Tender</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

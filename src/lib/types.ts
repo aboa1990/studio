@@ -1,13 +1,20 @@
 
-export type DocumentType = 'invoice' | 'quotation';
+export type DocumentType = 'invoice' | 'quotation' | 'tender';
 
-export type DocumentStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'rejected';
+export type DocumentStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'rejected' | 'submitted' | 'awarded' | 'lost';
 
 export interface LineItem {
   id: string;
   description: string;
   quantity: number;
   price: number;
+}
+
+export interface Attachment {
+  id: string;
+  name: string;
+  type: string;
+  data: string;
 }
 
 export interface Document {
@@ -28,6 +35,7 @@ export interface Document {
   total: number;
   notes?: string;
   terms?: string;
+  attachments?: Attachment[];
 }
 
 export interface BankDetails {

@@ -8,7 +8,8 @@ import {
   TrendingUp, 
   Clock, 
   AlertCircle,
-  Plus
+  Plus,
+  Briefcase
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -35,15 +36,17 @@ export default function Dashboard() {
 
   const invoices = docs.filter(d => d.type === 'invoice')
   const quotations = docs.filter(d => d.type === 'quotation')
+  const tenders = docs.filter(d => d.type === 'tender')
   
   const totalInvoiced = invoices.reduce((sum, doc) => sum + doc.total, 0)
   const pendingInvoiced = invoices.filter(i => i.status !== 'paid').reduce((sum, doc) => sum + doc.total, 0)
   const quotationValue = quotations.reduce((sum, doc) => sum + doc.total, 0)
+  const tenderValue = tenders.reduce((sum, doc) => sum + doc.total, 0)
 
   const chartData = [
     { name: 'Invoiced', value: totalInvoiced, color: 'hsl(var(--primary))' },
-    { name: 'Pending', value: pendingInvoiced, color: 'hsl(var(--accent))' },
     { name: 'Quotations', value: quotationValue, color: 'hsl(var(--muted-foreground))' },
+    { name: 'Tenders', value: tenderValue, color: 'hsl(160 60% 45%)' },
   ]
 
   const stats = [
@@ -62,18 +65,18 @@ export default function Dashboard() {
       color: "text-accent"
     },
     {
+      label: "Open Tenders",
+      value: `MVR ${tenderValue.toLocaleString()}`,
+      icon: Briefcase,
+      desc: "Bid submissions",
+      color: "text-emerald-500"
+    },
+    {
       label: "Open Quotes",
       value: `MVR ${quotationValue.toLocaleString()}`,
       icon: Quote,
       desc: "Potential revenue",
       color: "text-muted-foreground"
-    },
-    {
-      label: "Overdue",
-      value: `${invoices.filter(i => i.status === 'overdue').length}`,
-      icon: AlertCircle,
-      desc: "Urgent follow-ups",
-      color: "text-destructive"
     }
   ]
 
@@ -143,8 +146,12 @@ export default function Dashboard() {
             <div className="space-y-6">
               {docs.slice(0, 5).map((doc) => (
                 <div key={doc.id} className="flex items-center gap-4">
-                  <div className={`size-10 rounded-full flex items-center justify-center ${doc.type === 'invoice' ? 'bg-primary/10 text-primary' : 'bg-accent/10 text-accent'}`}>
-                    {doc.type === 'invoice' ? <FileText size={18} /> : <Quote size={18} />}
+                  <div className={`size-10 rounded-full flex items-center justify-center ${
+                    doc.type === 'invoice' ? 'bg-primary/10 text-primary' : 
+                    doc.type === 'tender' ? 'bg-emerald-500/10 text-emerald-500' :
+                    'bg-accent/10 text-accent'
+                  }`}>
+                    {doc.type === 'invoice' ? <FileText size={18} /> : doc.type === 'tender' ? <Briefcase size={18} /> : <Quote size={18} />}
                   </div>
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium leading-none">{doc.clientName}</p>

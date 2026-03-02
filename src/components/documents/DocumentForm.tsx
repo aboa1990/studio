@@ -3,14 +3,14 @@
 
 import { useState, useEffect } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { Trash2, Plus, Save, FileCheck } from "lucide-react"
+import { Trash2, Plus, Save, FileCheck, Upload, FileText, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Document, LineItem, DocumentType, DocumentStatus } from "@/lib/types"
+import { Document, LineItem, DocumentType, DocumentStatus, Attachment } from "@/lib/types"
 import { useRouter } from "next/navigation"
 import { saveDocument, getActiveProfileId } from "@/lib/store"
 
@@ -28,7 +28,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
       id: uuidv4(),
       profileId: activeProfileId,
       type,
-      number: `${type === 'invoice' ? 'INV' : 'QT'}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`,
+      number: `${type === 'invoice' ? 'INV' : type === 'tender' ? 'TDR' : 'QT'}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`,
       clientName: "",
       clientEmail: "",
       items: [{ id: uuidv4(), description: "", quantity: 1, price: 0 }],
@@ -40,7 +40,8 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
       subtotal: 0,
       taxAmount: 0,
       total: 0,
-      terms: "1. Please pay within 14 days.\n2. Bank transfer is preferred.\n3. Include invoice number as reference.",
+      terms: "1. Please pay within 14 days.\n2. Bank transfer is preferred.\n3. Include reference number as reference.",
+      attachments: []
     }
   )
 
@@ -73,11 +74,40 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
     }));
   }
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newAttachment: Attachment = {
+          id: uuidv4(),
+          name: file.name,
+          type: file.type,
+          data: reader.result as string
+        };
+        setDoc(prev => ({
+          ...prev,
+          attachments: [...(prev.attachments || []), newAttachment]
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeAttachment = (id: string) => {
+    setDoc(prev => ({
+      ...prev,
+      attachments: prev.attachments?.filter(a => a.id !== id) || []
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (doc.items && doc.items.length > 0) {
       saveDocument(doc as Document);
-      router.push(type === 'invoice' ? '/invoices' : '/quotations');
+      router.push(type === 'invoice' ? '/invoices' : type === 'tender' ? '/tenders' : '/quotations');
     }
   }
 
@@ -125,10 +155,10 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="client-name">Client Name</Label>
+              <Label htmlFor="client-name">Client / Agency Name</Label>
               <Input
                 id="client-name"
-                placeholder="ABC Maldives Pvt Ltd"
+                placeholder="Government Ministry or Agency"
                 value={doc.clientName}
                 onChange={e => setDoc(prev => ({ ...prev, clientName: e.target.value }))}
                 required
@@ -136,11 +166,11 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="client-email">Client Email</Label>
+              <Label htmlFor="client-email">Contact Email</Label>
               <Input
                 id="client-email"
                 type="email"
-                placeholder="finance@client.mv"
+                placeholder="tenders@agency.gov.mv"
                 value={doc.clientEmail}
                 onChange={e => setDoc(prev => ({ ...prev, clientEmail: e.target.value }))}
                 required
@@ -166,8 +196,15 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
                 <SelectContent>
                   <SelectItem value="draft">Draft</SelectItem>
                   <SelectItem value="sent">Sent</SelectItem>
+                  {type === 'tender' && (
+                    <>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                      <SelectItem value="awarded">Awarded</SelectItem>
+                    </>
+                  )}
                   {type === 'invoice' && <SelectItem value="paid">Paid</SelectItem>}
                   <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="lost">Lost</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -183,7 +220,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="due-date">Due Date</Label>
+              <Label htmlFor="due-date">Submission/Due Date</Label>
               <Input
                 id="due-date"
                 type="date"
@@ -197,7 +234,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Line Items</CardTitle>
+          <CardTitle>Pricing / Line Items</CardTitle>
           <Button type="button" variant="outline" size="sm" onClick={handleAddItem}>
             <Plus className="h-4 w-4 mr-2" /> Add Item
           </Button>
@@ -257,13 +294,56 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
                 <span className="font-medium">{doc.currency} {doc.taxAmount?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between py-1 text-lg font-bold">
-                <span>Total:</span>
+                <span>Total Proposal Value:</span>
                 <span className="text-primary">{doc.currency} {doc.total?.toFixed(2)}</span>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {type === 'tender' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="size-5" /> Supporting Documents (Attachments)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {doc.attachments?.map((attachment) => (
+                <div key={attachment.id} className="p-3 border rounded-lg bg-muted/50 flex items-center justify-between group">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <FileText className="size-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm truncate">{attachment.name}</span>
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="size-6 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeAttachment(attachment.id)}
+                  >
+                    <X className="size-3" />
+                  </Button>
+                </div>
+              ))}
+              <Label htmlFor="tender-files" className="cursor-pointer border-2 border-dashed rounded-lg p-3 hover:bg-muted/50 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground">
+                <Upload className="size-4" />
+                <span className="text-xs">Add Files</span>
+                <span className="text-[10px] opacity-50">Reg, Letters, Bids...</span>
+                <input 
+                  id="tender-files" 
+                  type="file" 
+                  multiple 
+                  className="hidden" 
+                  onChange={handleFileUpload} 
+                />
+              </Label>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
