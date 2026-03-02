@@ -15,6 +15,12 @@ const defaultCompany: CompanyProfile = {
   email: 'hello@forgedocs.mv',
   phone: '+960 333-4444',
   gstNumber: 'GST-123456789',
+  bankDetails: {
+    bankName: 'Bank of Maldives (BML)',
+    accountName: 'ForgeDocs Pvt Ltd',
+    accountNumber: '7730000012345',
+    branchName: 'Main Branch',
+  }
 };
 
 export const getProfiles = (): CompanyProfile[] => {

@@ -29,6 +29,13 @@ export interface Document {
   notes?: string;
 }
 
+export interface BankDetails {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  branchName?: string;
+}
+
 export interface CompanyProfile {
   id: string;
   name: string;
@@ -37,6 +44,7 @@ export interface CompanyProfile {
   phone: string;
   logoUrl?: string;
   gstNumber?: string;
+  bankDetails?: BankDetails;
 }
 
 // Keeping for backward compatibility or singular references if needed

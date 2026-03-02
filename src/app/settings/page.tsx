@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Save, Building2, Plus, Trash2, CheckCircle2 } from "lucide-react"
+import { Save, Building2, Plus, Trash2, CheckCircle2, Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,6 +12,7 @@ import { getProfiles, saveProfile, deleteProfile, getActiveProfileId, setActiveP
 import { CompanyProfile } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import { v4 as uuidv4 } from "uuid"
+import Image from "next/image"
 
 export default function SettingsPage() {
   const { toast } = useToast()
@@ -24,6 +25,12 @@ export default function SettingsPage() {
     email: "",
     phone: "",
     gstNumber: "",
+    bankDetails: {
+      bankName: "",
+      accountName: "",
+      accountNumber: "",
+      branchName: ""
+    }
   })
 
   useEffect(() => {
@@ -35,7 +42,15 @@ export default function SettingsPage() {
     if (editingId) {
       const profile = profiles.find(p => p.id === editingId)
       if (profile) {
-        setFormData(profile)
+        setFormData({
+          ...profile,
+          bankDetails: profile.bankDetails || {
+            bankName: "",
+            accountName: "",
+            accountNumber: "",
+            branchName: ""
+          }
+        })
       }
     }
   }, [editingId, profiles])
@@ -59,6 +74,12 @@ export default function SettingsPage() {
       email: "",
       phone: "",
       gstNumber: "",
+      bankDetails: {
+        bankName: "",
+        accountName: "",
+        accountNumber: "",
+        branchName: ""
+      }
     };
     saveProfile(newProfile);
     setProfiles(getProfiles());
@@ -100,6 +121,21 @@ export default function SettingsPage() {
     });
   }
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, logoUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeLogo = () => {
+    setFormData(prev => ({ ...prev, logoUrl: undefined }));
+  };
+
   const activeId = getActiveProfileId();
 
   return (
@@ -110,7 +146,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-1 border-none shadow-lg bg-card/50">
+        <Card className="lg:col-span-1 border-none shadow-lg bg-card/50 h-fit">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Companies</CardTitle>
             <Button size="icon" variant="outline" onClick={handleAddNew}>
@@ -143,15 +179,15 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-8">
           {editingId ? (
-            <form onSubmit={handleSave}>
+            <form onSubmit={handleSave} className="space-y-6">
               <Card className="border-none shadow-lg bg-card/50">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
                     <CardTitle>Company Details</CardTitle>
                     <CardDescription>
-                      Edit branding and contact information for this profile.
+                      Edit branding and contact information.
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
@@ -166,6 +202,50 @@ export default function SettingsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center border-b border-border pb-6">
+                    <div className="relative size-24 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                      {formData.logoUrl ? (
+                        <>
+                          <Image src={formData.logoUrl} alt="Logo" fill className="object-contain" />
+                          <button 
+                            type="button" 
+                            onClick={removeLogo}
+                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="size-3" />
+                          </button>
+                        </>
+                      ) : (
+                        <Building2 className="size-8 text-muted-foreground" />
+                      )}
+                      {formData.logoUrl && (
+                        <button 
+                          type="button" 
+                          onClick={removeLogo}
+                          className="absolute top-1 right-1 bg-destructive/80 text-destructive-foreground rounded-full p-1 hover:bg-destructive"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="space-y-2 flex-1">
+                      <Label htmlFor="logo-upload" className="cursor-pointer">
+                        <div className="flex items-center gap-2 text-primary font-medium hover:underline">
+                          <Upload className="size-4" />
+                          {formData.logoUrl ? "Change Company Logo" : "Upload Company Logo"}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Recommended size: 400x400px. JPG, PNG or SVG.</p>
+                      </Label>
+                      <input 
+                        id="logo-upload" 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={handleLogoUpload}
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="company-name">Business Name</Label>
                     <Input 
@@ -183,7 +263,7 @@ export default function SettingsPage() {
                       value={formData.address}
                       onChange={e => setFormData(prev => ({ ...prev, address: e.target.value }))}
                       required
-                      className="min-h-[100px]"
+                      className="min-h-[80px]"
                     />
                   </div>
 
@@ -217,6 +297,68 @@ export default function SettingsPage() {
                       value={formData.gstNumber || ""}
                       onChange={e => setFormData(prev => ({ ...prev, gstNumber: e.target.value }))}
                     />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-none shadow-lg bg-card/50">
+                <CardHeader>
+                  <CardTitle>Bank Details</CardTitle>
+                  <CardDescription>This information will appear on your invoices and quotations.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="bank-name">Bank Name</Label>
+                      <Input 
+                        id="bank-name" 
+                        placeholder="e.g. Bank of Maldives (BML)"
+                        value={formData.bankDetails?.bankName || ""}
+                        onChange={e => setFormData(prev => ({ 
+                          ...prev, 
+                          bankDetails: { ...(prev.bankDetails || { bankName: "", accountName: "", accountNumber: "" }), bankName: e.target.value } 
+                        }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="account-name">Account Name</Label>
+                      <Input 
+                        id="account-name" 
+                        placeholder="e.g. My Company Pvt Ltd"
+                        value={formData.bankDetails?.accountName || ""}
+                        onChange={e => setFormData(prev => ({ 
+                          ...prev, 
+                          bankDetails: { ...(prev.bankDetails || { bankName: "", accountName: "", accountNumber: "" }), accountName: e.target.value } 
+                        }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="account-number">Account Number</Label>
+                      <Input 
+                        id="account-number" 
+                        placeholder="77XXXXXXXXXXX"
+                        value={formData.bankDetails?.accountNumber || ""}
+                        onChange={e => setFormData(prev => ({ 
+                          ...prev, 
+                          bankDetails: { ...(prev.bankDetails || { bankName: "", accountName: "", accountNumber: "" }), accountNumber: e.target.value } 
+                        }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="branch-name">Branch (Optional)</Label>
+                      <Input 
+                        id="branch-name" 
+                        placeholder="e.g. Main Branch / Male"
+                        value={formData.bankDetails?.branchName || ""}
+                        onChange={e => setFormData(prev => ({ 
+                          ...prev, 
+                          bankDetails: { ...(prev.bankDetails || { bankName: "", accountName: "", accountNumber: "" }), branchName: e.target.value } 
+                        }))}
+                      />
+                    </div>
                   </div>
 
                   <div className="pt-4 flex justify-end">
