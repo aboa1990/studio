@@ -3,16 +3,24 @@
 
 import { useState, useEffect } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { Trash2, Plus, Save, FileCheck, Upload, FileText, X, Users } from "lucide-react"
+import { Trash2, Plus, Save, FileCheck, Upload, FileText, X, Users, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Document, LineItem, DocumentType, DocumentStatus, Attachment, Client } from "@/lib/types"
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog"
+import { Document, LineItem, DocumentType, DocumentStatus, Attachment, Client, LibraryDocument } from "@/lib/types"
 import { useRouter } from "next/navigation"
-import { saveDocument, getActiveProfileId, getClients } from "@/lib/store"
+import { saveDocument, getActiveProfileId, getClients, getLibraryDocuments } from "@/lib/store"
 
 interface DocumentFormProps {
   initialData?: Document;
@@ -23,6 +31,8 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const router = useRouter()
   const activeProfileId = getActiveProfileId()
   const [savedClients, setSavedClients] = useState<Client[]>([])
+  const [libraryDocs, setLibraryDocs] = useState<LibraryDocument[]>([])
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false)
   
   const [doc, setDoc] = useState<Partial<Document>>(
     initialData || {
@@ -49,6 +59,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
 
   useEffect(() => {
     setSavedClients(getClients())
+    setLibraryDocs(getLibraryDocuments())
   }, [])
 
   useEffect(() => {
@@ -114,6 +125,22 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
       reader.readAsDataURL(file);
     });
   };
+
+  const addFromLibrary = (libDoc: LibraryDocument) => {
+    const alreadyExists = doc.attachments?.some(a => a.name === libDoc.name);
+    if (alreadyExists) return;
+
+    const newAttachment: Attachment = {
+      id: uuidv4(),
+      name: libDoc.name,
+      type: libDoc.type,
+      data: libDoc.data
+    };
+    setDoc(prev => ({
+      ...prev,
+      attachments: [...(prev.attachments || []), newAttachment]
+    }));
+  }
 
   const removeAttachment = (id: string) => {
     setDoc(prev => ({
@@ -347,10 +374,49 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
 
       {type === 'tender' && (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <FileText className="size-5" /> Supporting Documents (Attachments)
             </CardTitle>
+            <Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" type="button">
+                  <BookOpen className="size-4 mr-2" /> Library
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Select from Library</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto py-4">
+                  {libraryDocs.map(libDoc => (
+                    <div 
+                      key={libDoc.id} 
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                      onClick={() => {
+                        addFromLibrary(libDoc);
+                        setIsLibraryOpen(false);
+                      }}
+                    >
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <FileText className="size-4 text-primary shrink-0" />
+                        <span className="text-sm truncate font-medium">{libDoc.name}</span>
+                      </div>
+                      <Plus className="size-4 text-muted-foreground" />
+                    </div>
+                  ))}
+                  {libraryDocs.length === 0 && (
+                    <div className="text-center py-10 text-muted-foreground">
+                      <p className="text-sm">Library is empty.</p>
+                      <p className="text-xs">Add files in the "Doc Library" section.</p>
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button variant="ghost" onClick={() => setIsLibraryOpen(false)}>Close</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

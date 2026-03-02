@@ -17,6 +17,16 @@ export interface Attachment {
   data: string;
 }
 
+export interface LibraryDocument {
+  id: string;
+  profileId: string;
+  name: string;
+  type: string;
+  data: string; // Base64 encoded string
+  category: string;
+  uploadedAt: string;
+}
+
 export interface Client {
   id: string;
   profileId: string;

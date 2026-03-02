@@ -13,7 +13,8 @@ import {
   ChevronsUpDown,
   Building2,
   Briefcase,
-  Users
+  Users,
+  FolderOpen
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -67,6 +68,11 @@ const items = [
     title: "Clients",
     url: "/clients",
     icon: Users,
+  },
+  {
+    title: "Doc Library",
+    url: "/library",
+    icon: FolderOpen,
   },
   {
     title: "Settings",
