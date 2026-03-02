@@ -2,19 +2,23 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Save, Building2 } from "lucide-react"
+import { Save, Building2, Plus, Trash2, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getCompanyDetails, saveCompanyDetails } from "@/lib/store"
-import { CompanyDetails } from "@/lib/types"
+import { getProfiles, saveProfile, deleteProfile, getActiveProfileId, setActiveProfileId } from "@/lib/store"
+import { CompanyProfile } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
+import { v4 as uuidv4 } from "uuid"
 
 export default function SettingsPage() {
   const { toast } = useToast()
-  const [company, setCompany] = useState<CompanyDetails>({
+  const [profiles, setProfiles] = useState<CompanyProfile[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [formData, setFormData] = useState<CompanyProfile>({
+    id: "",
     name: "",
     address: "",
     email: "",
@@ -23,99 +27,213 @@ export default function SettingsPage() {
   })
 
   useEffect(() => {
-    setCompany(getCompanyDetails())
+    setProfiles(getProfiles())
+    setEditingId(getActiveProfileId())
   }, [])
+
+  useEffect(() => {
+    if (editingId) {
+      const profile = profiles.find(p => p.id === editingId)
+      if (profile) {
+        setFormData(profile)
+      }
+    }
+  }, [editingId, profiles])
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    saveCompanyDetails(company);
+    saveProfile(formData);
+    setProfiles(getProfiles());
     toast({
-      title: "Settings Saved",
-      description: "Company details have been updated and will appear on new documents.",
+      title: "Profile Saved",
+      description: `${formData.name} details have been updated.`,
     });
   }
+
+  const handleAddNew = () => {
+    const newId = uuidv4();
+    const newProfile: CompanyProfile = {
+      id: newId,
+      name: "New Company",
+      address: "",
+      email: "",
+      phone: "",
+      gstNumber: "",
+    };
+    saveProfile(newProfile);
+    setProfiles(getProfiles());
+    setEditingId(newId);
+    toast({
+      title: "New Profile Created",
+      description: "Start by filling in your company details.",
+    });
+  }
+
+  const handleDelete = (id: string) => {
+    if (profiles.length <= 1) {
+      toast({
+        title: "Cannot Delete",
+        description: "You must have at least one company profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (confirm("Are you sure you want to delete this profile? All associated documents will also be deleted.")) {
+      deleteProfile(id);
+      const updated = getProfiles();
+      setProfiles(updated);
+      setEditingId(getActiveProfileId());
+      toast({
+        title: "Profile Deleted",
+        description: "The company profile and its documents have been removed.",
+      });
+    }
+  }
+
+  const handleSetActive = (id: string) => {
+    setActiveProfileId(id);
+    setEditingId(id);
+    toast({
+      title: "Active Profile Switched",
+      description: "You are now managing this company.",
+    });
+  }
+
+  const activeId = getActiveProfileId();
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-4xl font-headline font-black tracking-tight">Settings</h1>
-        <p className="text-muted-foreground mt-1">Configure your company profile and branding.</p>
+        <h1 className="text-4xl font-headline font-black tracking-tight">Profiles & Settings</h1>
+        <p className="text-muted-foreground mt-1">Manage multiple business entities and their branding.</p>
       </div>
 
-      <form onSubmit={handleSave}>
-        <Card className="border-none shadow-lg bg-card/50 max-w-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="size-5 text-primary" />
-              Company Branding
-            </CardTitle>
-            <CardDescription>
-              These details will automatically appear on all generated Invoices and Quotations.
-            </CardDescription>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Card className="lg:col-span-1 border-none shadow-lg bg-card/50">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Companies</CardTitle>
+            <Button size="icon" variant="outline" onClick={handleAddNew}>
+              <Plus className="size-4" />
+            </Button>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="company-name">Business Name</Label>
-              <Input 
-                id="company-name" 
-                value={company.name}
-                onChange={e => setCompany(prev => ({ ...prev, name: e.target.value }))}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="company-address">Business Address</Label>
-              <Textarea 
-                id="company-address" 
-                value={company.address}
-                onChange={e => setCompany(prev => ({ ...prev, address: e.target.value }))}
-                required
-                className="min-h-[100px]"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="company-email">Billing Email</Label>
-                <Input 
-                  id="company-email" 
-                  type="email"
-                  value={company.email}
-                  onChange={e => setCompany(prev => ({ ...prev, email: e.target.value }))}
-                  required
-                />
+          <CardContent className="space-y-2">
+            {profiles.map(profile => (
+              <div 
+                key={profile.id}
+                className={`p-4 rounded-lg border transition-all cursor-pointer flex items-center justify-between ${
+                  editingId === profile.id 
+                    ? "bg-primary/10 border-primary" 
+                    : "bg-background border-border hover:border-muted-foreground/50"
+                }`}
+                onClick={() => setEditingId(profile.id)}
+              >
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className={`size-8 rounded flex items-center justify-center shrink-0 ${profile.id === activeId ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                    <Building2 className="size-4" />
+                  </div>
+                  <div className="overflow-hidden">
+                    <p className="font-medium truncate">{profile.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{profile.email || "No email set"}</p>
+                  </div>
+                </div>
+                {profile.id === activeId && <CheckCircle2 className="size-4 text-primary shrink-0 ml-2" />}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="company-phone">Contact Phone</Label>
-                <Input 
-                  id="company-phone" 
-                  value={company.phone}
-                  onChange={e => setCompany(prev => ({ ...prev, phone: e.target.value }))}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="company-gst">GST Number (Optional)</Label>
-              <Input 
-                id="company-gst" 
-                placeholder="GST-XXXXX-XXXX"
-                value={company.gstNumber}
-                onChange={e => setCompany(prev => ({ ...prev, gstNumber: e.target.value }))}
-              />
-              <p className="text-xs text-muted-foreground italic">Standard Maldives GST format is recommended.</p>
-            </div>
-
-            <div className="pt-4 flex justify-end">
-              <Button type="submit" className="bg-primary text-primary-foreground">
-                <Save className="mr-2 h-4 w-4" /> Save Changes
-              </Button>
-            </div>
+            ))}
           </CardContent>
         </Card>
-      </form>
+
+        <div className="lg:col-span-2">
+          {editingId ? (
+            <form onSubmit={handleSave}>
+              <Card className="border-none shadow-lg bg-card/50">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Company Details</CardTitle>
+                    <CardDescription>
+                      Edit branding and contact information for this profile.
+                    </CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    {editingId !== activeId && (
+                      <Button type="button" variant="outline" onClick={() => handleSetActive(editingId)}>
+                        Set as Active
+                      </Button>
+                    )}
+                    <Button type="button" variant="destructive" size="icon" onClick={() => handleDelete(editingId)}>
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="company-name">Business Name</Label>
+                    <Input 
+                      id="company-name" 
+                      value={formData.name}
+                      onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="company-address">Business Address</Label>
+                    <Textarea 
+                      id="company-address" 
+                      value={formData.address}
+                      onChange={e => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                      required
+                      className="min-h-[100px]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="company-email">Billing Email</Label>
+                      <Input 
+                        id="company-email" 
+                        type="email"
+                        value={formData.email}
+                        onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="company-phone">Contact Phone</Label>
+                      <Input 
+                        id="company-phone" 
+                        value={formData.phone}
+                        onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="company-gst">GST Number (Optional)</Label>
+                    <Input 
+                      id="company-gst" 
+                      placeholder="GST-XXXXX-XXXX"
+                      value={formData.gstNumber || ""}
+                      onChange={e => setFormData(prev => ({ ...prev, gstNumber: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="pt-4 flex justify-end">
+                    <Button type="submit" className="bg-primary text-primary-foreground w-full sm:w-auto">
+                      <Save className="mr-2 h-4 w-4" /> Save Changes
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </form>
+          ) : (
+            <div className="h-full flex items-center justify-center p-12 border-2 border-dashed rounded-lg border-muted">
+              <p className="text-muted-foreground">Select a profile from the left to edit or create a new one.</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

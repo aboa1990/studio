@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Document, LineItem, DocumentType, DocumentStatus } from "@/lib/types"
 import { useRouter } from "next/navigation"
-import { saveDocument } from "@/lib/store"
+import { saveDocument, getActiveProfileId } from "@/lib/store"
 
 interface DocumentFormProps {
   initialData?: Document;
@@ -20,9 +20,12 @@ interface DocumentFormProps {
 
 export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const router = useRouter()
+  const activeProfileId = getActiveProfileId()
+  
   const [doc, setDoc] = useState<Partial<Document>>(
     initialData || {
       id: uuidv4(),
+      profileId: activeProfileId,
       type,
       number: `${type === 'invoice' ? 'INV' : 'QT'}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`,
       clientName: "",

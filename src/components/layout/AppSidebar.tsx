@@ -9,7 +9,9 @@ import {
   Settings,
   PlusCircle,
   BarChart3,
-  CreditCard
+  Check,
+  ChevronsUpDown,
+  Building2
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -25,7 +27,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarFooter,
 } from "@/components/ui/sidebar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { getProfiles, getActiveProfileId, setActiveProfileId } from "@/lib/store"
+import { CompanyProfile } from "@/lib/types"
 
 const items = [
   {
@@ -52,17 +65,86 @@ const items = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const [profiles, setProfiles] = React.useState<CompanyProfile[]>([])
+  const [activeProfileId, setActiveId] = React.useState("")
+
+  React.useEffect(() => {
+    const loadProfiles = () => {
+      setProfiles(getProfiles())
+      setActiveId(getActiveProfileId())
+    }
+    
+    loadProfiles()
+    window.addEventListener('profileChanged', loadProfiles)
+    return () => window.removeEventListener('profileChanged', loadProfiles)
+  }, [])
+
+  const activeProfile = profiles.find(p => p.id === activeProfileId) || profiles[0]
+
+  const handleProfileSwitch = (id: string) => {
+    setActiveProfileId(id);
+    setActiveId(id);
+    window.location.reload(); // Force reload to refresh all data hooks
+  }
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border h-16 flex items-center px-6">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
-            <BarChart3 className="size-5 text-primary-foreground" />
-          </div>
-          <span className="font-headline font-bold text-lg group-data-[collapsible=icon]:hidden">ForgeDocs</span>
-        </Link>
+      <SidebarHeader className="border-b border-sidebar-border h-20 flex flex-col justify-center px-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Building2 className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                <span className="truncate font-semibold">
+                  {activeProfile?.name || "Select Profile"}
+                </span>
+                <span className="truncate text-xs text-muted-foreground">
+                  Switch Company
+                </span>
+              </div>
+              <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            align="start"
+            side="bottom"
+            sideOffset={4}
+          >
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
+              Company Profiles
+            </DropdownMenuLabel>
+            {profiles.map((profile) => (
+              <DropdownMenuItem
+                key={profile.id}
+                onClick={() => handleProfileSwitch(profile.id)}
+                className="gap-2 p-2"
+              >
+                <div className="flex size-6 items-center justify-center rounded-sm border">
+                  <Building2 className="size-4 shrink-0" />
+                </div>
+                {profile.name}
+                {profile.id === activeProfileId && (
+                  <Check className="ml-auto size-4" />
+                )}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/settings" className="flex items-center gap-2 p-2">
+                <PlusCircle className="size-4" />
+                <span>Manage Profiles</span>
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarHeader>
+      
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
@@ -87,7 +169,7 @@ export function AppSidebar() {
         </SidebarGroup>
         
         <SidebarGroup>
-          <SidebarGroupLabel>Actions</SidebarGroupLabel>
+          <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -110,6 +192,15 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      
+      <SidebarFooter className="border-t border-sidebar-border p-4">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <BarChart3 className="size-5 text-primary" />
+          </div>
+          <span className="font-headline font-bold text-lg group-data-[collapsible=icon]:hidden">ForgeDocs</span>
+        </Link>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )

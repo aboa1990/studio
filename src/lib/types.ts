@@ -12,6 +12,7 @@ export interface LineItem {
 
 export interface Document {
   id: string;
+  profileId: string; // Linked to a specific company profile
   type: DocumentType;
   number: string;
   clientName: string;
@@ -28,7 +29,8 @@ export interface Document {
   notes?: string;
 }
 
-export interface CompanyDetails {
+export interface CompanyProfile {
+  id: string;
   name: string;
   address: string;
   email: string;
@@ -36,3 +38,6 @@ export interface CompanyDetails {
   logoUrl?: string;
   gstNumber?: string;
 }
+
+// Keeping for backward compatibility or singular references if needed
+export type CompanyDetails = CompanyProfile;
