@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -8,7 +7,6 @@ import {
   Quote,
   Settings,
   PlusCircle,
-  BarChart3,
   Check,
   ChevronsUpDown,
   Building2,
@@ -119,7 +117,7 @@ export function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent hover:bg-white/[0.03] transition-colors rounded-xl h-14"
+              className="data-[state=open]:bg-white/5 hover:bg-white/[0.03] transition-colors rounded-xl h-14"
             >
               <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-gradient-to-br from-white/20 to-white/5 border border-white/10 text-white shadow-lg">
                 <Building2 className="size-5" />
@@ -136,12 +134,12 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-xl glass-card"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-xl glass-card p-2"
             align="start"
             side="bottom"
             sideOffset={12}
           >
-            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 py-3">
+            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 py-3 px-2">
               Switch Business
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-white/5" />
@@ -149,12 +147,12 @@ export function AppSidebar() {
               <DropdownMenuItem
                 key={profile.id}
                 onClick={() => handleProfileSwitch(profile.id)}
-                className="gap-3 p-3 rounded-lg focus:bg-white/5 cursor-pointer"
+                className="gap-3 p-2 rounded-lg focus:bg-white/5 cursor-pointer mb-1"
               >
                 <div className={`flex size-8 items-center justify-center rounded-lg border ${profile.id === activeProfileId ? 'bg-white border-white text-black' : 'border-white/10 text-white'}`}>
                   <Building2 className="size-4 shrink-0" />
                 </div>
-                <span className="font-semibold">{profile.name}</span>
+                <span className="font-semibold text-sm">{profile.name}</span>
                 {profile.id === activeProfileId && (
                   <Check className="ml-auto size-4 text-emerald-400" />
                 )}
@@ -162,9 +160,9 @@ export function AppSidebar() {
             ))}
             <DropdownMenuSeparator className="bg-white/5" />
             <DropdownMenuItem asChild>
-              <Link href="/settings" className="flex items-center gap-3 p-3 rounded-lg focus:bg-white/5">
+              <Link href="/settings" className="flex items-center gap-3 p-2 rounded-lg focus:bg-white/5 mt-1">
                 <PlusCircle className="size-4" />
-                <span className="font-semibold">Add New Profile</span>
+                <span className="font-semibold text-sm">Add New Profile</span>
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -233,7 +231,7 @@ export function AppSidebar() {
       </SidebarContent>
       
       <SidebarFooter className="p-6 border-t border-white/5">
-        <Link href="/" className="flex items-center gap-4 group">
+        <div className="flex items-center gap-4 group">
           <div className="size-10 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/5 shadow-inner">
             <Sparkles className="size-5 text-white group-hover:rotate-12 transition-transform" />
           </div>
@@ -241,7 +239,7 @@ export function AppSidebar() {
             <p className="font-black text-xl tracking-tighter text-white">ForgeDocs</p>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Professional</p>
           </div>
-        </Link>
+        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -47,14 +46,14 @@ export default function Dashboard() {
 
   const chartData = [
     { name: 'Invoiced', value: totalInvoiced, color: 'hsl(210 40% 98%)' },
-    { name: 'Quotations', value: quotationValue, color: 'hsl(215 16% 57%)' },
+    { name: 'Quotations', value: quotationValue, color: 'hsl(48 96% 53%)' },
     { name: 'Tenders', value: tenderValue, color: 'hsl(142 71% 45%)' },
     { name: 'BOQs', value: boqValue, color: 'hsl(221 83% 53%)' },
   ]
 
   const stats = [
     {
-      label: "Total Revenue",
+      label: "Revenue",
       value: `MVR ${totalInvoiced.toLocaleString()}`,
       icon: TrendingUp,
       desc: "Gross invoiced amount",
@@ -62,7 +61,7 @@ export default function Dashboard() {
       bg: "bg-white/10"
     },
     {
-      label: "Open BOQs",
+      label: "Active BOQs",
       value: `MVR ${boqValue.toLocaleString()}`,
       icon: ClipboardList,
       desc: "Estimated quantities",
@@ -73,7 +72,7 @@ export default function Dashboard() {
       label: "Bids & Tenders",
       value: `MVR ${tenderValue.toLocaleString()}`,
       icon: Briefcase,
-      desc: "Estimated contract value",
+      desc: "Active contract value",
       color: "text-emerald-400",
       bg: "bg-emerald-400/10"
     },
@@ -81,40 +80,40 @@ export default function Dashboard() {
       label: "Quotations",
       value: `MVR ${quotationValue.toLocaleString()}`,
       icon: Quote,
-      desc: "Active client proposals",
+      desc: "Client proposals",
       color: "text-amber-400",
       bg: "bg-amber-400/10"
     }
   ]
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 pb-2">
-        <div className="space-y-1">
-          <h1 className="text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/40">
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+        <div className="space-y-2">
+          <h1 className="text-6xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/30">
             Overview
           </h1>
-          <p className="text-muted-foreground text-lg">Your business metrics at a glance.</p>
+          <p className="text-muted-foreground text-lg font-medium">Your business performance and metrics.</p>
         </div>
-        <div className="flex gap-3">
-          <Button asChild className="rounded-full px-6 shadow-xl shadow-primary/10">
-            <Link href="/invoices/new"><Plus className="mr-2 size-4" /> Create Invoice</Link>
+        <div className="flex gap-4">
+          <Button asChild className="rounded-full px-8 h-12 text-base font-black tracking-tight shadow-2xl shadow-white/5 transition-all hover:scale-105 active:scale-95">
+            <Link href="/invoices/new"><Plus className="mr-2 size-5" /> New Invoice</Link>
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
-          <Card key={i} className="glass-card overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{stat.label}</CardTitle>
-              <div className={`p-2 rounded-xl ${stat.bg} ${stat.color}`}>
-                <stat.icon className="size-4" />
+          <Card key={i} className="glass-card overflow-hidden group hover:bg-white/[0.05] transition-all duration-500 rounded-[2rem]">
+            <CardHeader className="flex flex-row items-center justify-between pb-3 pt-8 px-8">
+              <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{stat.label}</CardTitle>
+              <div className={`p-3 rounded-[1.2rem] ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}>
+                <stat.icon className="size-5" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1 opacity-70">
+            <CardContent className="px-8 pb-8">
+              <div className="text-3xl font-black tracking-tight text-white mb-2">{stat.value}</div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1 opacity-60">
                 <ArrowUpRight className="size-3" /> {stat.desc}
               </p>
             </CardContent>
@@ -123,32 +122,34 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 glass-card">
-          <CardHeader>
-            <CardTitle>Financial Performance</CardTitle>
-            <CardDescription>Estimated value across different document types</CardDescription>
+        <Card className="lg:col-span-2 glass-card rounded-[2.5rem] p-4">
+          <CardHeader className="px-6 py-6">
+            <CardTitle className="text-xl font-black">Financial Performance</CardTitle>
+            <CardDescription className="text-muted-foreground">Estimated value distribution across documents.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[380px] pt-6">
+          <CardContent className="h-[400px] pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} 
+                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }} 
+                  dy={10}
                 />
                 <YAxis hide />
                 <Tooltip 
                   cursor={{ fill: 'rgba(255,255,255,0.02)' }}
                   contentStyle={{ 
-                    backgroundColor: 'rgba(10,10,15,0.95)', 
+                    backgroundColor: 'rgba(15,15,20,0.95)', 
                     borderColor: 'rgba(255,255,255,0.1)',
-                    borderRadius: '12px',
-                    backdropFilter: 'blur(10px)'
+                    borderRadius: '20px',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255,255,255,0.05)'
                   }} 
                 />
-                <Bar dataKey="value" radius={[10, 10, 0, 0]} barSize={60}>
+                <Bar dataKey="value" radius={[15, 15, 15, 15]} barSize={50}>
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -158,50 +159,52 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card">
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="glass-card rounded-[2.5rem] p-4">
+          <CardHeader className="flex flex-row items-center justify-between px-6 py-6">
             <div>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Latest generated documents</CardDescription>
+              <CardTitle className="text-xl font-black">Latest Activity</CardTitle>
+              <CardDescription>Recent generated records</CardDescription>
             </div>
-            <Calendar className="size-4 text-muted-foreground" />
+            <div className="size-10 rounded-2xl bg-white/5 flex items-center justify-center">
+               <Calendar className="size-4 text-muted-foreground" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-5">
-              {docs.slice(0, 6).map((doc) => (
+          <CardContent className="px-4">
+            <div className="space-y-3">
+              {docs.slice(0, 5).map((doc) => (
                 <Link 
                   key={doc.id} 
                   href={`/${doc.type}s/${doc.id}`}
-                  className="flex items-center gap-4 group p-3 -mx-3 rounded-xl hover:bg-white/[0.03] transition-all"
+                  className="flex items-center gap-4 group p-4 rounded-[1.5rem] hover:bg-white/[0.04] transition-all border border-transparent hover:border-white/5"
                 >
-                  <div className={`size-11 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${
+                  <div className={`size-12 rounded-[1rem] flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
                     doc.type === 'invoice' ? 'bg-white/5 text-white' : 
                     doc.type === 'tender' ? 'bg-emerald-500/10 text-emerald-400' :
                     doc.type === 'boq' ? 'bg-blue-500/10 text-blue-400' :
                     'bg-amber-500/10 text-amber-400'
                   }`}>
-                    {doc.type === 'invoice' ? <FileText size={20} /> : 
-                     doc.type === 'tender' ? <Briefcase size={20} /> : 
-                     doc.type === 'boq' ? <ClipboardList size={20} /> : 
-                     <Quote size={20} />}
+                    {doc.type === 'invoice' ? <FileText size={22} /> : 
+                     doc.type === 'tender' ? <Briefcase size={22} /> : 
+                     doc.type === 'boq' ? <ClipboardList size={22} /> : 
+                     <Quote size={22} />}
                   </div>
                   <div className="flex-1 space-y-1 min-w-0">
-                    <p className="text-sm font-bold truncate group-hover:text-primary transition-colors">{doc.clientName}</p>
-                    <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">{doc.number} • {new Date(doc.date).toLocaleDateString()}</p>
+                    <p className="text-sm font-black truncate group-hover:text-primary transition-colors">{doc.clientName}</p>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.1em]">{doc.number} • {new Date(doc.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</p>
                   </div>
-                  <div className="text-sm font-black text-right whitespace-nowrap">
+                  <div className="text-sm font-black text-white text-right whitespace-nowrap">
                     {doc.total.toLocaleString()}
                   </div>
                 </Link>
               ))}
               {docs.length === 0 && (
-                <div className="text-center py-20 text-muted-foreground space-y-3">
-                  <div className="size-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <FileText className="size-8 opacity-20" />
+                <div className="text-center py-24 text-muted-foreground space-y-4">
+                  <div className="size-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5 opacity-20">
+                    <FileText className="size-10" />
                   </div>
-                  <p className="font-semibold">No documents yet</p>
-                  <Button variant="link" asChild size="sm">
-                    <Link href="/invoices/new">Create your first invoice</Link>
+                  <p className="font-bold text-lg">No documents yet</p>
+                  <Button variant="link" asChild size="sm" className="font-bold text-white uppercase tracking-widest text-[10px]">
+                    <Link href="/invoices/new">Create first invoice</Link>
                   </Button>
                 </div>
               )}
