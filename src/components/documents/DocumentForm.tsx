@@ -3,16 +3,16 @@
 
 import { useState, useEffect } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { Trash2, Plus, Save, FileCheck, Upload, FileText, X } from "lucide-react"
+import { Trash2, Plus, Save, FileCheck, Upload, FileText, X, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Document, LineItem, DocumentType, DocumentStatus, Attachment } from "@/lib/types"
+import { Document, LineItem, DocumentType, DocumentStatus, Attachment, Client } from "@/lib/types"
 import { useRouter } from "next/navigation"
-import { saveDocument, getActiveProfileId } from "@/lib/store"
+import { saveDocument, getActiveProfileId, getClients } from "@/lib/store"
 
 interface DocumentFormProps {
   initialData?: Document;
@@ -22,6 +22,7 @@ interface DocumentFormProps {
 export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const router = useRouter()
   const activeProfileId = getActiveProfileId()
+  const [savedClients, setSavedClients] = useState<Client[]>([])
   
   const [doc, setDoc] = useState<Partial<Document>>(
     initialData || {
@@ -31,6 +32,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
       number: `${type === 'invoice' ? 'INV' : type === 'tender' ? 'TDR' : 'QT'}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`,
       clientName: "",
       clientEmail: "",
+      clientAddress: "",
       items: [{ id: uuidv4(), description: "", quantity: 1, price: 0 }],
       taxRate: 6,
       date: new Date().toISOString().split('T')[0],
@@ -46,12 +48,29 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   )
 
   useEffect(() => {
+    setSavedClients(getClients())
+  }, [])
+
+  useEffect(() => {
     const subtotal = doc.items?.reduce((sum, item) => sum + item.quantity * item.price, 0) || 0;
     const taxAmount = subtotal * ((doc.taxRate || 0) / 100);
     const total = subtotal + taxAmount;
 
     setDoc(prev => ({ ...prev, subtotal, taxAmount, total }));
   }, [doc.items, doc.taxRate]);
+
+  const handleClientSelect = (clientId: string) => {
+    const client = savedClients.find(c => c.id === clientId)
+    if (client) {
+      setDoc(prev => ({
+        ...prev,
+        clientId: client.id,
+        clientName: client.name,
+        clientEmail: client.email,
+        clientAddress: client.address
+      }))
+    }
+  }
 
   const handleAddItem = () => {
     setDoc(prev => ({
@@ -130,30 +149,23 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Details</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Client Information</CardTitle>
+            {savedClients.length > 0 && (
+              <Select onValueChange={handleClientSelect}>
+                <SelectTrigger className="w-[200px] h-8 text-xs bg-muted">
+                  <Users className="size-3 mr-2" />
+                  <SelectValue placeholder="Select Saved Client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {savedClients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="doc-number">Reference Number</Label>
-                <Input
-                  id="doc-number"
-                  value={doc.number}
-                  onChange={e => setDoc(prev => ({ ...prev, number: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="doc-date">Date</Label>
-                <Input
-                  id="doc-date"
-                  type="date"
-                  value={doc.date}
-                  onChange={e => setDoc(prev => ({ ...prev, date: e.target.value }))}
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="client-name">Client / Agency Name</Label>
               <Input
@@ -165,15 +177,37 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
               />
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="client-email">Contact Email</Label>
+                <Input
+                  id="client-email"
+                  type="email"
+                  placeholder="tenders@agency.gov.mv"
+                  value={doc.clientEmail}
+                  onChange={e => setDoc(prev => ({ ...prev, clientEmail: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="doc-date">Document Date</Label>
+                <Input
+                  id="doc-date"
+                  type="date"
+                  value={doc.date}
+                  onChange={e => setDoc(prev => ({ ...prev, date: e.target.value }))}
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="client-email">Contact Email</Label>
-              <Input
-                id="client-email"
-                type="email"
-                placeholder="tenders@agency.gov.mv"
-                value={doc.clientEmail}
-                onChange={e => setDoc(prev => ({ ...prev, clientEmail: e.target.value }))}
-                required
+              <Label htmlFor="client-address">Billing Address</Label>
+              <Textarea
+                id="client-address"
+                placeholder="Client Address"
+                value={doc.clientAddress}
+                onChange={e => setDoc(prev => ({ ...prev, clientAddress: e.target.value }))}
+                className="min-h-[80px]"
               />
             </div>
           </CardContent>
@@ -181,9 +215,18 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Settings</CardTitle>
+            <CardTitle>Document Settings</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="doc-number">Reference Number</Label>
+              <Input
+                id="doc-number"
+                value={doc.number}
+                onChange={e => setDoc(prev => ({ ...prev, number: e.target.value }))}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select

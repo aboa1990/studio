@@ -17,13 +17,27 @@ export interface Attachment {
   data: string;
 }
 
+export interface Client {
+  id: string;
+  profileId: string;
+  name: string;
+  contactPerson?: string;
+  email: string;
+  phone: string;
+  address: string;
+  gstNumber?: string;
+  notes?: string;
+}
+
 export interface Document {
   id: string;
   profileId: string; // Linked to a specific company profile
   type: DocumentType;
   number: string;
+  clientId?: string; // Reference to a saved client
   clientName: string;
   clientEmail: string;
+  clientAddress?: string;
   items: LineItem[];
   taxRate: number;
   date: string;
@@ -58,5 +72,4 @@ export interface CompanyProfile {
   bankDetails?: BankDetails;
 }
 
-// Keeping for backward compatibility or singular references if needed
 export type CompanyDetails = CompanyProfile;

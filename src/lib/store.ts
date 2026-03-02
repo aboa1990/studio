@@ -1,9 +1,10 @@
 
-import { Document, CompanyProfile } from './types';
+import { Document, CompanyProfile, Client } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEY_DOCS = 'forgedocs_documents';
 const STORAGE_KEY_PROFILES = 'forgedocs_profiles';
+const STORAGE_KEY_CLIENTS = 'forgedocs_clients';
 const STORAGE_KEY_ACTIVE_PROFILE_ID = 'forgedocs_active_profile_id';
 
 const defaultProfileId = 'default-profile-1';
@@ -44,7 +45,6 @@ export const saveProfile = (profile: CompanyProfile) => {
 export const deleteProfile = (id: string) => {
   const profiles = getProfiles();
   const filtered = profiles.filter((p) => p.id !== id);
-  // Ensure we don't delete the last profile or provide a fallback
   if (filtered.length === 0) return;
   
   localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(filtered));
@@ -53,10 +53,13 @@ export const deleteProfile = (id: string) => {
     setActiveProfileId(filtered[0].id);
   }
   
-  // Also delete documents associated with this profile
   const docs = getAllDocuments();
   const filteredDocs = docs.filter(d => d.profileId !== id);
   localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(filteredDocs));
+
+  const clients = getAllClients();
+  const filteredClients = clients.filter(c => c.profileId !== id);
+  localStorage.setItem(STORAGE_KEY_CLIENTS, JSON.stringify(filteredClients));
 };
 
 export const getActiveProfileId = (): string => {
@@ -81,6 +84,7 @@ export const getActiveProfile = (): CompanyProfile => {
   return profiles.find(p => p.id === activeId) || profiles[0] || defaultCompany;
 };
 
+// Documents
 export const getAllDocuments = (): Document[] => {
   if (typeof window === 'undefined') return [];
   const stored = localStorage.getItem(STORAGE_KEY_DOCS);
@@ -90,17 +94,13 @@ export const getAllDocuments = (): Document[] => {
 export const getDocuments = (): Document[] => {
   const allDocs = getAllDocuments();
   const activeId = getActiveProfileId();
-  // Migration: if a document has no profileId, it belongs to the first profile
   return allDocs.filter(d => d.profileId === activeId || !d.profileId);
 };
 
 export const saveDocument = (doc: Document) => {
   const docs = getAllDocuments();
   const activeId = getActiveProfileId();
-  
-  // Ensure document has the active profile ID
   const docToSave = { ...doc, profileId: doc.profileId || activeId };
-  
   const index = docs.findIndex((d) => d.id === docToSave.id);
   if (index >= 0) {
     docs[index] = docToSave;
@@ -116,6 +116,37 @@ export const deleteDocument = (id: string) => {
   localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(filtered));
 };
 
-// Legacy support
+// Clients
+export const getAllClients = (): Client[] => {
+  if (typeof window === 'undefined') return [];
+  const stored = localStorage.getItem(STORAGE_KEY_CLIENTS);
+  return stored ? JSON.parse(stored) : [];
+};
+
+export const getClients = (): Client[] => {
+  const allClients = getAllClients();
+  const activeId = getActiveProfileId();
+  return allClients.filter(c => c.profileId === activeId);
+};
+
+export const saveClient = (client: Client) => {
+  const clients = getAllClients();
+  const activeId = getActiveProfileId();
+  const clientToSave = { ...client, profileId: client.profileId || activeId };
+  const index = clients.findIndex((c) => c.id === clientToSave.id);
+  if (index >= 0) {
+    clients[index] = clientToSave;
+  } else {
+    clients.push(clientToSave);
+  }
+  localStorage.setItem(STORAGE_KEY_CLIENTS, JSON.stringify(clients));
+};
+
+export const deleteClient = (id: string) => {
+  const clients = getAllClients();
+  const filtered = clients.filter((c) => c.id !== id);
+  localStorage.setItem(STORAGE_KEY_CLIENTS, JSON.stringify(filtered));
+};
+
 export const getCompanyDetails = getActiveProfile;
 export const saveCompanyDetails = saveProfile;

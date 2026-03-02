@@ -92,7 +92,8 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         <div className="mb-12">
           <div className="text-slate-400 uppercase text-xs font-bold tracking-widest mb-2">Bill To:</div>
           <div className="text-xl font-bold text-slate-800">{data.clientName}</div>
-          <div className="text-slate-500">{data.clientEmail}</div>
+          <div className="text-slate-500 whitespace-pre-line">{data.clientAddress}</div>
+          <div className="text-slate-500 mt-1">{data.clientEmail}</div>
         </div>
 
         {/* Items Table */}

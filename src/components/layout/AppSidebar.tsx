@@ -12,7 +12,8 @@ import {
   Check,
   ChevronsUpDown,
   Building2,
-  Briefcase
+  Briefcase,
+  Users
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -63,6 +64,11 @@ const items = [
     icon: Briefcase,
   },
   {
+    title: "Clients",
+    url: "/clients",
+    icon: Users,
+  },
+  {
     title: "Settings",
     url: "/settings",
     icon: Settings,
@@ -90,7 +96,7 @@ export function AppSidebar() {
   const handleProfileSwitch = (id: string) => {
     setActiveProfileId(id);
     setActiveId(id);
-    window.location.reload(); // Force reload to refresh all data hooks
+    window.location.reload(); 
   }
 
   return (
