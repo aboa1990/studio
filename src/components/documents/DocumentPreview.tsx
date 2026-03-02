@@ -1,3 +1,4 @@
+
 "use client"
 
 import { jsPDF } from "jspdf"
@@ -17,6 +18,16 @@ interface DocumentPreviewProps {
 export default function DocumentPreview({ data }: DocumentPreviewProps) {
   const company = getCompanyDetails();
 
+  const getDocTitle = () => {
+    switch (data.type) {
+      case 'invoice': return 'INVOICE';
+      case 'quotation': return 'QUOTATION';
+      case 'tender': return 'TENDER PROPOSAL';
+      case 'boq': return 'BILL OF QUANTITIES';
+      default: return 'DOCUMENT';
+    }
+  }
+
   const downloadPDF = async () => {
     const element = document.getElementById("document-canvas")
     if (!element) return
@@ -35,7 +46,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold">{data.type.toUpperCase()} View</h1>
+          <h1 className="text-3xl font-headline font-bold">{getDocTitle()}</h1>
           <p className="text-muted-foreground">Ref: {data.number}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -70,7 +81,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-5xl font-black text-slate-200 tracking-tighter opacity-50 uppercase mb-4">
+            <div className="text-5xl font-black text-slate-200 tracking-tighter opacity-50 uppercase mb-4 leading-none">
               {data.type}
             </div>
             <div className="text-sm">
@@ -90,7 +101,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         {/* Client Info */}
         <div className="mb-12">
           <div className="text-slate-400 uppercase text-xs font-bold tracking-widest mb-2">
-            {data.type === 'tender' ? 'Agency / Authority:' : 'Bill To:'}
+            {(data.type === 'tender' || data.type === 'boq') ? 'Agency / Authority:' : 'Bill To:'}
           </div>
           <div className="text-xl font-bold text-slate-800">{data.clientName}</div>
           <div className="text-slate-500 whitespace-pre-line">{data.clientAddress}</div>
@@ -104,7 +115,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
               <tr className="border-b-2 border-slate-900">
                 <th className="text-left py-4 font-bold text-sm uppercase">Description</th>
                 <th className="text-center py-4 font-bold text-sm uppercase">Qty</th>
-                <th className="text-right py-4 font-bold text-sm uppercase">Price</th>
+                <th className="text-right py-4 font-bold text-sm uppercase">Rate</th>
                 <th className="text-right py-4 font-bold text-sm uppercase">Amount</th>
               </tr>
             </thead>
@@ -141,8 +152,8 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
           </div>
         </div>
 
-        {/* Bank & Payment Info - Hidden for Tenders */}
-        {data.type !== 'tender' && (company.bankDetails?.bankName || company.bankDetails?.accountNumber) && (
+        {/* Bank & Payment Info - Hidden for Tenders and BOQs */}
+        {data.type !== 'tender' && data.type !== 'boq' && (company.bankDetails?.bankName || company.bankDetails?.accountNumber) && (
           <div className="bg-slate-50 p-6 rounded mb-8 border border-slate-100">
             <div className="text-slate-900 font-bold text-sm mb-4 border-b border-slate-200 pb-2">BANK TRANSFER DETAILS</div>
             <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
@@ -168,7 +179,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
           </div>
         )}
 
-        {/* Terms and Conditions (Now above Signature) */}
+        {/* Terms and Conditions */}
         {data.terms && (
           <div className="mb-12">
             <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1 uppercase tracking-wider">TERMS & CONDITIONS</div>
@@ -178,7 +189,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
           </div>
         )}
 
-        {/* Signature Section (Now at the bottom) */}
+        {/* Signature Section */}
         <div className="flex justify-end mb-8">
           <div className="text-center min-w-[200px] flex flex-col items-center">
             {company.signatureUrl && (

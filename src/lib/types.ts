@@ -1,5 +1,5 @@
 
-export type DocumentType = 'invoice' | 'quotation' | 'tender';
+export type DocumentType = 'invoice' | 'quotation' | 'tender' | 'boq';
 
 export type DocumentStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'rejected' | 'submitted' | 'awarded' | 'lost';
 

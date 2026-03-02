@@ -36,6 +36,8 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   
   const defaultTerms = type === 'tender' 
     ? "1. This proposal is valid for 90 days from the submission date.\n2. All prices are inclusive of GST.\n3. Delivery will be within the specified timeframe upon award."
+    : type === 'boq'
+    ? "1. Quantities are estimated and subject to site verification.\n2. Rates provided are valid for 30 days.\n3. All items are inclusive of labor and materials unless specified."
     : "1. Please pay within 14 days.\n2. Bank transfer is preferred.\n3. Include reference number as reference.";
 
   const [doc, setDoc] = useState<Partial<Document>>(
@@ -43,7 +45,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
       id: uuidv4(),
       profileId: activeProfileId,
       type,
-      number: `${type === 'invoice' ? 'INV' : type === 'tender' ? 'TDR' : 'QT'}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`,
+      number: `${type === 'invoice' ? 'INV' : type === 'tender' ? 'TDR' : type === 'boq' ? 'BOQ' : 'QT'}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`,
       clientName: "",
       clientEmail: "",
       clientAddress: "",
@@ -157,7 +159,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
     e.preventDefault();
     if (doc.items && doc.items.length > 0) {
       saveDocument(doc as Document);
-      router.push(type === 'invoice' ? '/invoices' : type === 'tender' ? '/tenders' : '/quotations');
+      router.push(type === 'invoice' ? '/invoices' : type === 'tender' ? '/tenders' : type === 'boq' ? '/boqs' : '/quotations');
     }
   }
 
@@ -165,7 +167,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-headline font-bold tracking-tight">
-          {initialData ? `Edit ${type}` : `New ${type}`}
+          {initialData ? `Edit ${type.toUpperCase()}` : `New ${type.toUpperCase()}`}
         </h1>
         <div className="flex gap-4">
           <Button variant="outline" type="button" onClick={() => router.back()}>
@@ -173,7 +175,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
           </Button>
           <Button type="submit" className="bg-primary text-primary-foreground">
             <Save className="mr-2 h-4 w-4" />
-            Save {type}
+            Save {type.toUpperCase()}
           </Button>
         </div>
       </div>
@@ -201,7 +203,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
               <Label htmlFor="client-name">Client / Agency Name</Label>
               <Input
                 id="client-name"
-                placeholder="Government Ministry or Agency"
+                placeholder="Name of customer or agency"
                 value={doc.clientName}
                 onChange={e => setDoc(prev => ({ ...prev, clientName: e.target.value }))}
                 required
@@ -214,7 +216,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
                 <Input
                   id="client-email"
                   type="email"
-                  placeholder="tenders@agency.gov.mv"
+                  placeholder="email@example.com"
                   value={doc.clientEmail}
                   onChange={e => setDoc(prev => ({ ...prev, clientEmail: e.target.value }))}
                   required
@@ -270,7 +272,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
                 <SelectContent>
                   <SelectItem value="draft">Draft</SelectItem>
                   <SelectItem value="sent">Sent</SelectItem>
-                  {type === 'tender' && (
+                  {(type === 'tender' || type === 'boq') && (
                     <>
                       <SelectItem value="submitted">Submitted</SelectItem>
                       <SelectItem value="awarded">Awarded</SelectItem>
@@ -308,7 +310,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Pricing / Line Items</CardTitle>
+          <CardTitle>Quantities / Line Items</CardTitle>
           <Button type="button" variant="outline" size="sm" onClick={handleAddItem}>
             <Plus className="h-4 w-4 mr-2" /> Add Item
           </Button>
@@ -320,7 +322,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
                 <div className="col-span-6 space-y-2">
                   <Label>Description</Label>
                   <Input
-                    placeholder="Services or goods description"
+                    placeholder="Description of work or material"
                     value={item.description}
                     onChange={e => handleItemChange(item.id, 'description', e.target.value)}
                   />
@@ -334,7 +336,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
                   />
                 </div>
                 <div className="col-span-3 space-y-2">
-                  <Label>Price ({doc.currency})</Label>
+                  <Label>Rate ({doc.currency})</Label>
                   <Input
                     type="number"
                     value={item.price}
@@ -368,7 +370,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
                 <span className="font-medium">{doc.currency} {doc.taxAmount?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between py-1 text-lg font-bold">
-                <span>Total Proposal Value:</span>
+                <span>Total Value:</span>
                 <span className="text-primary">{doc.currency} {doc.total?.toFixed(2)}</span>
               </div>
             </div>
@@ -376,11 +378,11 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
         </CardContent>
       </Card>
 
-      {type === 'tender' && (
+      {(type === 'tender' || type === 'boq') && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <FileText className="size-5" /> Supporting Documents (Attachments)
+              <FileText className="size-5" /> Supporting Documents
             </CardTitle>
             <Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
               <DialogTrigger asChild>
@@ -441,12 +443,11 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
                   </Button>
                 </div>
               ))}
-              <Label htmlFor="tender-files" className="cursor-pointer border-2 border-dashed rounded-lg p-3 hover:bg-muted/50 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground">
+              <Label htmlFor="doc-files" className="cursor-pointer border-2 border-dashed rounded-lg p-3 hover:bg-muted/50 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground">
                 <Upload className="size-4" />
                 <span className="text-xs">Add Files</span>
-                <span className="text-[10px] opacity-50">Reg, Letters, Bids...</span>
                 <input 
-                  id="tender-files" 
+                  id="doc-files" 
                   type="file" 
                   multiple 
                   className="hidden" 
@@ -467,17 +468,17 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
             <Label htmlFor="doc-terms">Terms & Conditions</Label>
             <Textarea
               id="doc-terms"
-              placeholder="Enter payment terms or other conditions..."
+              placeholder="Enter specific conditions..."
               value={doc.terms}
               onChange={e => setDoc(prev => ({ ...prev, terms: e.target.value }))}
               className="min-h-[120px]"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="doc-notes">Internal Notes (Not visible on document)</Label>
+            <Label htmlFor="doc-notes">Internal Notes</Label>
             <Textarea
               id="doc-notes"
-              placeholder="Add internal reminders or details..."
+              placeholder="Add internal reminders..."
               value={doc.notes}
               onChange={e => setDoc(prev => ({ ...prev, notes: e.target.value }))}
             />

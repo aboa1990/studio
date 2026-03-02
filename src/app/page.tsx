@@ -8,7 +8,8 @@ import {
   TrendingUp, 
   Clock, 
   Plus,
-  Briefcase
+  Briefcase,
+  ClipboardList
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -36,16 +37,19 @@ export default function Dashboard() {
   const invoices = docs.filter(d => d.type === 'invoice')
   const quotations = docs.filter(d => d.type === 'quotation')
   const tenders = docs.filter(d => d.type === 'tender')
+  const boqs = docs.filter(d => d.type === 'boq')
   
   const totalInvoiced = invoices.reduce((sum, doc) => sum + doc.total, 0)
   const pendingInvoiced = invoices.filter(i => i.status !== 'paid').reduce((sum, doc) => sum + doc.total, 0)
   const quotationValue = quotations.reduce((sum, doc) => sum + doc.total, 0)
   const tenderValue = tenders.reduce((sum, doc) => sum + doc.total, 0)
+  const boqValue = boqs.reduce((sum, doc) => sum + doc.total, 0)
 
   const chartData = [
     { name: 'Invoiced', value: totalInvoiced, color: 'hsl(var(--primary))' },
     { name: 'Quotations', value: quotationValue, color: 'hsl(var(--muted-foreground))' },
     { name: 'Tenders', value: tenderValue, color: 'hsl(160 60% 45%)' },
+    { name: 'BOQs', value: boqValue, color: 'hsl(250 60% 65%)' },
   ]
 
   const stats = [
@@ -57,11 +61,11 @@ export default function Dashboard() {
       color: "text-primary"
     },
     {
-      label: "Pending Payments",
-      value: `MVR ${pendingInvoiced.toLocaleString()}`,
-      icon: Clock,
-      desc: "Awaiting client action",
-      color: "text-accent"
+      label: "Open BOQs",
+      value: `MVR ${boqValue.toLocaleString()}`,
+      icon: ClipboardList,
+      desc: "Pending quantities",
+      color: "text-indigo-400"
     },
     {
       label: "Open Tenders",
@@ -152,9 +156,13 @@ export default function Dashboard() {
                   <div className={`size-10 rounded-full flex items-center justify-center ${
                     doc.type === 'invoice' ? 'bg-primary/10 text-primary' : 
                     doc.type === 'tender' ? 'bg-emerald-500/10 text-emerald-500' :
+                    doc.type === 'boq' ? 'bg-indigo-500/10 text-indigo-500' :
                     'bg-accent/10 text-accent'
                   }`}>
-                    {doc.type === 'invoice' ? <FileText size={18} /> : doc.type === 'tender' ? <Briefcase size={18} /> : <Quote size={18} />}
+                    {doc.type === 'invoice' ? <FileText size={18} /> : 
+                     doc.type === 'tender' ? <Briefcase size={18} /> : 
+                     doc.type === 'boq' ? <ClipboardList size={18} /> : 
+                     <Quote size={18} />}
                   </div>
                   <div className="flex-1 space-y-1 overflow-hidden">
                     <p className="text-sm font-medium leading-none truncate group-hover:text-primary transition-colors">{doc.clientName}</p>

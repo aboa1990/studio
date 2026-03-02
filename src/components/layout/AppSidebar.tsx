@@ -14,7 +14,8 @@ import {
   Building2,
   Briefcase,
   Users,
-  FolderOpen
+  FolderOpen,
+  ClipboardList
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -58,6 +59,11 @@ const items = [
     title: "Quotations",
     url: "/quotations",
     icon: Quote,
+  },
+  {
+    title: "BOQs",
+    url: "/boqs",
+    icon: ClipboardList,
   },
   {
     title: "Tenders & Bids",
@@ -195,6 +201,14 @@ export function AppSidebar() {
                   <Link href="/invoices/new" className="text-primary hover:text-primary">
                     <PlusCircle />
                     <span>Create Invoice</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="New BOQ">
+                  <Link href="/boqs/new" className="text-indigo-400 hover:text-indigo-300">
+                    <PlusCircle />
+                    <span>Create BOQ</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
