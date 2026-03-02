@@ -6,7 +6,7 @@ import html2canvas from "html2canvas"
 import { Download, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Document } from "@/lib/types"
+import { Document, Attachment } from "@/lib/types"
 import { getCompanyDetails } from "@/lib/store"
 import Link from "next/link"
 import Image from "next/image"
@@ -22,10 +22,15 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
     switch (data.type) {
       case 'invoice': return 'INVOICE';
       case 'quotation': return 'QUOTATION';
-      case 'tender': return 'TENDER PROPOSAL';
+      case 'tender': return 'ESTIMATE';
       case 'boq': return 'BILL OF QUANTITIES';
       default: return 'DOCUMENT';
     }
+  }
+
+  const getWatermarkText = () => {
+    if (data.type === 'tender') return 'ESTIMATE';
+    return data.type.toUpperCase();
   }
 
   const downloadPDF = async () => {
@@ -35,10 +40,53 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
     const canvas = await html2canvas(element, { scale: 2 })
     const imgData = canvas.toDataURL("image/png")
     const pdf = new jsPDF("p", "mm", "a4")
-    const imgProps = pdf.getImageProperties(imgData)
     const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
+    const pdfHeight = pdf.internal.pageSize.getHeight()
+    
+    // Add the main document page
+    const imgProps = pdf.getImageProperties(imgData)
+    const contentHeight = (imgProps.height * pdfWidth) / imgProps.width
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, contentHeight)
+
+    // Add attachments if any (if they are images)
+    if (data.attachments && data.attachments.length > 0) {
+      for (const attachment of data.attachments) {
+        // Simple check for image types
+        if (attachment.type.startsWith('image/')) {
+          pdf.addPage()
+          // Add a label at the top of the attachment page
+          pdf.setFontSize(10)
+          pdf.setTextColor(150, 150, 150)
+          pdf.text(`Attachment: ${attachment.name}`, 10, 10)
+          
+          try {
+            const attProps = pdf.getImageProperties(attachment.data)
+            const ratio = attProps.width / attProps.height
+            let drawWidth = pdfWidth - 20
+            let drawHeight = drawWidth / ratio
+            
+            if (drawHeight > pdfHeight - 30) {
+              drawHeight = pdfHeight - 30
+              drawWidth = drawHeight * ratio
+            }
+            
+            pdf.addImage(attachment.data, 'PNG', 10, 20, drawWidth, drawHeight)
+          } catch (e) {
+            console.error("Could not add attachment to PDF", e)
+          }
+        } else {
+          // For non-images, we just add a placeholder page noting the file
+          pdf.addPage()
+          pdf.setFontSize(12)
+          pdf.setTextColor(0, 0, 0)
+          pdf.text(`Attached File: ${attachment.name}`, 10, 20)
+          pdf.setFontSize(10)
+          pdf.setTextColor(100, 100, 100)
+          pdf.text(`(This file type cannot be rendered directly in the PDF and is stored separately in the app)`, 10, 30)
+        }
+      }
+    }
+
     pdf.save(`${data.type.toUpperCase()}-${data.number}.pdf`)
   }
 
@@ -84,7 +132,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
           </div>
           <div className="text-right">
             <div className="text-5xl font-black text-slate-200 tracking-tighter opacity-50 uppercase mb-4 leading-none">
-              {data.type}
+              {getWatermarkText()}
             </div>
             <div className="text-sm">
               <span className="text-slate-400">Date:</span> {new Date(data.date).toLocaleDateString()}
