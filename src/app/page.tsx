@@ -17,16 +17,9 @@ import { Button } from "@/components/ui/button"
 import { getDocuments } from "@/lib/store"
 import { Document } from "@/lib/types"
 import Link from "next/link"
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  Cell
-} from "recharts"
+import dynamic from 'next/dynamic'
+
+const Chart = dynamic(() => import('@/components/dashboard/Chart'), { ssr: false });
 
 export default function Dashboard() {
   const [docs, setDocs] = useState<Document[]>([])
@@ -136,34 +129,7 @@ export default function Dashboard() {
             <CardDescription className="text-muted-foreground">Estimated value distribution across documents.</CardDescription>
           </CardHeader>
           <CardContent className="h-[400px] pt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }} 
-                  dy={10}
-                />
-                <YAxis hide />
-                <Tooltip 
-                  cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(15,15,20,0.95)', 
-                    borderColor: 'rgba(255,255,255,0.1)',
-                    borderRadius: '20px',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255,255,255,0.05)'
-                  }} 
-                />
-                <Bar dataKey="value" radius={[15, 15, 15, 15]} barSize={50}>
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <Chart data={chartData} />
           </CardContent>
         </Card>
 
