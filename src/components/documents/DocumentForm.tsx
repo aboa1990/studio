@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Document, LineItem, DocumentType, DocumentStatus, Attachment, Client, LibraryDocument } from "@/lib/types"
 import { useRouter } from "next/navigation"
-import { saveDocument, getClients, getLibraryDocuments } from "@/lib/store"
+import { saveDocument, getClients, getLibraryDocuments, getActiveProfileId } from "@/lib/store"
 
 interface DocumentFormProps {
   initialData?: Document;
@@ -33,6 +33,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const [libraryDocs, setLibraryDocs] = useState<LibraryDocument[]>([])
   const [isLibraryOpen, setIsLibraryOpen] = useState(false)
   const [loading, setLoading] = useState(false);
+  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   
   const defaultTerms = type === 'tender' 
     ? "1. This proposal is valid for 90 days from the submission date.\n2. All prices are inclusive of GST.\n3. Delivery will be within the specified timeframe upon award."
@@ -43,7 +44,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const [doc, setDoc] = useState<Partial<Document>>(
     initialData || {
       id: uuidv4(),
-      profileId: '',
+      profileId: '', // Will be set in useEffect
       type,
       number: `${type === 'invoice' ? 'INV' : type === 'tender' ? 'TDR' : type === 'boq' ? 'BOQ' : 'QT'}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`,
       clientName: "",
@@ -65,12 +66,20 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [clients, libraryDocuments] = await Promise.all([getClients(), getLibraryDocuments()]);
+      const [clients, libraryDocuments, profileId] = await Promise.all([
+        getClients(), 
+        getLibraryDocuments(),
+        !initialData ? getActiveProfileId() : Promise.resolve(null)
+      ]);
       setSavedClients(clients);
       setLibraryDocs(libraryDocuments);
+      if (profileId) {
+        setActiveProfileId(profileId);
+        setDoc(prev => ({ ...prev, profileId }));
+      }
     }
     fetchData();
-  }, [])
+  }, [initialData])
 
   useEffect(() => {
     const subtotal = doc.items?.reduce((sum, item) => sum + item.quantity * item.price, 0) || 0;
@@ -161,7 +170,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (doc.items && doc.items.length > 0) {
+    if (doc.items && doc.items.length > 0 && doc.profileId) {
       setLoading(true);
       await saveDocument(doc as Document);
       setLoading(false);
