@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -91,25 +92,33 @@ export function AppSidebar() {
   const [profiles, setProfiles] = React.useState<CompanyProfile[]>([])
   const [activeProfileId, setActiveId] = React.useState("")
 
-  React.useEffect(() => {
-    const loadProfiles = async () => {
+  const loadProfiles = React.useCallback(async () => {
+    try {
       const fetchedProfiles = await getProfiles();
       const fetchedActiveId = await getActiveProfileId();
       setProfiles(fetchedProfiles);
       setActiveId(fetchedActiveId);
+    } catch (error) {
+      console.error("Sidebar load error:", error);
     }
-    
+  }, []);
+
+  React.useEffect(() => {
     loadProfiles()
-    window.addEventListener('profileChanged', loadProfiles)
-    return () => window.removeEventListener('profileChanged', loadProfiles)
-  }, [])
+    if (typeof window !== 'undefined') {
+      window.addEventListener('profileChanged', loadProfiles)
+      return () => window.removeEventListener('profileChanged', loadProfiles)
+    }
+  }, [loadProfiles])
 
   const activeProfile = profiles.find(p => p.id === activeProfileId) || profiles[0]
 
   const handleProfileSwitch = (id: string) => {
     setActiveProfileId(id);
     setActiveId(id);
-    window.location.reload(); 
+    if (typeof window !== 'undefined') {
+      window.location.reload(); 
+    }
   }
 
   return (

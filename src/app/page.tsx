@@ -27,10 +27,15 @@ export default function Dashboard() {
   
   useEffect(() => {
     const fetchDocuments = async () => {
-      setLoading(true);
-      const documents = await getDocuments();
-      setDocs(documents);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const documents = await getDocuments();
+        setDocs(documents);
+      } catch (error) {
+        console.error("Dashboard error:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchDocuments();
   }, [])
