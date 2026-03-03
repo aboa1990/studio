@@ -16,18 +16,14 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { Document } from "@/lib/types"
-import { getCompanyDetails } from "@/lib/store"
-import { composeInvoiceEmail } from "@/ai/flows/ai-compose-invoice-email-flow"
 import { useToast } from "@/hooks/use-toast"
 
 interface EmailComposerProps {
-  document: Document;
+  document: any;
 }
 
 export default function EmailComposer({ document: doc }: EmailComposerProps) {
   const { toast } = useToast()
-  const company = getCompanyDetails()
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState({ subject: "", body: "" })
@@ -36,18 +32,18 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
   const generateEmail = async () => {
     setLoading(true)
     try {
-      const result = await composeInvoiceEmail({
-        documentType: doc.type as 'invoice' | 'quotation',
-        clientName: doc.clientName,
-        documentNumber: doc.number,
-        dueDate: doc.dueDate,
-        totalAmount: doc.total,
-        currency: doc.currency,
-        companyName: company.name,
-        senderName: "Billing Dept",
-        customInstructions: "Please mention that bank transfer is the preferred payment method.",
-      });
-      setEmail(result);
+      // const result = await composeInvoiceEmail({
+      //   documentType: doc.type as 'invoice' | 'quotation',
+      //   clientName: doc.clientName,
+      //   documentNumber: doc.number,
+      //   dueDate: doc.dueDate,
+      //   totalAmount: doc.total,
+      //   currency: doc.currency,
+      //   companyName: company.name,
+      //   senderName: "Billing Dept",
+      //   customInstructions: "Please mention that bank transfer is the preferred payment method.",
+      // });
+      // setEmail(result);
     } catch (error) {
       console.error(error);
       toast({

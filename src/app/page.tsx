@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { 
   FileText, 
   Quote, 
@@ -14,32 +14,15 @@ import {
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { getDocuments } from "@/lib/store"
-import { Document } from "@/lib/types"
 import Link from "next/link"
 import dynamic from 'next/dynamic'
 
 const Chart = dynamic(() => import('@/components/dashboard/Chart'), { ssr: false });
 
 export default function Dashboard() {
-  const [docs, setDocs] = useState<Document[]>([])
-  const [loading, setLoading] = useState(true)
+  const [docs, setDocs] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
   
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        setLoading(true);
-        const documents = await getDocuments();
-        setDocs(documents);
-      } catch (error) {
-        console.error("Dashboard error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDocuments();
-  }, [])
-
   const invoices = docs.filter(d => d.type === 'invoice')
   const quotations = docs.filter(d => d.type === 'quotation')
   const tenders = docs.filter(d => d.type === 'tender')
