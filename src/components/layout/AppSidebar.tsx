@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useStore } from "@/lib/store"
 
 import {
   Sidebar,
@@ -87,6 +88,11 @@ const items = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const { profiles, currentProfile, fetchProfiles, setCurrentProfile } = useStore();
+
+  React.useEffect(() => {
+    fetchProfiles();
+  }, [fetchProfiles]);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-white/5 bg-sidebar">
@@ -98,14 +104,14 @@ export function AppSidebar() {
               className="data-[state=open]:bg-white/5 hover:bg-white/[0.03] transition-colors rounded-xl h-14"
             >
               <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-gradient-to-br from-white/20 to-white/5 border border-white/10 text-white shadow-lg">
-                <Building2 className="size-5" />
+                {currentProfile?.logo_url ? <img src={currentProfile.logo_url} alt={currentProfile.name} className="rounded-lg"/> : <Building2 className="size-5" />}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden ml-3">
                 <span className="truncate font-bold text-white">
-                  My Company
+                  {currentProfile?.name || 'My Company'}
                 </span>
                 <span className="truncate text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  Maldives Entity
+                  {currentProfile?.address || 'Maldives Entity'}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden opacity-40" />
@@ -121,15 +127,19 @@ export function AppSidebar() {
               Switch Business
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-white/5" />
+            {profiles.map(profile => (
               <DropdownMenuItem
+                key={profile.id}
                 className="gap-3 p-2 rounded-lg focus:bg-white/5 cursor-pointer mb-1"
+                onClick={() => setCurrentProfile(profile)}
               >
                 <div className="flex size-8 items-center justify-center rounded-lg border bg-white border-white text-black">
-                  <Building2 className="size-4 shrink-0" />
+                 {profile.logo_url ? <img src={profile.logo_url} alt={profile.name} className="rounded-sm"/> : <Building2 className="size-4 shrink-0" />}
                 </div>
-                <span className="font-semibold text-sm">My Company</span>
-                  <Check className="ml-auto size-4 text-emerald-400" />
+                <span className="font-semibold text-sm">{profile.name}</span>
+                {currentProfile?.id === profile.id && <Check className="ml-auto size-4 text-emerald-400" />}
               </DropdownMenuItem>
+            ))}
             <DropdownMenuSeparator className="bg-white/5" />
             <DropdownMenuItem asChild>
               <Link href="/settings" className="flex items-center gap-3 p-2 rounded-lg focus:bg-white/5 mt-1">

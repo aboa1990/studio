@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -10,61 +10,87 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { supabase } from "@/lib/supabase"
+import { useStore } from "@/lib/store"
 
 const profileSchema = z.object({
   name: z.string().min(1, "Company name is required"),
   address: z.string().optional(),
   email: z.string().email("Invalid email address").optional(),
   phone: z.string().optional(),
-  logo_url: z.string().url("Invalid URL").optional().or(z.literal('')), 
+  logo_url: z.string().optional(),
   gst_number: z.string().optional(),
   authorized_signatory: z.string().optional(),
-  bank_details: z.string().optional(), // Storing as a string, to be parsed as JSON before submission
-  signature_url: z.string().url("Invalid URL").optional().or(z.literal(''))
+  bank_details: z.string().optional(),
+  signature_url: z.string().optional(),
 })
 
 export function ProfileForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const { profiles, currentProfile, setProfiles, setCurrentProfile } = useStore()
 
-  const { control, handleSubmit, formState: { errors } } = useForm({
+  const { control, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-        name: '',
-        address: '',
-        email: '',
-        phone: '',
-        logo_url: '',
-        gst_number: '',
-        authorized_signatory: '',
-        bank_details: '',
-        signature_url: ''
-    }
+    defaultValues: currentProfile || {},
   });
 
-  const onSubmit = async (data: z.infer<typeof profileSchema>) => {
+  useEffect(() => {
+    reset(currentProfile || {});
+  }, [currentProfile, reset]);
+
+  const handleFileUpload = async (file: File) => {
+    if (!file) return null;
+    const fileName = `${Date.now()}_${file.name}`;
+    const { data, error } = await supabase.storage
+      .from('public')
+      .upload(fileName, file);
+
+    if (error) {
+      throw new Error(`Failed to upload file: ${error.message}`);
+    }
+
+    const { data: publicUrlData } = supabase.storage
+    .from('public')
+    .getPublicUrl(fileName);
+
+    return publicUrlData.publicUrl;
+  };
+
+  const onSubmit = async (data: any) => {
     setLoading(true)
     setError(null)
     setSuccess(false)
 
     try {
-      let bankDetailsJson = null;
-      if (data.bank_details) {
-        try {
-          bankDetailsJson = JSON.parse(data.bank_details);
-        } catch (e) {
-          throw new Error("Bank details must be a valid JSON object.")
-        }
+      let logoUrl = data.logo_url;
+      if (data.logo_url instanceof File) {
+        logoUrl = await handleFileUpload(data.logo_url);
       }
 
-      const { data: profile, error } = await supabase
-        .from("company_profiles")
-        .insert([{ ...data, bank_details: bankDetailsJson }])
-        .single();
+      let signatureUrl = data.signature_url;
+      if (data.signature_url instanceof File) {
+        signatureUrl = await handleFileUpload(data.signature_url);
+      }
 
-      if (error) {
-        throw error;
+      const profileData = { ...data, logo_url: logoUrl, signature_url: signatureUrl };
+
+      if (currentProfile) {
+        const { data: updatedProfile, error } = await supabase
+          .from("company_profiles")
+          .update(profileData)
+          .eq('id', currentProfile.id)
+          .single();
+        if (error) throw error;
+        setCurrentProfile(updatedProfile);
+      } else {
+        const { data: newProfile, error } = await supabase
+          .from("company_profiles")
+          .insert([profileData])
+          .single();
+        if (error) throw error;
+        setProfiles([...profiles, newProfile]);
+        setCurrentProfile(newProfile);
       }
 
       setSuccess(true)
@@ -104,36 +130,36 @@ export function ProfileForm() {
               </div>
             }
           />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <Controller
-                    name="email"
-                    control={control}
-                    render={({ field }) => (
-                      <div>
-                        <label className='text-sm font-bold ml-1'>Email</label>
-                        <Input placeholder="contact@company.com" {...field} className="mt-2"/>
-                        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message as string}</p>}
-                      </div>
-                    )}
-                  />
-                  <Controller
-                    name="phone"
-                    control={control}
-                    render={({ field }) => 
-                        <div>
-                           <label className='text-sm font-bold ml-1'>Phone</label>
-                           <Input placeholder="+1 (555) 123-4567" {...field} className="mt-2"/>
-                        </div>
-                     }
-                  />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <label className='text-sm font-bold ml-1'>Email</label>
+                  <Input placeholder="contact@company.com" {...field} className="mt-2"/>
+                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message as string}</p>}
+                </div>
+              )}
+            />
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => 
+                  <div>
+                      <label className='text-sm font-bold ml-1'>Phone</label>
+                      <Input placeholder="+1 (555) 123-4567" {...field} className="mt-2"/>
+                  </div>
+                }
+            />
+          </div>
           <Controller
             name="gst_number"
             control={control}
             render={({ field }) => 
                 <div>
-                   <label className='text-sm font-bold ml-1'>GST Number</label>
-                   <Input placeholder="Your GSTIN" {...field} className="mt-2"/>
+                  <label className='text-sm font-bold ml-1'>GST Number</label>
+                  <Input placeholder="Your GSTIN" {...field} className="mt-2"/>
                 </div>
             }
           />
@@ -142,52 +168,51 @@ export function ProfileForm() {
             control={control}
             render={({ field }) => 
                 <div>
-                   <label className='text-sm font-bold ml-1'>Authorized Signatory</label>
-                   <Input placeholder="CEO, Managing Director" {...field} className="mt-2"/>
+                  <label className='text-sm font-bold ml-1'>Authorized Signatory</label>
+                  <Input placeholder="CEO, Managing Director" {...field} className="mt-2"/>
                 </div>
             }
           />
-           <Controller
+          <Controller
             name="bank_details"
             control={control}
-            render={({ field }) => (
-              <div>
-                <label className='text-sm font-bold ml-1'>Bank Details (JSON)</label>
-                <Textarea placeholder='e.g., { "bank_name": "Global Bank", "account_number": "1234567890" }' {...field} className="mt-2"/>
-                {errors.bank_details && <p className="text-red-500 text-sm mt-1">{errors.bank_details.message as string}</p>}
-              </div>
-            )}
+            render={({ field }) => 
+                <div>
+                  <label className='text-sm font-bold ml-1'>Bank Details</label>
+                  <Textarea placeholder="Bank Name, Account Number, etc." {...field} className="mt-2"/>
+                </div>
+            }
           />
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Controller
-                name="logo_url"
-                control={control}
-                render={({ field }) => (
-                  <div>
-                    <label className='text-sm font-bold ml-1'>Logo URL</label>
-                    <Input placeholder="https://your-logo.com/logo.png" {...field} className="mt-2"/>
-                     {errors.logo_url && <p className="text-red-500 text-sm mt-1">{errors.logo_url.message as string}</p>}
-                  </div>
-                )}
-              />
-              <Controller
-                name="signature_url"
-                control={control}
-                render={({ field }) => (
-                  <div>
-                    <label className='text-sm font-bold ml-1'>Signature URL</label>
-                    <Input placeholder="https://your-signature.com/signature.png" {...field} className="mt-2"/>
-                     {errors.signature_url && <p className="text-red-500 text-sm mt-1">{errors.signature_url.message as string}</p>}
-                  </div>
-                )}
-              />
-           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Controller
+              name="logo_url"
+              control={control}
+              render={({ field: { onChange, value, ...rest } }) => (
+                <div>
+                  <label className='text-sm font-bold ml-1'>Logo</label>
+                  <Input type="file" onChange={(e) => onChange(e.target.files?.[0])} {...rest} className="mt-2"/>
+                  {value && typeof value === 'string' && <img src={value} alt="Logo Preview" className="mt-2 h-16 w-16 object-cover rounded-md"/>}
+                </div>
+              )}
+            />
+            <Controller
+              name="signature_url"
+              control={control}
+              render={({ field: { onChange, value, ...rest } }) => (
+                <div>
+                  <label className='text-sm font-bold ml-1'>Signature</label>
+                  <Input type="file" onChange={(e) => onChange(e.target.files?.[0])} {...rest} className="mt-2"/>
+                  {value && typeof value === 'string' && <img src={value} alt="Signature Preview" className="mt-2 h-16 w-auto rounded-md"/>}
+                </div>
+              )}
+            />
+          </div>
           
           <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold tracking-tight">
             {loading ? "Saving Profile..." : "Save Profile"}
           </Button>
           {error && <p className="text-red-500 text-sm mt-2 text-center">Error: {error}</p>}
-          {success && <p className="text-green-500 text-sm mt-2 text-center">Profile created successfully!</p>}
+          {success && <p className="text-green-500 text-sm mt-2 text-center">Profile saved successfully!</p>}
         </form>
       </CardContent>
     </Card>

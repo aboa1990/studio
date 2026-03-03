@@ -20,11 +20,18 @@ import {
 } from "@/components/ui/dialog"
 import { Document, LineItem, DocumentType, DocumentStatus, Attachment, Client, LibraryDocument } from "@/lib/types"
 import { useRouter } from "next/navigation"
-import { saveDocument, getClients, getLibraryDocuments, getActiveProfileId } from "@/lib/store"
+import { useStore } from "@/lib/store"
+import { supabase } from "@/lib/supabase"
 
 interface DocumentFormProps {
   initialData?: Document;
   type: DocumentType;
+}
+
+async function saveDocument(doc: Document) {
+    const { data, error } = await supabase.from('documents').upsert(doc).select();
+    if (error) throw error;
+    return data[0];
 }
 
 export default function DocumentForm({ initialData, type }: DocumentFormProps) {
@@ -33,7 +40,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const [libraryDocs, setLibraryDocs] = useState<LibraryDocument[]>([])
   const [isLibraryOpen, setIsLibraryOpen] = useState(false)
   const [loading, setLoading] = useState(false);
-  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
+  const { currentProfile } = useStore();
   
   const defaultTerms = type === 'tender' 
     ? "1. This proposal is valid for 90 days from the submission date.\n2. All prices are inclusive of GST.\n3. Delivery will be within the specified timeframe upon award."
@@ -65,21 +72,23 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   )
 
   useEffect(() => {
-    const fetchData = async () => {
-      const [clients, libraryDocuments, profileId] = await Promise.all([
-        getClients(), 
-        getLibraryDocuments(),
-        !initialData ? getActiveProfileId() : Promise.resolve(null)
-      ]);
-      setSavedClients(clients);
-      setLibraryDocs(libraryDocuments);
-      if (profileId) {
-        setActiveProfileId(profileId);
-        setDoc(prev => ({ ...prev, profileId }));
+    if (currentProfile) {
+      const fetchData = async () => {
+        const { data: clients, error: clientsError } = await supabase.from('clients').select('*').eq('profileId', currentProfile.id)
+        if (clientsError) console.error('Error fetching clients:', clientsError)
+        else setSavedClients(clients || [])
+
+        const { data: libraryDocuments, error: libraryError } = await supabase.from('library_documents').select('*').eq('profileId', currentProfile.id)
+        if (libraryError) console.error('Error fetching library documents:', libraryError)
+        else setLibraryDocs(libraryDocuments || [])
+
+        if (!initialData) {
+          setDoc(prev => ({ ...prev, profileId: currentProfile.id }));
+        }
       }
+      fetchData();
     }
-    fetchData();
-  }, [initialData])
+  }, [currentProfile, initialData])
 
   useEffect(() => {
     const subtotal = doc.items?.reduce((sum, item) => sum + item.quantity * item.price, 0) || 0;

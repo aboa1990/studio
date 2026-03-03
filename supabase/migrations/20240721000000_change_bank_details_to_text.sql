@@ -1,0 +1,1 @@
+ALTER TABLE "public"."company_profiles" ALTER COLUMN "bank_details" TYPE text;

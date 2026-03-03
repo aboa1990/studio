@@ -13,7 +13,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { saveClient, getClient, getActiveProfileId } from "@/lib/store"
+import { useStore } from "@/lib/store"
+import { supabase } from "@/lib/supabase"
 import { Client } from "@/lib/types"
 import { v4 as uuidv4 } from "uuid"
 
@@ -38,27 +39,23 @@ export default function ClientForm({ clientId }: ClientFormProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [isNew, setIsNew] = useState(!clientId)
-  const [profileExists, setProfileExists] = useState<boolean | null>(null);
+  const { currentProfile } = useStore();
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
   })
 
   useEffect(() => {
-    const checkProfile = async () => {
-      const profileId = await getActiveProfileId();
-      setProfileExists(!!profileId);
-      setLoading(false);
-    };
-
-    setLoading(true);
-    checkProfile();
-  }, []);
-
-  useEffect(() => {
-    if (clientId && profileExists) {
+    if (clientId && currentProfile) {
       const fetchClient = async () => {
-        const client = await getClient(clientId)
+        setLoading(true);
+        const { data: client, error } = await supabase
+          .from('clients')
+          .select('*')
+          .eq('id', clientId)
+          .eq('profileId', currentProfile.id)
+          .single();
+        
         if (client) {
           setValue("name", client.name)
           setValue("contactPerson", client.contactPerson)
@@ -68,32 +65,33 @@ export default function ClientForm({ clientId }: ClientFormProps) {
           setValue("gstNumber", client.gstNumber)
           setValue("notes", client.notes)
         }
+        setLoading(false);
       }
       fetchClient()
     }
-  }, [clientId, setValue, profileExists])
+  }, [clientId, setValue, currentProfile])
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    setLoading(true)
-    try {
-      const profileId = await getActiveProfileId();
-      
-      if (!profileId) {
+    if (!currentProfile) {
         toast({
-          title: "No Company Profile",
-          description: "Please create a company profile before adding clients.",
+          title: "No Company Profile Selected",
+          description: "Please select a company profile before adding a client.",
           variant: "destructive",
         });
         router.push('/settings');
         return;
-      }
+    }
 
+    setLoading(true)
+    try {
       const clientData: Client = {
         id: clientId || uuidv4(),
-        profileId,
+        profileId: currentProfile.id,
         ...data,
       }
-      await saveClient(clientData)
+      const { error } = await supabase.from('clients').upsert(clientData);
+      if (error) throw error;
+
       toast({
         title: isNew ? "Client Added" : "Client Updated",
         description: `Successfully ${isNew ? 'added' : 'updated'} ${data.name}.`,
@@ -112,7 +110,14 @@ export default function ClientForm({ clientId }: ClientFormProps) {
     }
   }
 
-  if (loading && profileExists === null) {
+  useEffect(() => {
+      // Prefill profileId when a profile is loaded
+      if(currentProfile) {
+          setLoading(false)
+      }
+  }, [currentProfile])
+
+  if (loading && !currentProfile) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="size-8 animate-spin text-muted-foreground" />
@@ -120,7 +125,7 @@ export default function ClientForm({ clientId }: ClientFormProps) {
     );
   }
 
-  if (profileExists === false) {
+  if (!currentProfile) {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4 text-center p-8 border-2 border-dashed rounded-lg border-destructive/50 bg-destructive/5">
         <AlertTriangle className="size-12 text-destructive" />

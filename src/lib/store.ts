@@ -1,135 +1,43 @@
-"use server";
 
-import { supabase } from './supabase';
-import { Client, CompanyProfile, Document, LibraryDocument } from './types';
+import { create } from 'zustand'
+import { supabase } from './supabase'
+import { CompanyProfile } from './types'
 
-// --- Profile Management ---
+interface StoreState {
+  profiles: CompanyProfile[];
+  currentProfile: CompanyProfile | null;
+  setProfiles: (profiles: CompanyProfile[]) => void;
+  setCurrentProfile: (profile: CompanyProfile | null) => void;
+  fetchProfiles: () => Promise<void>;
+}
 
-export const getActiveProfileId = async (): Promise<string | null> => {
-  const { data, error } = await supabase.from('company_profiles').select('id').limit(1);
+export const useStore = create<StoreState>((set) => ({
+  profiles: [],
+  currentProfile: null,
+  setProfiles: (profiles) => set({ profiles }),
+  setCurrentProfile: (profile) => set({ currentProfile: profile }),
+  fetchProfiles: async () => {
+    const { data: profiles, error } = await supabase.from('company_profiles').select('*');
     if (error) {
-        console.error('Error fetching active profile:', error);
-        return null;
+      console.error('Error fetching profiles:', error);
+      return;
     }
-  if (data && data.length > 0) {
-    return data[0].id;
-  }
-  return null;
-};
-
-export const setActiveProfileId = async (id: string): Promise<void> => {
-  // This is a placeholder. In a real multi-user app, you'd store this 
-  // in user settings, a cookie, or local storage and re-validate on the server.
-  // For this project, we'll simulate it by just confirming the action.
-  console.log(`Active profile set to ${id}. Implement storage as needed.`);
-};
-
-
-export const getProfiles = async (): Promise<CompanyProfile[]> => {
-  const { data, error } = await supabase.from('company_profiles').select('*');
-  if (error) throw error;
-  return data;
-};
-
-export const getProfile = async (id: string): Promise<CompanyProfile | null> => {
-    const { data, error } = await supabase.from('company_profiles').select('*').eq('id', id).single();
-    if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
+    set({ profiles: profiles || [] });
+    if (profiles && profiles.length > 0) {
+        // Check for a previously selected profile ID in local storage
+        const lastProfileId = localStorage.getItem('currentProfileId');
+        const profileToSet = profiles.find(p => p.id === lastProfileId) || profiles[0];
+        set({ currentProfile: profileToSet });
     }
-    return data;
-};
+  },
+}));
 
-export const saveProfile = async (profile: CompanyProfile): Promise<CompanyProfile> => {
-  const { data, error } = await supabase.from('company_profiles').upsert(profile).select();
-  if (error) throw error;
-  return data[0];
-};
-
-export const deleteProfile = async (id: string): Promise<void> => {
-  const { error } = await supabase.from('company_profiles').delete().eq('id', id);
-  if (error) throw error;
-};
-
-
-// --- Client Management ---
-
-export const getClients = async (): Promise<Client[]> => {
-  const profileId = await getActiveProfileId();
-  if (!profileId) return [];
-  const { data, error } = await supabase.from('clients').select('*').eq('profileId', profileId);
-  if (error) throw error;
-  return data;
-};
-
-export const getClient = async (id: string): Promise<Client | null> => {
-    const { data, error } = await supabase.from('clients').select('*').eq('id', id).single();
-    if (error) {
-        console.error('Error fetching client:', error);
-        return null;
+// When the current profile changes, store its ID in local storage.
+useStore.subscribe(
+    (state) => state.currentProfile,
+    (currentProfile) => {
+        if (currentProfile) {
+            localStorage.setItem('currentProfileId', currentProfile.id);
+        }
     }
-    return data;
-};
-
-export const saveClient = async (client: Client): Promise<Client> => {
-  const { data, error } = await supabase.from('clients').upsert(client).select();
-  if (error) throw error;
-  return data[0];
-};
-
-export const deleteClient = async (id: string): Promise<void> => {
-  const { error } = await supabase.from('clients').delete().eq('id', id);
-  if (error) throw error;
-};
-
-
-// --- Document Management (Invoices, Quotations, Tenders) ---
-
-export const getDocuments = async (): Promise<Document[]> => {
-  const profileId = await getActiveProfileId();
-  if (!profileId) return [];
-  const { data, error } = await supabase.from('documents').select('*').eq('profileId', profileId);
-  if (error) throw error;
-  return data;
-};
-
-export const getDocument = async (id: string): Promise<Document | null> => {
-    const { data, error } = await supabase.from('documents').select('*').eq('id', id).single();
-    if (error) {
-        console.error('Error fetching document:', error);
-        return null;
-    }
-    return data;
-};
-
-export const saveDocument = async (doc: Document): Promise<Document> => {
-  const { data, error } = await supabase.from('documents').upsert(doc).select();
-  if (error) throw error;
-  return data[0];
-};
-
-export const deleteDocument = async (id: string): Promise<void> => {
-  const { error } = await supabase.from('documents').delete().eq('id', id);
-  if (error) throw error;
-};
-
-// --- Document Library Management ---
-
-export const getLibraryDocuments = async (): Promise<LibraryDocument[]> => {
-  const profileId = await getActiveProfileId();
-  if (!profileId) return [];
-  const { data, error } = await supabase.from('library_documents').select('*').eq('profileId', profileId);
-  if (error) throw error;
-  return data;
-};
-
-export const saveLibraryDocument = async (doc: LibraryDocument): Promise<LibraryDocument> => {
-    const { data, error } = await supabase.from('library_documents').upsert(doc).select();
-    if (error) throw error;
-    return data[0];
-};
-
-export const deleteLibraryDocument = async (id: string): Promise<void> => {
-    const { error } = await supabase.from('library_documents').delete().eq('id', id);
-    if (error) throw error;
-};
+)
