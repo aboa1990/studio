@@ -1,0 +1,383 @@
+{
+  "entities": {
+    "CompanyProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CompanyProfile",
+      "type": "object",
+      "description": "Represents the details and branding configuration for a company within the application. This entity stores information essential for generating documents and managing company-specific settings.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the CompanyProfile entity."
+        },
+        "companyName": {
+          "type": "string",
+          "description": "The legal name of the company."
+        },
+        "address": {
+          "type": "string",
+          "description": "The physical address of the company."
+        },
+        "email": {
+          "type": "string",
+          "description": "The primary contact email address for the company.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "The primary contact phone number for the company."
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "URL to the company's logo image, typically stored in a cloud storage service and used for branding on documents.",
+          "format": "uri"
+        },
+        "taxId": {
+          "type": "string",
+          "description": "The company's tax identification number (e.g., GSTIN)."
+        },
+        "bankName": {
+          "type": "string",
+          "description": "The name of the bank where company payments are received."
+        },
+        "bankAccountName": {
+          "type": "string",
+          "description": "The name of the account holder for company payments."
+        },
+        "bankAccountNumber": {
+          "type": "string",
+          "description": "The bank account number for company payments."
+        },
+        "defaultCurrency": {
+          "type": "string",
+          "description": "The default currency used by the company for financial documents (e.g., MVR)."
+        },
+        "defaultTaxRate": {
+          "type": "number",
+          "description": "The default tax rate percentage applied to new financial documents."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the company profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the company profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "companyName",
+        "address",
+        "email",
+        "phone",
+        "defaultCurrency",
+        "defaultTaxRate",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user within the application, including their roles and association with a company. This entity stores user-specific data not handled by the external authentication system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity, corresponding to the external authentication system's user ID (e.g., Firebase Auth UID)."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The user's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The user's last name."
+        },
+        "role": {
+          "type": "string",
+          "description": "The user's role within the company (e.g., Admin, Staff). This defines their access and permissions within the application."
+        },
+        "companyProfileId": {
+          "type": "string",
+          "description": "Reference to the CompanyProfile this user is associated with. (Relationship: CompanyProfile 1:N UserProfile)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the user profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the user profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "firstName",
+        "lastName",
+        "role",
+        "companyProfileId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Document": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Document",
+      "type": "object",
+      "description": "Represents a financial document, either an Invoice or a Quotation, issued to a client. This entity captures all high-level details of the document.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Document entity."
+        },
+        "documentType": {
+          "type": "string",
+          "description": "The type of financial document (e.g., 'Invoice' or 'Quotation')."
+        },
+        "documentNumber": {
+          "type": "string",
+          "description": "A unique, auto-generated sequential number for the document (e.g., INV-001, QTN-001)."
+        },
+        "clientName": {
+          "type": "string",
+          "description": "The full name of the client to whom the document is issued."
+        },
+        "clientEmail": {
+          "type": "string",
+          "description": "The email address of the client for communication.",
+          "format": "email"
+        },
+        "clientAddress": {
+          "type": "string",
+          "description": "The physical address of the client, used for formal document presentation."
+        },
+        "issueDate": {
+          "type": "string",
+          "description": "The date when the document was officially issued.",
+          "format": "date-time"
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "The date by which the payment for an invoice is due. Primarily relevant for Invoices.",
+          "format": "date-time"
+        },
+        "taxRate": {
+          "type": "number",
+          "description": "The applicable tax rate percentage (e.g., GST rate) for this document."
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "The sum of all document item line totals before tax. This is a calculated field."
+        },
+        "taxAmount": {
+          "type": "number",
+          "description": "The calculated amount of tax based on the subtotal and tax rate. This is a calculated field."
+        },
+        "total": {
+          "type": "number",
+          "description": "The grand total amount of the document (subtotal + tax amount). This is a calculated field."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency used for all monetary values in the document (e.g., MVR)."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current lifecycle status of the document (e.g., 'Draft', 'Sent', 'Paid', 'Overdue', 'Cancelled' for Invoices; 'Accepted', 'Rejected' for Quotations)."
+        },
+        "companyProfileId": {
+          "type": "string",
+          "description": "Reference to the CompanyProfile that issued this document. (Relationship: CompanyProfile 1:N Document)"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who created or last modified this document. (Relationship: UserProfile 1:N Document)"
+        },
+        "pdfStoragePath": {
+          "type": "string",
+          "description": "The storage path or URL to the generated PDF file of this document, if available.",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the document was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the document was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "documentType",
+        "documentNumber",
+        "clientName",
+        "clientEmail",
+        "issueDate",
+        "taxRate",
+        "subtotal",
+        "taxAmount",
+        "total",
+        "currency",
+        "status",
+        "companyProfileId",
+        "userId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "DocumentItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DocumentItem",
+      "type": "object",
+      "description": "Represents an individual line item or service entry within a financial document (Invoice or Quotation). Each document can have multiple items.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the DocumentItem entity."
+        },
+        "documentId": {
+          "type": "string",
+          "description": "Reference to the Document (Invoice or Quotation) this item belongs to. (Relationship: Document 1:N DocumentItem)"
+        },
+        "description": {
+          "type": "string",
+          "description": "A textual description of the item or service provided."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the item or units of service."
+        },
+        "unitPrice": {
+          "type": "number",
+          "description": "The price per single unit of the item or service."
+        },
+        "lineTotal": {
+          "type": "number",
+          "description": "The total price for this line item (quantity * unitPrice). This is a calculated field."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the document item was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the document item was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "documentId",
+        "description",
+        "quantity",
+        "unitPrice",
+        "lineTotal",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores individual user profiles, whose 'id' matches 'request.auth.uid'. Includes 'companyProfileId' and 'role' for company-specific authorization, which is crucial for establishing user context for all other company-related data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user (Firebase Auth UID)."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/companies/{companyId}",
+        "definition": {
+          "entityName": "CompanyProfile",
+          "schema": {
+            "$ref": "#/backend/entities/CompanyProfile"
+          },
+          "description": "Stores company-specific details and branding. To ensure Authorization Independence for direct access to this document, it's recommended to include an 'ownerId' and/or 'members' map within the document itself, even if not explicitly in the provided schema. Authorization for this path generally relies on the user's associated 'companyProfileId' from their UserProfile.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "The unique ID of the company profile."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/companies/{companyId}/documents/{documentId}",
+        "definition": {
+          "entityName": "Document",
+          "schema": {
+            "$ref": "#/backend/entities/Document"
+          },
+          "description": "Stores individual financial documents (invoices, quotations) associated with a specific company. Includes denormalized 'companyProfileId' (which must match the '{companyId}' path parameter) and 'userId' for authorization independence and data integrity checks, facilitating secure list operations.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "The unique ID of the company profile."
+            },
+            {
+              "name": "documentId",
+              "description": "The unique ID of the document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/companies/{companyId}/documents/{documentId}/items/{itemId}",
+        "definition": {
+          "entityName": "DocumentItem",
+          "schema": {
+            "$ref": "#/backend/entities/DocumentItem"
+          },
+          "description": "Stores line items for a specific financial document. Includes denormalized 'documentId' (which must match the '{documentId}' path parameter) for authorization independence and data integrity. Inherits company context from the parent path.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "The unique ID of the company profile."
+            },
+            {
+              "name": "documentId",
+              "description": "The unique ID of the document."
+            },
+            {
+              "name": "itemId",
+              "description": "The unique ID of the document item."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The recommended Firestore structure is designed to be secure, scalable, and highly debuggable, strictly adhering to the core design principles and strategy mandates. The primary goal is to achieve Authorization Independence and enable robust QAPs (Queryable Authorization Patterns) through judicious use of hierarchical paths and denormalization.\n\n1.  **User Profiles (`/users/{userId}`):** Each user's `UserProfile` is stored in a top-level collection, with the document ID (`{userId}`) matching the Firebase Authentication UID (`request.auth.uid`). This provides strict path-based ownership, making authorization for individual user profiles extremely simple and independent. The `UserProfile` contains the crucial `companyProfileId` and `role`, which link the user to a specific company and define their permissions within it.\n\n2.  **Company Profiles (`/companies/{companyId}`):** `CompanyProfile` documents are stored in a top-level collection. To uphold Authorization Independence for subcollections, while `CompanyProfile` itself does not contain `ownerId` or `members` in the provided schema, it's implicitly understood that, for robust security rules, `CompanyProfile` documents should either contain an `ownerId` (the UID of the creator/admin) or a `members` map (e.g., `members: { [uid: string]: 'role' }`). This enables direct authorization checks on the `CompanyProfile` document itself without relying on `get()` calls to other documents.\n    **Authorization Independence/QAP for CompanyProfile:** For a user to access *any* data related to their company, their `companyProfileId` must be established. This is achieved by a single, initial `get()` call to their `UserProfile` (`/users/$(request.auth.uid)`). This establishes the user's company context. From that point, all subsequent operations within that company's scope leverage this established `companyProfileId` and avoid further `get()` calls on unrelated documents.\n\n3.  **Documents (`/companies/{companyId}/documents/{documentId}`):** Invoices and Quotations are placed as a subcollection under their respective `CompanyProfile`. This **Structural Segregation** is key: all documents for a given company are naturally grouped, simplifying `list` operations (QAPs) as queries are scoped to a specific company path. The `Document` entity explicitly denormalizes `companyProfileId` and `userId`. The `companyProfileId` in the document data *must* match the `{companyId}` in the path, acting as an invariant check. This denormalization means that rules for `documents` can directly check `resource.data.companyProfileId` against the path's `{companyId}` and verify that `request.auth.uid` is authorized for that `{companyId}` (using the `companyProfileId` obtained from the `UserProfile` as discussed).\n\n4.  **Document Items (`/companies/{companyId}/documents/{documentId}/items/{itemId}`):** Individual line items are nested as a subcollection under their parent `Document`. This continues the hierarchical structure, ensuring that `DocumentItem`s are always accessed within the context of a specific `Document` and `Company`. The `DocumentItem` explicitly denormalizes `documentId`, which *must* match the `{documentId}` in the path. Access is implicitly granted if the user is authorized to access the parent `Document`.\n\nThis design prioritizes query efficiency and clear security rule logic. The denormalization of `companyProfileId` and `documentId` into subcollection documents, combined with path-based organization, greatly reduces the need for complex `get()` calls within security rules, fostering maintainability and auditability. QAPs are supported by the natural segmentation of data, allowing for efficient, secure queries based on `companyId` and `documentId` directly in the path."
+  }
+}
