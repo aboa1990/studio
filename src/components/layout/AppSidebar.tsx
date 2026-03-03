@@ -41,8 +41,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getProfiles, getActiveProfileId, setActiveProfileId } from "@/lib/store"
-import { CompanyProfile } from "@/lib/types"
 
 const items = [
   {
@@ -89,37 +87,6 @@ const items = [
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const [profiles, setProfiles] = React.useState<CompanyProfile[]>([])
-  const [activeProfileId, setActiveId] = React.useState("")
-
-  const loadProfiles = React.useCallback(async () => {
-    try {
-      const fetchedProfiles = await getProfiles();
-      const fetchedActiveId = await getActiveProfileId();
-      setProfiles(fetchedProfiles);
-      setActiveId(fetchedActiveId);
-    } catch (error) {
-      console.error("Sidebar load error:", error);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    loadProfiles()
-    if (typeof window !== 'undefined') {
-      window.addEventListener('profileChanged', loadProfiles)
-      return () => window.removeEventListener('profileChanged', loadProfiles)
-    }
-  }, [loadProfiles])
-
-  const activeProfile = profiles.find(p => p.id === activeProfileId) || profiles[0]
-
-  const handleProfileSwitch = (id: string) => {
-    setActiveProfileId(id);
-    setActiveId(id);
-    if (typeof window !== 'undefined') {
-      window.location.reload(); 
-    }
-  }
 
   return (
     <Sidebar collapsible="icon" className="border-r border-white/5 bg-sidebar">
@@ -135,7 +102,7 @@ export function AppSidebar() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden ml-3">
                 <span className="truncate font-bold text-white">
-                  {activeProfile?.name || "Select Profile"}
+                  My Company
                 </span>
                 <span className="truncate text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   Maldives Entity
@@ -154,21 +121,15 @@ export function AppSidebar() {
               Switch Business
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-white/5" />
-            {profiles.map((profile) => (
               <DropdownMenuItem
-                key={profile.id}
-                onClick={() => handleProfileSwitch(profile.id)}
                 className="gap-3 p-2 rounded-lg focus:bg-white/5 cursor-pointer mb-1"
               >
-                <div className={`flex size-8 items-center justify-center rounded-lg border ${profile.id === activeProfileId ? 'bg-white border-white text-black' : 'border-white/10 text-white'}`}>
+                <div className="flex size-8 items-center justify-center rounded-lg border bg-white border-white text-black">
                   <Building2 className="size-4 shrink-0" />
                 </div>
-                <span className="font-semibold text-sm">{profile.name}</span>
-                {profile.id === activeProfileId && (
+                <span className="font-semibold text-sm">My Company</span>
                   <Check className="ml-auto size-4 text-emerald-400" />
-                )}
               </DropdownMenuItem>
-            ))}
             <DropdownMenuSeparator className="bg-white/5" />
             <DropdownMenuItem asChild>
               <Link href="/settings" className="flex items-center gap-3 p-2 rounded-lg focus:bg-white/5 mt-1">
