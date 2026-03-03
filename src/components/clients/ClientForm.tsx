@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useForm, SubmitHandler } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { ChevronLeft, Loader2 } from "lucide-react"
+import { ChevronLeft, Loader2, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -38,13 +38,25 @@ export default function ClientForm({ clientId }: ClientFormProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [isNew, setIsNew] = useState(!clientId)
+  const [profileExists, setProfileExists] = useState<boolean | null>(null);
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
   })
 
   useEffect(() => {
-    if (clientId) {
+    const checkProfile = async () => {
+      const profileId = await getActiveProfileId();
+      setProfileExists(!!profileId);
+      setLoading(false);
+    };
+
+    setLoading(true);
+    checkProfile();
+  }, []);
+
+  useEffect(() => {
+    if (clientId && profileExists) {
       const fetchClient = async () => {
         const client = await getClient(clientId)
         if (client) {
@@ -59,12 +71,23 @@ export default function ClientForm({ clientId }: ClientFormProps) {
       }
       fetchClient()
     }
-  }, [clientId, setValue])
+  }, [clientId, setValue, profileExists])
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setLoading(true)
     try {
       const profileId = await getActiveProfileId();
+      
+      if (!profileId) {
+        toast({
+          title: "No Company Profile",
+          description: "Please create a company profile before adding clients.",
+          variant: "destructive",
+        });
+        router.push('/settings');
+        return;
+      }
+
       const clientData: Client = {
         id: clientId || uuidv4(),
         profileId,
@@ -76,7 +99,7 @@ export default function ClientForm({ clientId }: ClientFormProps) {
         description: `Successfully ${isNew ? 'added' : 'updated'} ${data.name}.`,
       })
       router.push("/clients")
-      router.refresh() // Ensures the client list is updated
+      router.refresh()
     } catch (error) {
       console.error(error)
       toast({
@@ -87,6 +110,29 @@ export default function ClientForm({ clientId }: ClientFormProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (loading && profileExists === null) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (profileExists === false) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4 text-center p-8 border-2 border-dashed rounded-lg border-destructive/50 bg-destructive/5">
+        <AlertTriangle className="size-12 text-destructive" />
+        <h2 className="text-2xl font-bold text-destructive">No Company Profile Found</h2>
+        <p className="text-muted-foreground max-w-sm">
+          You must have at least one company profile set up before you can add clients.
+        </p>
+        <Button onClick={() => router.push('/settings')} className="mt-4">
+          Go to Settings to Create a Profile
+        </Button>
+      </div>
+    );
   }
 
   return (

@@ -5,13 +5,16 @@ import { Client, CompanyProfile, Document, LibraryDocument } from './types';
 
 // --- Profile Management ---
 
-export const getActiveProfileId = async (): Promise<string> => {
+export const getActiveProfileId = async (): Promise<string | null> => {
   const { data, error } = await supabase.from('company_profiles').select('id').limit(1);
-  if (error) throw error;
+    if (error) {
+        console.error('Error fetching active profile:', error);
+        return null;
+    }
   if (data && data.length > 0) {
     return data[0].id;
   }
-  throw new Error("No company profile found.");
+  return null;
 };
 
 export const setActiveProfileId = async (id: string): Promise<void> => {
