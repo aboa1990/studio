@@ -86,7 +86,7 @@ const items = [
   },
 ]
 
-export function AppSidebar() {
+export default function AppSidebar() {
   const pathname = usePathname()
   const { profiles, currentProfile, fetchProfiles, setCurrentProfile } = useStore();
 
@@ -162,8 +162,7 @@ export function AppSidebar() {
                     asChild
                     isActive={pathname === item.url}
                     tooltip={item.title}
-                    className={`h-11 rounded-xl px-4 transition-all duration-200 ${
-                      pathname === item.url 
+                    className={`h-11 rounded-xl px-4 transition-all duration-200 ${pathname === item.url 
                         ? "bg-white/5 text-white font-bold shadow-sm" 
                         : "hover:bg-white/[0.03] text-muted-foreground hover:text-white"
                     }`}

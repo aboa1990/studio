@@ -24,6 +24,18 @@ const profileSchema = z.object({
   signature_url: z.string().optional(),
 })
 
+const defaultValues = {
+    name: "",
+    address: "",
+    email: "",
+    phone: "",
+    logo_url: "",
+    gst_number: "",
+    authorized_signatory: "",
+    bank_details: "",
+    signature_url: "",
+}
+
 export function ProfileForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,11 +44,11 @@ export function ProfileForm() {
 
   const { control, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: zodResolver(profileSchema),
-    defaultValues: currentProfile || {},
+    defaultValues: currentProfile || defaultValues,
   });
 
   useEffect(() => {
-    reset(currentProfile || {});
+    reset(currentProfile || defaultValues);
   }, [currentProfile, reset]);
 
   const handleFileUpload = async (file: File) => {
@@ -63,6 +75,11 @@ export function ProfileForm() {
     setSuccess(false)
 
     try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error("You must be logged in to create a profile.");
+        }
+
       let logoUrl = data.logo_url;
       if (data.logo_url instanceof File) {
         logoUrl = await handleFileUpload(data.logo_url);
@@ -80,13 +97,15 @@ export function ProfileForm() {
           .from("company_profiles")
           .update(profileData)
           .eq('id', currentProfile.id)
+          .select()
           .single();
         if (error) throw error;
         setCurrentProfile(updatedProfile);
       } else {
         const { data: newProfile, error } = await supabase
           .from("company_profiles")
-          .insert([profileData])
+          .insert([{ ...profileData, user_id: user.id }])
+          .select()
           .single();
         if (error) throw error;
         setProfiles([...profiles, newProfile]);
