@@ -50,7 +50,6 @@ export default function LoginPage() {
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
-            <img src="/logo.png" alt="Zenex" className="mx-auto h-20 w-auto" />
             <h1 className="text-3xl font-bold">
               {view === 'sign-in' ? 'Login' : 'Sign Up'}
             </h1>
@@ -144,13 +143,7 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="hidden bg-muted lg:block">
-        <img
-          src="/logo.png"
-          alt="Image"
-          width="1920"
-          height="1080"
-          className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
+        
       </div>
     </div>
   );

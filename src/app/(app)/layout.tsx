@@ -13,7 +13,7 @@ export default function AppLayout({
     <SidebarProvider>
       <SidebarInset>
         <AppSidebar />
-        <main className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
+        <main className="bg-background text-foreground p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </SidebarInset>
