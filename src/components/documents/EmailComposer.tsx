@@ -17,6 +17,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/lib/supabase"
+import { useStore } from "@/lib/store"
 
 interface EmailComposerProps {
   document: any;
@@ -24,31 +26,48 @@ interface EmailComposerProps {
 
 export default function EmailComposer({ document: doc }: EmailComposerProps) {
   const { toast } = useToast()
+  const { currentProfile: company } = useStore()
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [email, setEmail] = useState({ subject: "", body: "" })
+  const [email, setEmail] = useState<{ subject: string; body: string }>({ subject: "", body: "" })
   const [copied, setCopied] = useState(false)
 
   const generateEmail = async () => {
     setLoading(true)
+    if (!company) {
+      toast({
+        title: "No Company Profile",
+        description: "Please select a company profile first.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
-      // const result = await composeInvoiceEmail({
-      //   documentType: doc.type as 'invoice' | 'quotation',
-      //   clientName: doc.clientName,
-      //   documentNumber: doc.number,
-      //   dueDate: doc.dueDate,
-      //   totalAmount: doc.total,
-      //   currency: doc.currency,
-      //   companyName: company.name,
-      //   senderName: "Billing Dept",
-      //   customInstructions: "Please mention that bank transfer is the preferred payment method.",
-      // });
-      // setEmail(result);
+      const { data: result, error } = await supabase.functions.invoke('compose-email', {
+        body: {
+            documentType: doc.type,
+            clientName: doc.clientName,
+            documentNumber: doc.number,
+            dueDate: doc.dueDate,
+            totalAmount: doc.total,
+            currency: doc.currency,
+            companyName: company.name,
+            senderName: "Billing Dept",
+            customInstructions: "Please mention that bank transfer is the preferred payment method.",
+        }
+      });
+
+      if (error) throw error;
+      
+      setEmail(result);
+
     } catch (error) {
       console.error(error);
       toast({
         title: "Error",
-        description: "Failed to generate email content.",
+        description: "Failed to generate email content. Make sure the 'compose-email' function is deployed correctly in Supabase.",
         variant: "destructive",
       });
     } finally {
@@ -87,10 +106,11 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
             <p className="text-sm text-muted-foreground">
               Ready to generate a professional email draft for {doc.clientName}?
             </p>
-            <Button onClick={generateEmail} disabled={loading} className="bg-accent text-accent-foreground">
+            <Button onClick={generateEmail} disabled={loading || !company} className="bg-accent text-accent-foreground">
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
               Generate Draft
             </Button>
+            {!company && <p className="text-xs text-destructive">Please select a company profile first.</p>}
           </div>
         ) : (
           <div className="space-y-4 py-4">

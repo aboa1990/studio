@@ -46,7 +46,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
@@ -110,7 +110,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="m@example.com"
                   required
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.targe.value)}
                   value={email}
                 />
               </div>
@@ -145,7 +145,7 @@ export default function LoginPage() {
       </div>
       <div className="hidden bg-muted lg:block">
         <img
-          src="https://images.unsplash.com/photo-1590069261209-f8e9b8642343?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1376&q=80"
+          src="/logo.png"
           alt="Image"
           width="1920"
           height="1080"
