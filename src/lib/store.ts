@@ -1,3 +1,4 @@
+"use server";
 
 import { supabase } from './supabase';
 import { Client, CompanyProfile, Document, LibraryDocument } from './types';
@@ -12,6 +13,14 @@ export const getActiveProfileId = async (): Promise<string> => {
   }
   throw new Error("No company profile found.");
 };
+
+export const setActiveProfileId = async (id: string): Promise<void> => {
+  // This is a placeholder. In a real multi-user app, you'd store this 
+  // in user settings, a cookie, or local storage and re-validate on the server.
+  // For this project, we'll simulate it by just confirming the action.
+  console.log(`Active profile set to ${id}. Implement storage as needed.`);
+};
+
 
 export const getProfiles = async (): Promise<CompanyProfile[]> => {
   const { data, error } = await supabase.from('company_profiles').select('*');
@@ -32,6 +41,11 @@ export const saveProfile = async (profile: CompanyProfile): Promise<CompanyProfi
   const { data, error } = await supabase.from('company_profiles').upsert(profile).select();
   if (error) throw error;
   return data[0];
+};
+
+export const deleteProfile = async (id: string): Promise<void> => {
+  const { error } = await supabase.from('company_profiles').delete().eq('id', id);
+  if (error) throw error;
 };
 
 
