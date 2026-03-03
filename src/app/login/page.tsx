@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
+import { Sparkles } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -62,7 +64,7 @@ export default function LoginPage() {
 
           {view === 'check-email' ? (
             <div className="text-center">
-              <p className="text-gray-700 mb-4">We've sent a magic link to your email. Click the link to sign in automatically.</p>
+              <p className="text-muted-foreground mb-4">We've sent a magic link to your email. Click the link to sign in automatically.</p>
               <Button onClick={() => setView('sign-in')} variant='link'>Back to Sign In</Button>
             </div>
           ) : view === 'sign-in' ? (
@@ -81,7 +83,7 @@ export default function LoginPage() {
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <a href="#" className="ml-auto inline-block text-sm underline">
+                  <a href="#" className="ml-auto inline-block text-sm text-primary hover:underline">
                     Forgot your password?
                   </a>
                 </div>
@@ -109,7 +111,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="m@example.com"
                   required
-                  onChange={(e) => setEmail(e.targe.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   value={email}
                 />
               </div>
@@ -127,14 +129,14 @@ export default function LoginPage() {
             {view === 'sign-in' ? (
               <>
                 Don&apos;t have an account?{' '}
-                <button onClick={() => setView('sign-up')} className="underline">
+                <button onClick={() => setView('sign-up')} className="underline text-primary">
                   Sign up
                 </button>
               </>
             ) : (
               <>
                 Already have an account?{' '}
-                <button onClick={() => setView('sign-in')} className="underline">
+                <button onClick={() => setView('sign-in')} className="underline text-primary">
                   Sign in
                 </button>
               </>
@@ -142,8 +144,12 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-      <div className="hidden bg-muted lg:block">
-        
+      <div className="hidden bg-muted lg:flex items-center justify-center">
+        <div className="w-1/2 text-center">
+            <Sparkles className="mx-auto h-24 w-24 text-primary" />
+            <h2 className="text-3xl font-bold text-foreground mt-4">Welcome to ForgeDocs</h2>
+            <p className="text-muted-foreground mt-2">The fastest way to build apps with Next.js and Supabase</p>
+        </div>
       </div>
     </div>
   );

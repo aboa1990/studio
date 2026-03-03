@@ -11,9 +11,9 @@ export default function AppLayout({
 }>) {
   return (
     <SidebarProvider>
-      <SidebarInset>
+      <SidebarInset className="h-full">
         <AppSidebar />
-        <main className="bg-background text-foreground p-4 sm:p-6 lg:p-8">
+        <main className="bg-background text-foreground p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {children}
         </main>
       </SidebarInset>

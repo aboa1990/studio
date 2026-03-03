@@ -13,7 +13,7 @@ import LogoutButton from "@/components/LogoutButton";
 
 export default function Dashboard() {
   return (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+    <div className="space-y-12 animate-in fade-in duration-1000">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div className="space-y-2">
           <h1 className="text-6xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-foreground/30">
