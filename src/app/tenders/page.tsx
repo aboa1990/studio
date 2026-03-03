@@ -2,7 +2,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, FileText } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -50,7 +50,7 @@ export default function TendersList() {
       setDocs(prev => prev.filter(d => d.id !== id));
       toast({
         title: "Tender Deleted",
-        description: "The tender record has been removed.",
+        description: "The tender has been removed successfully.",
       });
     }
   }
@@ -62,11 +62,10 @@ export default function TendersList() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'submitted': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      case 'awarded': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+      case 'submitted': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      case 'awarded': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       case 'lost': return 'bg-destructive/10 text-destructive border-destructive/20';
-      case 'sent': return 'bg-primary/10 text-primary border-primary/20';
-      default: return 'bg-muted text-muted-foreground';
+      default: return 'bg-white/5 text-white/50 border-white/10';
     }
   }
 
@@ -115,9 +114,9 @@ export default function TendersList() {
                 </TableRow>
               ) : filteredDocs.length > 0 ? (
                 filteredDocs.map((doc) => (
-                  <TableRow key={doc.id} className="group transition-colors">
+                  <TableRow key={doc.id}>
                     <TableCell className="font-medium">
-                      <Link href={`/tenders/${doc.id}`} className="text-emerald-500 hover:underline underline-offset-4">
+                      <Link href={`/tenders/${doc.id}`} className="hover:underline">
                         {doc.number}
                       </Link>
                     </TableCell>
@@ -126,44 +125,37 @@ export default function TendersList() {
                     <TableCell>MVR {doc.total.toLocaleString()}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={getStatusColor(doc.status)}>
-                        {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                        {doc.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {doc.attachments && doc.attachments.length > 0 && (
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded">
-                            <FileText className="size-3" /> {doc.attachments.length}
-                          </div>
-                        )}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/tenders/${doc.id}`}><Eye className="mr-2 h-4 w-4" /> View Details</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/tenders/${doc.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Tender</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(doc.id)}>
-                              <Trash2 className="mr-2 h-4 w-4" /> Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/tenders/${doc.id}`}><Eye className="mr-2 h-4 w-4" /> View</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/tenders/${doc.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(doc.id)}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                    No tenders found.
+                    No tenders found. Create your first tender to get started.
                   </TableCell>
                 </TableRow>
               )}

@@ -62,9 +62,10 @@ export default function QuotationsList() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'sent': return 'bg-primary/10 text-primary border-primary/20';
-      case 'rejected': return 'bg-destructive/10 text-destructive border-destructive/20';
-      default: return 'bg-muted text-muted-foreground';
+      case 'sent': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      case 'accepted': return 'bg-green-500/10 text-green-400 border-green-500/20';
+      case 'rejected': return 'bg-red-500/10 text-red-400 border-red-500/20';
+      default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20'; // draft
     }
   }
 
@@ -113,9 +114,9 @@ export default function QuotationsList() {
                 </TableRow>
               ) : filteredDocs.length > 0 ? (
                 filteredDocs.map((doc) => (
-                  <TableRow key={doc.id} className="group transition-colors">
+                  <TableRow key={doc.id}>
                     <TableCell className="font-medium">
-                      <Link href={`/quotations/${doc.id}`} className="text-accent hover:underline underline-offset-4">
+                      <Link href={`/quotations/${doc.id}`} className="hover:underline">
                         {doc.number}
                       </Link>
                     </TableCell>
@@ -124,7 +125,7 @@ export default function QuotationsList() {
                     <TableCell>MVR {doc.total.toLocaleString()}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={getStatusColor(doc.status)}>
-                        {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                        {doc.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -154,7 +155,7 @@ export default function QuotationsList() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                    No quotations found.
+                    No quotations found. Create your first quotation to get started.
                   </TableCell>
                 </TableRow>
               )}
