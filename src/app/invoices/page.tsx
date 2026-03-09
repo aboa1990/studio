@@ -37,8 +37,8 @@ export default function InvoicesList() {
   useEffect(() => {
     const fetchDocuments = async () => {
       setLoading(true);
-      const documents = await getDocuments();
-      setDocs(documents.filter(d => d.type === 'invoice'));
+      const documents = await getDocuments('invoice');
+      setDocs(documents);
       setLoading(false);
     };
     fetchDocuments();

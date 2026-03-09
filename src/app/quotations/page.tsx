@@ -37,8 +37,8 @@ export default function QuotationsList() {
   useEffect(() => {
     const fetchDocuments = async () => {
       setLoading(true);
-      const documents = await getDocuments();
-      setDocs(documents.filter(d => d.type === 'quotation'));
+      const documents = await getDocuments('quotation');
+      setDocs(documents);
       setLoading(false);
     };
     fetchDocuments();

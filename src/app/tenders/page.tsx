@@ -37,8 +37,8 @@ export default function TendersList() {
   useEffect(() => {
     const fetchDocuments = async () => {
       setLoading(true);
-      const documents = await getDocuments();
-      setDocs(documents.filter(d => d.type === 'tender'));
+      const documents = await getDocuments('tender');
+      setDocs(documents);
       setLoading(false);
     };
     fetchDocuments();

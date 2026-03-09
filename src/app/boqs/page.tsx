@@ -37,8 +37,8 @@ export default function BOQsList() {
   useEffect(() => {
     const fetchDocuments = async () => {
       setLoading(true);
-      const documents = await getDocuments();
-      setDocs(documents.filter(d => d.type === 'boq'));
+      const documents = await getDocuments('boq');
+      setDocs(documents);
       setLoading(false);
     };
     fetchDocuments();
