@@ -18,7 +18,7 @@ import {
   Sparkles
 } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useStore } from "@/lib/store"
 
 import {
@@ -88,6 +88,7 @@ const items = [
 
 export default function AppSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { profiles, currentProfile, fetchProfiles, setCurrentProfile } = useStore();
 
   React.useEffect(() => {
@@ -107,7 +108,7 @@ export default function AppSidebar() {
                 {currentProfile?.logo_url ? <img src={currentProfile.logo_url} alt={currentProfile.name} className="rounded-lg"/> : <Building2 className="size-5" />}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden ml-3">
-                <span className="truncate font-bold">
+                <span className="font-bold truncate">
                   {currentProfile?.name || 'My Company'}
                 </span>
                 <span className="truncate text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
@@ -141,11 +142,15 @@ export default function AppSidebar() {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/settings" className="flex items-center gap-3 p-2 rounded-lg focus:bg-muted mt-1">
-                <PlusCircle className="size-4" />
-                <span className="font-semibold text-sm">Add New Profile</span>
-              </Link>
+            <DropdownMenuItem
+              onSelect={() => {
+                setCurrentProfile(null);
+                router.push('/settings');
+              }}
+              className="flex items-center gap-3 p-2 rounded-lg focus:bg-muted mt-1 cursor-pointer"
+            >
+              <PlusCircle className="size-4" />
+              <span className="font-semibold text-sm">Add New Profile</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

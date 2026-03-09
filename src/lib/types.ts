@@ -76,7 +76,7 @@ export interface CompanyProfile {
   address: string;
   email: string;
   phone: string;
-  logoUrl?: string;
+  logo_url?: string;
   signatureUrl?: string;
   authorizedSignatory?: string;
   gstNumber?: string;

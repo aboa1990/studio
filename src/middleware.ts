@@ -42,9 +42,9 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
 
   // If user is not signed in and is not on the login page, redirect to login
-  if (!session && request.nextUrl.pathname !== '/login') {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
+  // if (!session && request.nextUrl.pathname !== '/login') {
+  //   return NextResponse.redirect(new URL('/login', request.url));
+  // }
 
   // If user is signed in and on the login page, redirect to the home page
   if (session && request.nextUrl.pathname === '/login') {
