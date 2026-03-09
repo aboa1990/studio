@@ -45,7 +45,7 @@ export interface Document {
   profileId: string; // Linked to a specific company profile
   type: DocumentType;
   number: string;
-  clientId?: string; // Reference to a saved client
+  client_id?: string; // Reference to a saved client
   clientName: string;
   clientEmail: string;
   clientAddress?: string;
@@ -72,6 +72,7 @@ export interface BankDetails {
 
 export interface CompanyProfile {
   id: string;
+  user_id?: string;
   name: string;
   address: string;
   email: string;

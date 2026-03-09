@@ -43,10 +43,10 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const { currentProfile } = useStore();
   
   const defaultTerms = type === 'tender' 
-    ? "1. This proposal is valid for 90 days from the submission date.\n2. All prices are inclusive of GST.\n3. Delivery will be within the specified timeframe upon award."
+    ? "1. This proposal is valid for 90 days from the submission date.\\n2. All prices are inclusive of GST.\\n3. Delivery will be within the specified timeframe upon award."
     : type === 'boq'
-    ? "1. Quantities are estimated and subject to site verification.\n2. Rates provided are valid for 30 days.\n3. All items are inclusive of labor and materials unless specified."
-    : "1. Please pay within 14 days.\n2. Bank transfer is preferred.\n3. Include reference number as reference.";
+    ? "1. Quantities are estimated and subject to site verification.\\n2. Rates provided are valid for 30 days.\\n3. All items are inclusive of labor and materials unless specified."
+    : "1. Please pay within 14 days.\\n2. Bank transfer is preferred.\\n3. Include reference number as reference.";
 
   const [doc, setDoc] = useState<Partial<Document>>(
     initialData || {
@@ -103,7 +103,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
     if (client) {
       setDoc(prev => ({
         ...prev,
-        clientId: client.id,
+        client_id: client.id,
         clientName: client.name,
         clientEmail: client.email,
         clientAddress: client.address
@@ -198,7 +198,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
             Cancel
           </Button>
           <Button type="submit" className="bg-primary text-primary-foreground" disabled={loading}>
-            {loading ? 'Saving...' : <><Save className="mr-2 h-4 w-4" />Save {type.toUpperCase()}</>}
+            {loading ? 'Saving...' : <><Save className="mr-2 h-4 w-4" />Save {type.toUpperCase()}</>}\
           </Button>
         </div>
       </div>

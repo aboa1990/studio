@@ -27,7 +27,7 @@ export default function Settings() {
     if (user) {
       const { data, error } = await supabase
         .from('company_profiles')
-        .insert([{ name: newProfileName, userId: user.id }])
+        .insert([{ name: newProfileName, user_id: user.id }])
         .select();
       
       if (error) {
