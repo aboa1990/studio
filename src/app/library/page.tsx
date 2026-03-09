@@ -36,12 +36,12 @@ export default function DocumentLibraryPage() {
       reader.onload = async () => {
         const newDoc: LibraryDocument = {
           id: uuidv4(),
-          profileId: await getActiveProfileId(),
+          profile_id: await getActiveProfileId(),
           name: file.name,
           type: file.type,
           data: reader.result as string,
           category: 'General',
-          uploadedAt: new Date().toISOString(),
+          uploaded_at: new Date().toISOString(),
         }
         await saveLibraryDocument(newDoc)
         setDocs(prev => [newDoc, ...prev])
@@ -105,7 +105,7 @@ export default function DocumentLibraryPage() {
                 <div key={doc.id} className="group relative bg-card/60 rounded-lg p-4 space-y-3 border border-border hover:border-primary/50 transition-colors">
                   <FileText className="size-10 text-primary" />
                   <p className="font-semibold text-sm truncate" title={doc.name}>{doc.name}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(doc.uploadedAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(doc.uploaded_at).toLocaleDateString()}</p>
                   <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleDownload(doc)}>
                       <Download className="size-4" />

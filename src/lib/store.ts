@@ -67,7 +67,7 @@ export async function getDocuments(type: DocumentType): Promise<Document[]> {
         .from('documents')
         .select('*')
         .eq('type', type)
-        .eq('profileId', profileId);
+        .eq('profile_id', profileId);
     if (error) {
         console.error(`Error fetching ${type}s:`, error);
         return [];
@@ -97,7 +97,7 @@ export async function getClients(): Promise<Client[]> {
     const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .eq('profileId', profileId);
+        .eq('profile_id', profileId);
 
     if (error) {
         console.error('Error fetching clients:', error);
@@ -113,7 +113,7 @@ export async function getLibraryDocuments(): Promise<LibraryDocument[]> {
     const { data, error } = await supabase
         .from('library_documents')
         .select('*')
-        .eq('profileId', profileId);
+        .eq('profile_id', profileId);
     if (error) {
         console.error('Error fetching library documents:', error);
         return [];

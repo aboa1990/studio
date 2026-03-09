@@ -20,17 +20,17 @@ export interface Attachment {
 
 export interface LibraryDocument {
   id: string;
-  profileId: string;
+  profile_id: string;
   name: string;
   type: string;
   data: string; // Base64 encoded string
   category: string;
-  uploadedAt: string;
+  uploaded_at: string;
 }
 
 export interface Client {
   id: string;
-  profileId: string;
+  profile_id: string;
   name: string;
   contactPerson?: string;
   email: string;
@@ -42,7 +42,7 @@ export interface Client {
 
 export interface Document {
   id: string;
-  profileId: string; // Linked to a specific company profile
+  profile_id: string; // Linked to a specific company profile
   type: DocumentType;
   number: string;
   client_id?: string; // Reference to a saved client

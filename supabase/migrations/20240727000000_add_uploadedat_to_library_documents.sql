@@ -1,0 +1,1 @@
+ALTER TABLE public.library_documents ADD COLUMN "uploadedAt" TIMESTAMPTZ;
