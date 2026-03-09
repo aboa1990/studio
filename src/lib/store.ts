@@ -11,23 +11,44 @@ interface StoreState {
   fetchProfiles: () => Promise<void>;
 }
 
-export const useStore = create<StoreState>((set) => ({
+export const useStore = create<StoreState>((set, get) => ({
   profiles: [],
   currentProfile: null,
   setProfiles: (profiles) => set({ profiles }),
-  setCurrentProfile: (profile) => set({ currentProfile: profile }),
+  setCurrentProfile: async (profile) => {
+    if (profile) {
+      // Update last_active_at in the database
+      await supabase
+        .from('company_profiles')
+        .update({ last_active_at: new Date().toISOString() })
+        .eq('id', profile.id);
+    }
+    set({ currentProfile: profile });
+  },
   fetchProfiles: async () => {
-    const { data: profiles, error } = await supabase.from('company_profiles').select('*');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: profiles, error } = await supabase.from('company_profiles').select('*').eq('user_id', user.id);
     if (error) {
       console.error('Error fetching profiles:', error);
       return;
     }
+
     set({ profiles: profiles || [] });
+
     if (profiles && profiles.length > 0) {
-        // Check for a previously selected profile ID in local storage
-        const lastProfileId = localStorage.getItem('currentProfileId');
-        const profileToSet = profiles.find(p => p.id === lastProfileId) || profiles[0];
-        set({ currentProfile: profileToSet });
+      const lastProfileId = localStorage.getItem('currentProfileId');
+      let profileToSet = profiles.find(p => p.id === lastProfileId);
+
+      if (!profileToSet) {
+        // If no profile in local storage, find the most recently active one
+        profileToSet = profiles.sort((a, b) => 
+          new Date(b.last_active_at || 0).getTime() - new Date(a.last_active_at || 0).getTime()
+        )[0];
+      }
+      
+      get().setCurrentProfile(profileToSet);
     }
   },
 }));

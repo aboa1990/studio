@@ -82,6 +82,7 @@ export interface CompanyProfile {
   authorizedSignatory?: string;
   gstNumber?: string;
   bankDetails?: BankDetails;
+  last_active_at?: string;
 }
 
 export type CompanyDetails = CompanyProfile;

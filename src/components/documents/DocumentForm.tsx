@@ -51,7 +51,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const [doc, setDoc] = useState<Partial<Document>>(
     initialData || {
       id: uuidv4(),
-      profileId: '', // Will be set in useEffect
+      profile_id: '', // Will be set in useEffect
       type,
       number: `${type === 'invoice' ? 'INV' : type === 'tender' ? 'TDR' : type === 'boq' ? 'BOQ' : 'QT'}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`,
       clientName: "",
@@ -74,16 +74,16 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   useEffect(() => {
     if (currentProfile) {
       const fetchData = async () => {
-        const { data: clients, error: clientsError } = await supabase.from('clients').select('*').eq('profileId', currentProfile.id)
+        const { data: clients, error: clientsError } = await supabase.from('clients').select('*').eq('profile_id', currentProfile.id)
         if (clientsError) console.error('Error fetching clients:', clientsError)
         else setSavedClients(clients || [])
 
-        const { data: libraryDocuments, error: libraryError } = await supabase.from('library_documents').select('*').eq('profileId', currentProfile.id)
+        const { data: libraryDocuments, error: libraryError } = await supabase.from('library_documents').select('*').eq('profile_id', currentProfile.id)
         if (libraryError) console.error('Error fetching library documents:', libraryError)
         else setLibraryDocs(libraryDocuments || [])
 
         if (!initialData) {
-          setDoc(prev => ({ ...prev, profileId: currentProfile.id }));
+          setDoc(prev => ({ ...prev, profile_id: currentProfile.id }));
         }
       }
       fetchData();
@@ -179,7 +179,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (doc.items && doc.items.length > 0 && doc.profileId) {
+    if (doc.items && doc.items.length > 0 && doc.profile_id) {
       setLoading(true);
       await saveDocument(doc as Document);
       setLoading(false);
@@ -198,7 +198,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
             Cancel
           </Button>
           <Button type="submit" className="bg-primary text-primary-foreground" disabled={loading}>
-            {loading ? 'Saving...' : <><Save className="mr-2 h-4 w-4" />Save {type.toUpperCase()}</>}\
+            {loading ? 'Saving...' : <><Save className="mr-2 h-4 w-4" />Save {type.toUpperCase()}</>}
           </Button>
         </div>
       </div>
