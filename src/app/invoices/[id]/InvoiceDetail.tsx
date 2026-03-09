@@ -19,7 +19,7 @@ export default function InvoiceDetail() {
   useEffect(() => {
     const fetchDocument = async () => {
       setLoading(true);
-      const found = await getDocument(id as string);
+      const found = await getDocument(id as string, 'invoice');
       if (found) setDoc(found);
       setLoading(false);
     };

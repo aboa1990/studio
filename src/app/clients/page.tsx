@@ -2,10 +2,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Mail, Phone, Loader2, AlertTriangle } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { 
   Table, 
   TableBody, 
@@ -23,11 +23,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useStore } from "@/lib/store"
-import { supabase } from "@/lib/supabase"
 import { Client } from "@/lib/types"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 
 export default function ClientsList() {
   const { toast } = useToast()
@@ -44,154 +44,138 @@ export default function ClientsList() {
         const { data, error } = await supabase
           .from('clients')
           .select('*')
-          .eq('profileId', currentProfile.id)
+          .eq('profile_id', currentProfile.id)
 
         if (error) {
           console.error("Error fetching clients:", error)
-          toast({ title: "Error", description: "Failed to fetch clients.", variant: "destructive" })
+          toast({
+            title: "Error fetching clients",
+            description: "Could not fetch your client list. Please try again.",
+            variant: "destructive",
+          })
         } else {
-          setClients(data || [])
+          setClients(data)
         }
         setLoading(false)
       }
       fetchClients()
-    } else {
-        // If there's no profile selected after the store has been checked
-        setLoading(false);
-        setClients([]);
     }
   }, [currentProfile, toast])
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this client? This action cannot be undone.")) {
       const { error } = await supabase.from('clients').delete().eq('id', id)
-
       if (error) {
-        console.error("Error deleting client:", error)
-        toast({ title: "Error", description: "Failed to delete client.", variant: "destructive" })
+        toast({
+          title: "Error deleting client",
+          description: error.message,
+          variant: "destructive",
+        })
       } else {
         setClients(prev => prev.filter(c => c.id !== id))
         toast({
           title: "Client Deleted",
-          description: "The client has been removed from your database.",
+          description: "The client has been removed successfully.",
         })
       }
     }
   }
 
-  const filteredClients = clients.filter(c => 
-    c.name.toLowerCase().includes(search.toLowerCase()) || 
-    (c.contactPerson && c.contactPerson.toLowerCase().includes(search.toLowerCase()))
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().includes(search.toLowerCase()) ||
+    (client.email && client.email.toLowerCase().includes(search.toLowerCase()))
   )
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-4xl font-headline font-black tracking-tight">Clients</h1>
-          <p className="text-muted-foreground mt-1">Manage your customer database and contact info.</p>
+    <div className="space-y-10 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+        <div className="space-y-1">
+          <h1 className="text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/40">Clients</h1>
+          <p className="text-muted-foreground text-lg">Your central hub for all client information.</p>
         </div>
-        <Button asChild className="bg-primary text-primary-foreground">
-          <Link href="/clients/new"><Plus className="mr-2 size-4" /> Add Client</Link>
+        <Button asChild className="rounded-full px-6 shadow-xl shadow-primary/10">
+          <Link href="/clients/new"><Plus className="mr-2 size-4" /> New Client</Link>
         </Button>
       </div>
-      
-      {!currentProfile && !loading && (
-          <div className="flex flex-col items-center justify-center h-96 gap-4 text-center p-8 border-2 border-dashed rounded-lg border-amber-500/50 bg-amber-500/5">
-            <AlertTriangle className="size-12 text-amber-500" />
-            <h2 className="text-2xl font-bold text-amber-500">No Company Profile Selected</h2>
-            <p className="text-muted-foreground max-w-sm">
-              Please create or select a company profile from the sidebar to manage clients.
-            </p>
-            <Button onClick={() => router.push('/settings')} className="mt-4">
-              Go to Settings
-            </Button>
-          </div>
-      )}
 
-      {currentProfile && (
-        <Card className="border-none shadow-lg bg-card/50 overflow-hidden">
-          <div className="p-4 border-b border-border bg-card/80">
-            <div className="relative max-w-sm">
+      <Card className="glass-card overflow-hidden shadow-2xl border-white/5">
+        <CardHeader className="border-b border-white/5 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <CardTitle>Client Directory</CardTitle>
+              <CardDescription>A complete list of all your clients.</CardDescription>
+            </div>
+            <div className="relative w-full max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input 
-                placeholder="Search clients..." 
-                className="pl-10" 
+                placeholder="Search by name or email..." 
+                className="pl-10 h-10 rounded-xl bg-white/5 border-white/5 focus:bg-white/10 transition-all" 
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
             </div>
           </div>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact Person</TableHead>
-                  <TableHead>Contact Details</TableHead>
-                  <TableHead>GST Number</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-white/[0.02]">
+              <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="font-bold text-[10px] uppercase tracking-[0.2em] h-14">Name</TableHead>
+                <TableHead className="font-bold text-[10px] uppercase tracking-[0.2em] h-14">Contact</TableHead>
+                <TableHead className="font-bold text-[10px] uppercase tracking-[0.2em] h-14">Phone</TableHead>
+                <TableHead className="font-bold text-[10px] uppercase tracking-[0.2em] h-14">Primary Contact</TableHead>
+                <TableHead className="text-right font-bold text-[10px] uppercase tracking-[0.2em] h-14 pr-6">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-48 text-center text-muted-foreground">Loading clients...</TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-32 text-center">
-                      <div className="flex justify-center items-center gap-2 text-muted-foreground">
-                        <Loader2 className="size-5 animate-spin"/>
-                        <span>Loading clients...</span>
-                      </div>
+              ) : filteredClients.length > 0 ? (
+                filteredClients.map((client) => (
+                  <TableRow key={client.id} className="border-white/5">
+                    <TableCell className="font-medium">{client.name}</TableCell>
+                    <TableCell>{client.email}</TableCell>
+                    <TableCell>{client.phone}</TableCell>
+                    <TableCell>{client.contact_person}</TableCell>
+                    <TableCell className="text-right pr-4">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/clients/${client.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Client</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-400" onClick={() => handleDelete(client.id)}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete Client
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ) : filteredClients.length > 0 ? (
-                  filteredClients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell className="font-medium">{client.name}</TableCell>
-                      <TableCell>{client.contactPerson || 'N/A'}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Mail className="size-3 text-muted-foreground" /> {client.email}
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Phone className="size-3 text-muted-foreground" /> {client.phone}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{client.gstNumber || 'N/A'}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/clients/${client.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDelete(client.id)}>
-                              <Trash2 className="mr-2 h-4 w-4" /> Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
-                      No clients found. Add your first client to get started.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+                ))
+              ) : (
+                <TableRow>
+                   <TableCell colSpan={5} className="h-48 text-center text-muted-foreground">
+                    <div className="flex flex-col items-center gap-3">
+                      <Users className="size-12 opacity-10" />
+                      <p className="font-semibold">No clients found</p>
+                      <Button asChild variant="outline" size="sm" className="rounded-full">
+                        <Link href="/clients/new">Add Your First Client</Link>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   )
 }

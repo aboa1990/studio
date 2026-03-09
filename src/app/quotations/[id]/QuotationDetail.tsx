@@ -23,7 +23,7 @@ export default function QuotationDetail() {
   useEffect(() => {
     const fetchDocument = async () => {
       setLoading(true);
-      const found = await getDocument(id as string);
+      const found = await getDocument(id as string, 'quotation');
       if (found) setDoc(found);
       setLoading(false);
     };
