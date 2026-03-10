@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { supabase } from "@/lib/supabase"
 import { useStore } from "@/lib/store"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
 const profileSchema = z.object({
   name: z.string().min(1, "Company name is required"),
@@ -40,7 +41,7 @@ export function ProfileForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const { profiles, currentProfile, setProfiles, setCurrentProfile, fetchProfiles } = useStore()
+  const { profiles, currentProfile, setCurrentProfile, fetchProfiles } = useStore()
 
   const { control, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: zodResolver(profileSchema),
@@ -104,7 +105,7 @@ export function ProfileForm() {
           .select()
           .single();
         if (error) throw error;
-        await fetchProfiles(); // Refetch profiles to update the store
+        await fetchProfiles();
         setCurrentProfile(updatedProfile);
       } else {
         const { data: newProfile, error } = await supabase
@@ -113,7 +114,7 @@ export function ProfileForm() {
           .select()
           .single();
         if (error) throw error;
-        await fetchProfiles(); // Refetch profiles to update the store
+        await fetchProfiles();
         setCurrentProfile(newProfile);
       }
 
@@ -125,10 +126,31 @@ export function ProfileForm() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!currentProfile) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.from('company_profiles').delete().eq('id', currentProfile.id);
+      if (error) throw error;
+
+      await fetchProfiles(); 
+      const newProfiles = profiles.filter(p => p.id !== currentProfile.id);
+      setCurrentProfile(newProfiles.length > 0 ? newProfiles[0] : null);
+
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Card className="glass-card rounded-[2.5rem]">
       <CardHeader>
-        <CardTitle className="text-2xl font-black tracking-tight">Company Profile</CardTitle>
+        <CardTitle className="text-2xl font-black tracking-tight">{currentProfile ? 'Edit' : 'Create'} Company Profile</CardTitle>
         <CardDescription>This information will appear on your invoices, quotations, and other documents.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -232,9 +254,30 @@ export function ProfileForm() {
             />
           </div>
           
-          <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold tracking-tight">
-            {loading ? "Saving Profile..." : "Save Profile"}
-          </Button>
+          <div className="flex gap-4">
+            <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold tracking-tight">
+              {loading ? "Saving..." : "Save Profile"}
+            </Button>
+            {currentProfile && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button type="button" variant="destructive" className="w-full h-12 text-base font-bold tracking-tight">Delete Profile</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete your company profile and all associated data.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} disabled={loading}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+            )}
+          </div>
           {error && <p className="text-red-500 text-sm mt-2 text-center">Error: {error}</p>}
           {success && <p className="text-green-500 text-sm mt-2 text-center">Profile saved successfully!</p>}
         </form>
