@@ -6,17 +6,24 @@ import html2canvas from "html2canvas"
 import { Download, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Document, Attachment } from "@/lib/types"
-import { getCompanyDetails } from "@/lib/store"
+import { Document, Attachment, CompanyProfile } from "@/lib/types"
+import { useStore } from "@/lib/store"
 import Link from "next/link"
 import Image from "next/image"
+import { useEffect, useState } from "react"
 
 interface DocumentPreviewProps {
   data: Document;
 }
 
 export default function DocumentPreview({ data }: DocumentPreviewProps) {
-  const company = getCompanyDetails();
+  const [company, setCompany] = useState<CompanyProfile | null>(null);
+  const { profiles } = useStore();
+
+  useEffect(() => {
+    const companyDetails = profiles.find(p => p.id === data.profile_id);
+    setCompany(companyDetails || null);
+  }, [data.profile_id, profiles]);
 
   const getDocTitle = () => {
     switch (data.type) {
@@ -43,18 +50,14 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
     const pdfWidth = pdf.internal.pageSize.getWidth()
     const pdfHeight = pdf.internal.pageSize.getHeight()
     
-    // Add the main document page
     const imgProps = pdf.getImageProperties(imgData)
     const contentHeight = (imgProps.height * pdfWidth) / imgProps.width
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, contentHeight)
 
-    // Add attachments if any (if they are images)
     if (data.attachments && data.attachments.length > 0) {
       for (const attachment of data.attachments) {
-        // Simple check for image types
         if (attachment.type.startsWith('image/')) {
           pdf.addPage()
-          // Add a label at the top of the attachment page
           pdf.setFontSize(10)
           pdf.setTextColor(150, 150, 150)
           pdf.text(`Attachment: ${attachment.name}`, 10, 10)
@@ -75,7 +78,6 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
             console.error("Could not add attachment to PDF", e)
           }
         } else {
-          // For non-images, we just add a placeholder page noting the file
           pdf.addPage()
           pdf.setFontSize(12)
           pdf.setTextColor(0, 0, 0)
@@ -88,6 +90,10 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
     }
 
     pdf.save(`${data.type.toUpperCase()}-${data.number}.pdf`)
+  }
+
+  if (!company) {
+    return <div className="p-20 text-center text-muted-foreground">Loading company details...</div>;
   }
 
   const isBOQ = data.type === 'boq';
@@ -115,9 +121,9 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         {/* Header */}
         <div className="flex justify-between items-start border-b-2 border-slate-100 pb-8 mb-8">
           <div className="flex gap-6 items-start">
-            {company.logoUrl && (
+            {company.logo_url && (
               <div className="relative size-20 shrink-0">
-                <Image src={company.logoUrl} alt={company.name} fill className="object-contain" />
+                <Image src={company.logo_url} alt={company.name} fill className="object-contain" />
               </div>
             )}
             <div>
@@ -126,7 +132,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
                 {company.address}<br />
                 Email: {company.email}<br />
                 Phone: {company.phone}<br />
-                {company.gstNumber && `GST: ${company.gstNumber}`}
+                {company.gst_number && `GST: ${company.gst_number}`}
               </div>
             </div>
           </div>
@@ -248,26 +254,26 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         </div>
 
         {/* Bank & Payment Info - Hidden for Tenders and BOQs */}
-        {data.type !== 'tender' && data.type !== 'boq' && (company.bankDetails?.bankName || company.bankDetails?.accountNumber) && (
+        {data.type !== 'tender' && data.type !== 'boq' && (company.bank_details?.bankName || company.bank_details?.accountNumber) && (
           <div className="bg-slate-50 p-6 rounded mb-8 border border-slate-100">
             <div className="text-slate-900 font-bold text-sm mb-4 border-b border-slate-200 pb-2">BANK TRANSFER DETAILS</div>
             <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
               <div className="flex flex-col">
                 <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Bank Name</span>
-                <span className="font-semibold text-slate-700">{company.bankDetails?.bankName || "N/A"}</span>
+                <span className="font-semibold text-slate-700">{company.bank_details?.bankName || "N/A"}</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Account Name</span>
-                <span className="font-semibold text-slate-700">{company.bankDetails?.accountName || company.name}</span>
+                <span className="font-semibold text-slate-700">{company.bank_details?.accountName || company.name}</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Account Number</span>
-                <span className="font-bold text-lg text-slate-900">{company.bankDetails?.accountNumber || "N/A"}</span>
+                <span className="font-bold text-lg text-slate-900">{company.bank_details?.accountNumber || "N/A"}</span>
               </div>
-              {company.bankDetails?.branchName && (
+              {company.bank_details?.branchName && (
                 <div className="flex flex-col">
                   <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Branch</span>
-                  <span className="font-semibold text-slate-700">{company.bankDetails?.branchName}</span>
+                  <span className="font-semibold text-slate-700">{company.bank_details?.branchName}</span>
                 </div>
               )}
             </div>
@@ -287,13 +293,13 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         {/* Signature Section */}
         <div className="flex justify-end mb-8">
           <div className="text-center min-w-[200px] flex flex-col items-center">
-            {company.signatureUrl && (
+            {company.signature_url && (
               <div className="relative h-16 w-40 mb-2">
-                <Image src={company.signatureUrl} alt="Signature" fill className="object-contain" />
+                <Image src={company.signature_url} alt="Signature" fill className="object-contain" />
               </div>
             )}
             <div className="border-t border-slate-300 pt-1 w-full">
-              <div className="text-sm font-bold text-slate-900">{company.authorizedSignatory || "Authorized Signatory"}</div>
+              <div className="text-sm font-bold text-slate-900">{company.authorized_signatory || "Authorized Signatory"}</div>
               <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Authorized Signature</div>
             </div>
           </div>
