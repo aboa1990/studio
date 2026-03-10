@@ -40,7 +40,7 @@ export function ProfileForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const { profiles, currentProfile, setProfiles, setCurrentProfile } = useStore()
+  const { profiles, currentProfile, setProfiles, setCurrentProfile, fetchProfiles } = useStore()
 
   const { control, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: zodResolver(profileSchema),
@@ -75,10 +75,10 @@ export function ProfileForm() {
     setSuccess(false)
 
     try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          throw new Error("You must be logged in to create a profile.");
-        }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("You must be logged in to create a profile.");
+      }
 
       let logoUrl = data.logo_url;
       if (data.logo_url instanceof File) {
@@ -100,6 +100,7 @@ export function ProfileForm() {
           .select()
           .single();
         if (error) throw error;
+        await fetchProfiles(); // Refetch profiles to update the store
         setCurrentProfile(updatedProfile);
       } else {
         const { data: newProfile, error } = await supabase
@@ -108,7 +109,7 @@ export function ProfileForm() {
           .select()
           .single();
         if (error) throw error;
-        setProfiles([...profiles, newProfile]);
+        await fetchProfiles(); // Refetch profiles to update the store
         setCurrentProfile(newProfile);
       }
 
