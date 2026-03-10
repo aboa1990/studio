@@ -72,6 +72,12 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   )
 
   useEffect(() => {
+    if (initialData) {
+      setDoc(initialData);
+    }
+  }, [initialData]);
+
+  useEffect(() => {
     if (currentProfile) {
       const fetchData = async () => {
         const { data: clients, error: clientsError } = await supabase.from('clients').select('*').eq('profile_id', currentProfile.id)
