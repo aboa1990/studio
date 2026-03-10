@@ -48,7 +48,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
     : type === 'boq'
     ? "1. Quantities are estimated and subject to site verification.\\n2. Rates provided are valid for 30 days.\\n3. All items are inclusive of labor and materials unless specified."
     : type === 'quotation'
-    ? "1. Quotation validity is 15 Days\\n2. Customers Must Send Purchase Orders with Quotation Number\\n3. Goods sold out is non Refundable"
+    ? "This quotation is valid for 30 days from the date of issue. After this period, prices and timelines may be subject to review based on resource availability or cost fluctuations."
     : "1. Please pay within 14 days.\\n2. Bank transfer is preferred.\\n3. Include reference number as reference.";
 
   const [doc, setDoc] = useState<Partial<Document>>(
