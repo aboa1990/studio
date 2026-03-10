@@ -17,11 +17,11 @@ const profileSchema = z.object({
   address: z.string().optional(),
   email: z.string().email("Invalid email address").optional(),
   phone: z.string().optional(),
-  logo_url: z.string().optional(),
+  logo_url: z.any().optional(),
   gst_number: z.string().optional(),
   authorized_signatory: z.string().optional(),
   bank_details: z.string().optional(),
-  signature_url: z.string().optional(),
+  signature_url: z.any().optional(),
 })
 
 const defaultValues = {
@@ -69,6 +69,10 @@ export function ProfileForm() {
     return publicUrlData.publicUrl;
   };
 
+  const isFile = (value: any): value is File => {
+    return value && typeof value === 'object' && typeof value.name === 'string';
+  };
+
   const onSubmit = async (data: any) => {
     setLoading(true)
     setError(null)
@@ -81,12 +85,12 @@ export function ProfileForm() {
       }
 
       let logoUrl = data.logo_url;
-      if (data.logo_url instanceof File) {
+      if (isFile(data.logo_url)) {
         logoUrl = await handleFileUpload(data.logo_url);
       }
 
       let signatureUrl = data.signature_url;
-      if (data.signature_url instanceof File) {
+      if (isFile(data.signature_url)) {
         signatureUrl = await handleFileUpload(data.signature_url);
       }
 
