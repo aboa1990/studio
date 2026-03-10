@@ -78,10 +78,10 @@ export interface CompanyProfile {
   email: string;
   phone: string;
   logo_url?: string;
-  signatureUrl?: string;
-  authorizedSignatory?: string;
-  gstNumber?: string;
-  bankDetails?: BankDetails;
+  signature_url?: string;
+  authorized_signatory?: string;
+  gst_number?: string;
+  bank_details?: BankDetails;
   last_active_at?: string;
 }
 

@@ -45,12 +45,19 @@ export function ProfileForm() {
 
   const { control, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: zodResolver(profileSchema),
-    defaultValues: currentProfile || defaultValues,
+    defaultValues: currentProfile ? {
+      ...currentProfile,
+      bank_details: JSON.stringify(currentProfile.bank_details, null, 2) || "",
+    } : defaultValues,
   });
 
   useEffect(() => {
-    reset(currentProfile || defaultValues);
+    reset(currentProfile ? {
+      ...currentProfile,
+      bank_details: JSON.stringify(currentProfile.bank_details, null, 2) || "",
+    } : defaultValues);
   }, [currentProfile, reset]);
+
 
   const handleFileUpload = async (file: File) => {
     if (!file) return null;
@@ -96,7 +103,21 @@ export function ProfileForm() {
         signatureUrl = await handleFileUpload(data.signature_url);
       }
 
-      const profileData = { ...data, logo_url: logoUrl, signature_url: signatureUrl };
+      let bankDetails = null;
+      if (data.bank_details) {
+        try {
+          bankDetails = JSON.parse(data.bank_details);
+        } catch (e) {
+          throw new Error("Invalid JSON format for bank details.");
+        }
+      }
+
+      const profileData = { 
+        ...data, 
+        logo_url: logoUrl, 
+        signature_url: signatureUrl,
+        bank_details: bankDetails,
+      }; 
 
       if (currentProfile) {
         const { data: updatedProfile, error } = await supabase
@@ -226,7 +247,12 @@ export function ProfileForm() {
             render={({ field }) => 
                 <div>
                   <label className='text-sm font-bold ml-1'>Bank Details</label>
-                  <Textarea placeholder="Bank Name, Account Number, etc." {...field} className="mt-2"/>
+                  <Textarea placeholder='{
+  "bankName": "Global Bank",
+  "accountName": "My Company LLC",
+  "accountNumber": "1234567890",
+  "branchName": "Main Branch"
+}' {...field} className="mt-2 h-36"/>
                 </div>
             }
           />
