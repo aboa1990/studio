@@ -228,16 +228,6 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
             </div>
         )}
 
-        {/* Bank & Payment Info */}
-        {data.type === 'invoice' && company.bank_details && (
-            <div className="bg-slate-50 p-4 rounded mb-8 border border-slate-100 text-sm">
-                <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1 uppercase tracking-wider">BANK DETAILS</div>
-                <div className="text-slate-600 whitespace-pre-line">
-                    {company.bank_details}
-                </div>
-            </div>
-        )}
-
         {/* Terms and Conditions */}
         {data.terms && (
           <div className="mb-12">
@@ -246,6 +236,16 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
               {data.terms}
             </div>
           </div>
+        )}
+
+        {/* Bank & Payment Info */}
+        {data.type === 'invoice' && company.bank_details && (
+            <div className="bg-slate-50 p-4 rounded mb-8 border border-slate-100 text-sm">
+                <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1 uppercase tracking-wider">BANK DETAILS</div>
+                <div className="text-slate-600 whitespace-pre-line">
+                    {company.bank_details}
+                </div>
+            </div>
         )}
 
         {/* Signature Section */}
