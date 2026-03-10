@@ -170,8 +170,47 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         <div className="flex-1">
           {isBOQ ? (
             <div className="space-y-6">
-              <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">PRICING SUMMARY</h2>
-              {/* ... BOQ Table ... */}
+              <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-4">PRICING SUMMARY</h2>
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b-2 border-slate-900">
+                    <th className="text-left py-3 font-bold text-xs uppercase">Cost Code</th>
+                    <th className="text-left py-3 font-bold text-xs uppercase w-2/5">Description / Element</th>
+                    <th className="text-center py-3 font-bold text-xs uppercase">Qty</th>
+                    <th className="text-right py-3 font-bold text-xs uppercase">Rate</th>
+                    <th className="text-right py-3 font-bold text-xs uppercase">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.items.map((item) => (
+                    <tr key={item.id} className="border-b border-slate-100">
+                      <td className="py-3 text-slate-700 text-sm font-mono">{item.costCode}</td>
+                      <td className="py-3 text-slate-700 text-sm">{item.description}</td>
+                      <td className="text-center py-3 text-slate-700 text-sm">{item.quantity}</td>
+                      <td className="text-right py-3 text-slate-700 text-sm">{data.currency} {item.price.toFixed(2)}</td>
+                      <td className="text-right py-3 font-medium text-slate-900 text-sm">
+                        {data.currency} {(item.quantity * item.price).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex justify-end mt-8">
+                <div className="w-72 space-y-3 text-sm">
+                  <div className="flex justify-between text-slate-500">
+                    <span>Subtotal:</span>
+                    <span className="font-medium text-slate-700">{data.currency} {data.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500">
+                    <span>GST ({data.taxRate}%):</span>
+                    <span className="font-medium text-slate-700">{data.currency} {data.taxAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-xl font-black border-t-2 border-slate-900 pt-3 mt-2">
+                    <span>Total Value:</span>
+                    <span className="text-primary">{data.currency} {data.total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <>

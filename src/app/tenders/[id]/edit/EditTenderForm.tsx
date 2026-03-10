@@ -15,7 +15,7 @@ export default function EditTenderForm() {
   useEffect(() => {
     const fetchDocument = async () => {
       setLoading(true);
-      const found = await getDocument(id as string);
+      const found = await getDocument(id as string, 'tender');
       if (found) setDoc(found);
       setLoading(false);
     };
