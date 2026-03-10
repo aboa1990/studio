@@ -288,18 +288,25 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         )}
 
         {/* Signature Section */}
-        <div className="flex justify-end mb-8">
-            <div className="text-center min-w-[200px] flex flex-col items-center">
-                {company.signature_url && (
-                    <div className="h-16 w-40 mb-2">
-                        <img src={company.signature_url} alt="Signature" className="h-full w-full object-contain" />
-                    </div>
-                )}
-                <div className="border-t border-slate-300 pt-1 w-full">
-                    <div className="text-sm font-bold text-slate-900">{company.authorized_signatory || "Authorized Signatory"}</div>
-                    <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Authorized Signature</div>
-                </div>
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            {company.seal_url && (
+              <div className="h-28 w-28 relative">
+                <img src={company.seal_url} alt="Company Seal" className="h-full w-full object-contain opacity-80" />
+              </div>
+            )}
+          </div>
+          <div className="text-center min-w-[200px] flex flex-col items-center">
+            {company.signature_url && (
+              <div className="h-16 w-40 mb-2">
+                <img src={company.signature_url} alt="Signature" className="h-full w-full object-contain" />
+              </div>
+            )}
+            <div className="border-t border-slate-300 pt-1 w-full">
+              <div className="text-sm font-bold text-slate-900">{company.authorized_signatory || "Authorized Signatory"}</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Authorized Signature</div>
             </div>
+          </div>
         </div>
 
         {/* Footer */}

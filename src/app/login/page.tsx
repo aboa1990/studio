@@ -146,7 +146,7 @@ export default function LoginPage() {
       <div className="hidden bg-muted lg:flex items-center justify-center">
         <div className="w-1/2 text-center">
             <img src="/logo.png" alt="Roseware Logo" className="mx-auto h-24 w-24 object-contain" />
-            <h2 className="text-3xl font-bold text-foreground mt-4">Welcome to Roseware</h2>
+            <h2 className="text-3xl font-bold text-foreground mt-4">Zero Zero Private Limmited</h2>
             <p className="text-muted-foreground mt-2">Build, manage, and track your construction projects with ease.</p>
         </div>
       </div>

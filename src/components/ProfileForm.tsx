@@ -23,6 +23,7 @@ const profileSchema = z.object({
   authorized_signatory: z.string().optional(),
   bank_details: z.string().optional(),
   signature_url: z.any().optional(),
+  seal_url: z.any().optional(),
 })
 
 const defaultValues = {
@@ -35,6 +36,7 @@ const defaultValues = {
     authorized_signatory: "",
     bank_details: "",
     signature_url: "",
+    seal_url: "",
 }
 
 export function ProfileForm() {
@@ -97,10 +99,16 @@ export function ProfileForm() {
         signatureUrl = await handleFileUpload(data.signature_url);
       }
 
+      let sealUrl = data.seal_url;
+      if (isFile(data.seal_url)) {
+        sealUrl = await handleFileUpload(data.seal_url);
+      }
+
       const profileData = { 
         ...data, 
         logo_url: logoUrl, 
         signature_url: signatureUrl,
+        seal_url: sealUrl,
       }; 
 
       if (currentProfile) {
@@ -235,7 +243,7 @@ export function ProfileForm() {
                 </div>
             }
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Controller
               name="logo_url"
               control={control}
@@ -255,6 +263,17 @@ export function ProfileForm() {
                   <label className='text-sm font-bold ml-1'>Signature</label>
                   <Input type="file" onChange={(e) => onChange(e.target.files?.[0])} {...rest} className="mt-2"/>
                   {value && typeof value === 'string' && <img src={value} alt="Signature Preview" className="mt-2 h-16 w-auto rounded-md"/>}
+                </div>
+              )}
+            />
+             <Controller
+              name="seal_url"
+              control={control}
+              render={({ field: { onChange, value, ...rest } }) => (
+                <div>
+                  <label className='text-sm font-bold ml-1'>Company Seal</label>
+                  <Input type="file" onChange={(e) => onChange(e.target.files?.[0])} {...rest} className="mt-2"/>
+                  {value && typeof value === 'string' && <img src={value} alt="Seal Preview" className="mt-2 h-16 w-auto rounded-md"/>}
                 </div>
               )}
             />

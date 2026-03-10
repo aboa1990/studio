@@ -79,6 +79,7 @@ export interface CompanyProfile {
   phone: string;
   logo_url?: string;
   signature_url?: string;
+  seal_url?: string;
   authorized_signatory?: string;
   gst_number?: string;
   bank_details?: BankDetails;
