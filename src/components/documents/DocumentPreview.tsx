@@ -40,55 +40,58 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
   }
 
   const downloadPDF = async () => {
-    const element = document.getElementById("document-canvas")
-    if (!element) return
+    const element = document.getElementById("document-canvas");
+    if (!element) return;
 
-    const canvas = await html2canvas(element, { scale: 2 })
-    const imgData = canvas.toDataURL("image/png")
-    const pdf = new jsPDF("p", "mm", "a4")
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
+    const canvas = await html2canvas(element, { 
+      scale: 2,
+      useCORS: true 
+    });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
     
-    const imgProps = pdf.getImageProperties(imgData)
-    const contentHeight = (imgProps.height * pdfWidth) / imgProps.width
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, contentHeight)
+    const imgProps = pdf.getImageProperties(imgData);
+    const contentHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, contentHeight);
 
     if (data.attachments && data.attachments.length > 0) {
       for (const attachment of data.attachments) {
         if (attachment.type.startsWith('image/')) {
-          pdf.addPage()
-          pdf.setFontSize(10)
-          pdf.setTextColor(150, 150, 150)
-          pdf.text(`Attachment: ${attachment.name}`, 10, 10)
+          pdf.addPage();
+          pdf.setFontSize(10);
+          pdf.setTextColor(150, 150, 150);
+          pdf.text(`Attachment: ${attachment.name}`, 10, 10);
           
           try {
-            const attProps = pdf.getImageProperties(attachment.data)
-            const ratio = attProps.width / attProps.height
-            let drawWidth = pdfWidth - 20
-            let drawHeight = drawWidth / ratio
+            const attProps = pdf.getImageProperties(attachment.data);
+            const ratio = attProps.width / attProps.height;
+            let drawWidth = pdfWidth - 20;
+            let drawHeight = drawWidth / ratio;
             
             if (drawHeight > pdfHeight - 30) {
-              drawHeight = pdfHeight - 30
-              drawWidth = drawHeight * ratio
+              drawHeight = pdfHeight - 30;
+              drawWidth = drawHeight * ratio;
             }
             
-            pdf.addImage(attachment.data, 'PNG', 10, 20, drawWidth, drawHeight)
+            pdf.addImage(attachment.data, 'PNG', 10, 20, drawWidth, drawHeight);
           } catch (e) {
-            console.error("Could not add attachment to PDF", e)
+            console.error("Could not add attachment to PDF", e);
           }
         } else {
-          pdf.addPage()
-          pdf.setFontSize(12)
-          pdf.setTextColor(0, 0, 0)
-          pdf.text(`Attached File: ${attachment.name}`, 10, 20)
-          pdf.setFontSize(10)
-          pdf.setTextColor(100, 100, 100)
-          pdf.text(`(This file type cannot be rendered directly in the PDF and is stored separately in the app)`, 10, 30)
+          pdf.addPage();
+          pdf.setFontSize(12);
+          pdf.setTextColor(0, 0, 0);
+          pdf.text(`Attached File: ${attachment.name}`, 10, 20);
+          pdf.setFontSize(10);
+          pdf.setTextColor(100, 100, 100);
+          pdf.text(`(This file type cannot be rendered directly in the PDF and is stored separately in the app)`, 10, 30);
         }
       }
     }
 
-    pdf.save(`${data.type.toUpperCase()}-${data.number}.pdf`)
+    pdf.save(`${data.type.toUpperCase()}-${data.number}.pdf`);
   }
 
   if (!company) {
