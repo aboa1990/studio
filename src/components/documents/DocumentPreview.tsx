@@ -10,6 +10,7 @@ import { Document, Attachment, CompanyProfile } from "@/lib/types"
 import { useStore } from "@/lib/store"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { PDFDocument } from "pdf-lib"
 
 interface DocumentPreviewProps {
   data: Document;
@@ -48,50 +49,40 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
       useCORS: true 
     });
     const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-    
-    const imgProps = pdf.getImageProperties(imgData);
-    const contentHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, contentHeight);
+    const mainPdfDoc = await PDFDocument.create();
+    const page = mainPdfDoc.addPage([canvas.width, canvas.height]);
+    const pngImage = await mainPdfDoc.embedPng(imgData);
+    page.drawImage(pngImage, { x: 0, y: 0, width: canvas.width, height: canvas.height });
 
     if (data.attachments && data.attachments.length > 0) {
       for (const attachment of data.attachments) {
         if (attachment.type.startsWith('image/')) {
-          pdf.addPage();
-          pdf.setFontSize(10);
-          pdf.setTextColor(150, 150, 150);
-          pdf.text(`Attachment: ${attachment.name}`, 10, 10);
-          
-          try {
-            const attProps = pdf.getImageProperties(attachment.data);
-            const ratio = attProps.width / attProps.height;
-            let drawWidth = pdfWidth - 20;
-            let drawHeight = drawWidth / ratio;
-            
-            if (drawHeight > pdfHeight - 30) {
-              drawHeight = pdfHeight - 30;
-              drawWidth = drawHeight * ratio;
-            }
-            
-            pdf.addImage(attachment.data, 'PNG', 10, 20, drawWidth, drawHeight);
-          } catch (e) {
-            console.error("Could not add attachment to PDF", e);
-          }
-        } else {
-          pdf.addPage();
-          pdf.setFontSize(12);
-          pdf.setTextColor(0, 0, 0);
-          pdf.text(`Attached File: ${attachment.name}`, 10, 20);
-          pdf.setFontSize(10);
-          pdf.setTextColor(100, 100, 100);
-          pdf.text(`(This file type cannot be rendered directly in the PDF and is stored separately in the app)`, 10, 30);
+          const imageBytes = await fetch(attachment.data).then(res => res.arrayBuffer());
+          let embeddedImage;
+          if (attachment.type === 'image/png') {
+            embeddedImage = await mainPdfDoc.embedPng(imageBytes);
+          } else if (attachment.type === 'image/jpeg') {
+            embeddedImage = await mainPdfDoc.embedJpg(imageBytes);
+          } else continue;
+
+          const page = mainPdfDoc.addPage([embeddedImage.width, embeddedImage.height]);
+          page.drawImage(embeddedImage, { x: 0, y: 0, width: embeddedImage.width, height: embeddedImage.height });
+
+        } else if (attachment.type === 'application/pdf') {
+            const pdfBytes = await fetch(attachment.data).then(res => res.arrayBuffer());
+            const donorPdfDoc = await PDFDocument.load(pdfBytes);
+            const copiedPages = await mainPdfDoc.copyPages(donorPdfDoc, donorPdfDoc.getPageIndices());
+            copiedPages.forEach(page => mainPdfDoc.addPage(page));
         }
       }
     }
 
-    pdf.save(`${data.type.toUpperCase()}-${data.number}.pdf`);
+    const pdfBytes = await mainPdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${data.type.toUpperCase()}-${data.number}.pdf`;
+    link.click();
   }
 
   if (!company) {
@@ -201,7 +192,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
                     <span>Subtotal:</span>
                     <span className="font-medium text-slate-700">{data.currency} {data.subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-slate-500">
+                  <div className.flex justify-between text-slate-500">
                     <span>GST ({data.taxRate}%):</span>
                     <span className="font-medium text-slate-700">{data.currency} {data.taxAmount.toFixed(2)}</span>
                   </div>
