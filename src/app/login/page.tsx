@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
-import { Sparkles } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -146,9 +145,9 @@ export default function LoginPage() {
       </div>
       <div className="hidden bg-muted lg:flex items-center justify-center">
         <div className="w-1/2 text-center">
-            <Sparkles className="mx-auto h-24 w-24 text-primary" />
-            <h2 className="text-3xl font-bold text-foreground mt-4">Welcome to ForgeDocs</h2>
-            <p className="text-muted-foreground mt-2">The fastest way to build apps with Next.js and Supabase</p>
+            <img src="/logo.png" alt="Roseware Logo" className="mx-auto h-24 w-24 object-contain" />
+            <h2 className="text-3xl font-bold text-foreground mt-4">Welcome to Roseware</h2>
+            <p className="text-muted-foreground mt-2">Build, manage, and track your construction projects with ease.</p>
         </div>
       </div>
     </div>
