@@ -198,7 +198,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
                   </div>
                   <div className="flex justify-between text-xl font-black border-t-2 border-slate-900 pt-3 mt-2">
                     <span>Total Value:</span>
-                    <span className="text-primary">{data.currency} {data.total.toFixed(2)}</span>
+                    <span className="text-slate-900">{data.currency} {data.total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
