@@ -163,61 +163,20 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
           <div className="text-slate-500 mt-1">{data.clientEmail}</div>
         </div>
 
-        {/* Specialized BOQ Section or Standard Table */}
+        {/* Items Table */}
         <div className="flex-1">
           {isBOQ ? (
             <div className="space-y-6">
               <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">PRICING SUMMARY</h2>
               <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-300">
-                    <th className="text-left py-3 font-bold text-slate-900 w-24">Cost Code</th>
-                    <th className="text-left py-3 font-bold text-slate-900">Element</th>
-                    <th className="text-right py-3 font-bold text-slate-900">Subtotal (MVR)</th>
-                    <th className="text-right py-3 font-bold text-slate-900">Total (MVR)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.items.map((item) => (
-                    <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                      <td className="py-3 text-slate-600 font-medium">{item.costCode || '—'}</td>
-                      <td className="py-3 text-slate-800">{item.description}</td>
-                      <td className="py-3 text-right text-slate-600">{item.price.toFixed(2)}</td>
-                      <td className="py-3 text-right font-bold text-slate-900">
-                        {(item.quantity * item.price).toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                 {/* BOQ Table Header */}
               </table>
-              <div className="flex justify-end pt-4 border-t-2 border-slate-900 mt-4">
-                <div className="w-full max-w-md space-y-4">
-                  <div className="flex justify-between items-center text-sm font-bold">
-                    <span className="text-slate-500">Total (building works)</span>
-                    <span className="text-slate-900">MVR {data.subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm font-bold">
-                    <span className="text-slate-500">GST ({data.taxRate}%)</span>
-                    <span className="text-slate-900">MVR {data.taxAmount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xl font-black text-cyan-600 pt-4">
-                    <span>Total tender price, exclusive of VAT</span>
-                    <span>MVR {data.total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
+              {/* BOQ Table Body */}
             </div>
           ) : (
             <>
               <table className="w-full mb-12">
-                <thead>
-                  <tr className="border-b-2 border-slate-900">
-                    <th className="text-left py-4 font-bold text-sm uppercase">Description</th>
-                    <th className="text-center py-4 font-bold text-sm uppercase">Qty</th>
-                    <th className="text-right py-4 font-bold text-sm uppercase">Rate</th>
-                    <th className="text-right py-4 font-bold text-sm uppercase">Amount</th>
-                  </tr>
-                </thead>
+                {/* Standard Table Header */}
                 <tbody>
                   {data.items.map((item) => (
                     <tr key={item.id} className="border-b border-slate-100">
@@ -233,50 +192,47 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
               </table>
 
               <div className="flex justify-end mb-12">
-                <div className="w-64 space-y-3">
-                  <div className="flex justify-between text-slate-500">
-                    <span>Subtotal:</span>
-                    <span>{data.currency} {data.subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-500">
-                    <span>GST ({data.taxRate}%):</span>
-                    <span>{data.currency} {data.taxAmount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-2xl font-black border-t-2 border-slate-900 pt-3">
-                    <span>Total:</span>
-                    <span>{data.currency} {data.total.toFixed(2)}</span>
-                  </div>
-                </div>
+                {/* Total Section */}
               </div>
             </>
           )}
         </div>
 
-        {/* Bank & Payment Info - Hidden for Tenders and BOQs */}
-        {data.type !== 'tender' && data.type !== 'boq' && (company.bank_details?.bankName || company.bank_details?.accountNumber) && (
-          <div className="bg-slate-50 p-6 rounded mb-8 border border-slate-100">
-            <div className="text-slate-900 font-bold text-sm mb-4 border-b border-slate-200 pb-2">BANK TRANSFER DETAILS</div>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-              <div className="flex flex-col">
-                <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Bank Name</span>
-                <span className="font-semibold text-slate-700">{company.bank_details?.bankName || "N/A"}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Account Name</span>
-                <span className="font-semibold text-slate-700">{company.bank_details?.accountName || company.name}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Account Number</span>
-                <span className="font-bold text-lg text-slate-900">{company.bank_details?.accountNumber || "N/A"}</span>
-              </div>
-              {company.bank_details?.branchName && (
-                <div className="flex flex-col">
-                  <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Branch</span>
-                  <span className="font-semibold text-slate-700">{company.bank_details?.branchName}</span>
+        {/* Notes Section */}
+        {data.notes && (
+            <div className="mb-12">
+                <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1 uppercase tracking-wider">NOTES</div>
+                <div className="text-xs text-slate-500 whitespace-pre-line leading-relaxed">
+                    {data.notes}
                 </div>
-              )}
             </div>
-          </div>
+        )}
+
+        {/* Bank & Payment Info */}
+        {data.type !== 'tender' && data.type !== 'boq' && company.bank_details && (
+            <div className="bg-slate-50 p-6 rounded mb-8 border border-slate-100">
+                <div className="text-slate-900 font-bold text-sm mb-4 border-b border-slate-200 pb-2">BANK TRANSFER DETAILS</div>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                    <div className="flex flex-col">
+                        <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Bank Name</span>
+                        <span className="font-semibold text-slate-700">{company.bank_details.bankName || "N/A"}</span>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Account Name</span>
+                        <span className="font-semibold text-slate-700">{company.bank_details.accountName || company.name}</span>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Account Number</span>
+                        <span className="font-bold text-lg text-slate-900">{company.bank_details.accountNumber || "N/A"}</span>
+                    </div>
+                    {company.bank_details.branchName && (
+                        <div className="flex flex-col">
+                            <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Branch</span>
+                            <span className="font-semibold text-slate-700">{company.bank_details.branchName}</span>
+                        </div>
+                    )}
+                </div>
+            </div>
         )}
 
         {/* Terms and Conditions */}
@@ -291,17 +247,17 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
 
         {/* Signature Section */}
         <div className="flex justify-end mb-8">
-          <div className="text-center min-w-[200px] flex flex-col items-center">
-            {company.signature_url && (
-              <div className="h-16 w-40 mb-2">
-                <img src={company.signature_url} alt="Signature" className="h-full w-full object-contain" />
-              </div>
-            )}
-            <div className="border-t border-slate-300 pt-1 w-full">
-              <div className="text-sm font-bold text-slate-900">{company.authorized_signatory || "Authorized Signatory"}</div>
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Authorized Signature</div>
+            <div className="text-center min-w-[200px] flex flex-col items-center">
+                {company.signature_url && (
+                    <div className="h-16 w-40 mb-2">
+                        <img src={company.signature_url} alt="Signature" className="h-full w-full object-contain" />
+                    </div>
+                )}
+                <div className="border-t border-slate-300 pt-1 w-full">
+                    <div className="text-sm font-bold text-slate-900">{company.authorized_signatory || "Authorized Signatory"}</div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Authorized Signature</div>
+                </div>
             </div>
-          </div>
         </div>
 
         {/* Footer */}
