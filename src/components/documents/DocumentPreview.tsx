@@ -192,7 +192,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
                     <span>Subtotal:</span>
                     <span className="font-medium text-slate-700">{data.currency} {data.subtotal.toFixed(2)}</span>
                   </div>
-                  <div className.flex justify-between text-slate-500">
+                  <div className="flex justify-between text-slate-500">
                     <span>GST ({data.taxRate}%):</span>
                     <span className="font-medium text-slate-700">{data.currency} {data.taxAmount.toFixed(2)}</span>
                   </div>
