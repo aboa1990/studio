@@ -1,101 +1,89 @@
 
-import { create } from 'zustand';
-import { supabase } from './supabase';
-import { CompanyProfile, Document, DocumentType, Client, LibraryDocument } from './types';
+import { create } from 'zustand'
+import { supabase } from './supabase'
+import { CompanyProfile, Document, DocumentType, Client, LibraryDocument } from './types'
 
-// Utility to get active profile ID from local storage
-const getActiveProfileId = () => {
-    if (typeof window !== 'undefined') {
-        const id = localStorage.getItem('activeProfileId');
-        return id === 'undefined' ? null : id;
-    }
-    return null;
+interface StoreState {
+  profiles: CompanyProfile[];
+  currentProfile: CompanyProfile | null;
+  setProfiles: (profiles: CompanyProfile[]) => void;
+  setCurrentProfile: (profile: CompanyProfile | null) => void;
+  fetchProfiles: () => Promise<void>;
 }
 
-// Utility to set active profile ID in local storage
-const setActiveProfileId = (id: string) => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem('activeProfileId', id);
+export const useStore = create<StoreState>((set, get) => ({
+  profiles: [],
+  currentProfile: null,
+  setProfiles: (profiles) => set({ profiles }),
+  setCurrentProfile: async (profile) => {
+    if (profile) {
+      // Update last_active_at in the database
+      await supabase
+        .from('company_profiles')
+        .update({ last_active_at: new Date().toISOString() })
+        .eq('id', profile.id);
     }
-}
+    set({ currentProfile: profile });
+  },
+  fetchProfiles: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-interface AppState {
-    profiles: CompanyProfile[];
-    currentProfile: CompanyProfile | null;
-    documents: Document[];
-    clients: Client[];
-    libraryDocuments: LibraryDocument[];
-    fetchProfiles: () => Promise<void>;
-    setCurrentProfile: (profile: CompanyProfile | null) => void;
-    fetchDocuments: (type: DocumentType) => Promise<void>;
-    fetchClients: () => Promise<void>;
-    fetchLibraryDocuments: () => Promise<void>;
-}
-
-export const useStore = create<AppState>((set, get) => ({
-    profiles: [],
-    currentProfile: null,
-    documents: [],
-    clients: [],
-    libraryDocuments: [],
-
-    fetchProfiles: async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data, error } = await supabase
-            .from('company_profiles')
-            .select('*')
-            .eq('user_id', user.id);
-
-        if (error) {
-            console.error("Error fetching profiles:", error);
-            return;
-        }
-
-        set({ profiles: data || [] });
-        const activeProfileId = getActiveProfileId();
-        if (activeProfileId) {
-            const activeProfile = data?.find(p => p.id === activeProfileId) || null;
-            set({ currentProfile: activeProfile });
-        } else if (data && data.length > 0) {
-            set({ currentProfile: data[0] });
-            setActiveProfileId(data[0].id);
-        }
-    },
-
-    setCurrentProfile: (profile: CompanyProfile | null) => {
-        set({ currentProfile: profile });
-        if (profile) {
-            setActiveProfileId(profile.id);
-        }
-    },
-
-    fetchDocuments: async (type: DocumentType) => {
-        const profileId = getActiveProfileId();
-        if (!profileId) return;
-        const docs = await getDocuments(type, profileId);
-        set({ documents: docs });
-    },
-
-    fetchClients: async () => {
-        const profileId = getActiveProfileId();
-        if (!profileId) return;
-        const clients = await getClients(profileId);
-        set({ clients });
-    },
-
-    fetchLibraryDocuments: async () => {
-        const profileId = getActiveProfileId();
-        if (!profileId) return;
-        const libraryDocs = await getLibraryDocuments(profileId);
-        set({ libraryDocuments: libraryDocs });
+    const { data: profiles, error } = await supabase.from('company_profiles').select('*').eq('user_id', user.id);
+    if (error) {
+      console.error('Error fetching profiles:', error);
+      return;
     }
+
+    set({ profiles: profiles || [] });
+
+    if (profiles && profiles.length > 0) {
+      const lastProfileId = localStorage.getItem('currentProfileId');
+      let profileToSet = profiles.find(p => p.id === lastProfileId);
+
+      if (!profileToSet) {
+        // If no profile in local storage, find the most recently active one
+        profileToSet = profiles.sort((a, b) => 
+          new Date(b.last_active_at || 0).getTime() - new Date(a.last_active_at || 0).getTime()
+        )[0];
+      }
+      
+      get().setCurrentProfile(profileToSet);
+    }
+  },
 }));
 
-// Standalone fetch functions
-export async function getDocuments(type: DocumentType, profileId: string): Promise<Document[]> {
-    if (!profileId || profileId === 'undefined') return [];
+// When the current profile changes, store its ID in local storage.
+useStore.subscribe(
+    (state) => state.currentProfile,
+    (currentProfile) => {
+        if (currentProfile) {
+            localStorage.setItem('currentProfileId', currentProfile.id);
+        }
+    }
+)
+
+export const getActiveProfileId = () => {
+    return useStore.getState().currentProfile?.id;
+}
+
+export async function getDocument(id: string, type: DocumentType): Promise<Document | null> {
+    const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('id', id)
+        .eq('type', type)
+        .single();
+    if (error) {
+        console.error(`Error fetching ${type}:`, error);
+        return null;
+    }
+    return data;
+}
+
+export async function getDocuments(type: DocumentType): Promise<Document[]> {
+    const profileId = getActiveProfileId();
+    if (!profileId) return [];
     const { data, error } = await supabase
         .from('documents')
         .select('*')
@@ -108,26 +96,7 @@ export async function getDocuments(type: DocumentType, profileId: string): Promi
     return data || [];
 }
 
-export async function getDocument(id: string, type: DocumentType): Promise<Document | null> {
-    if (!type) {
-        console.error("getDocument requires a document type.");
-        return null;
-    }
-    const { data, error } = await supabase
-        .from('documents')
-        .select('*')
-        .eq('id', id)
-        .eq('type', type)
-        .single();
-
-    if (error) {
-        console.error(`Error fetching ${type}:`, error);
-        return null;
-    }
-    return data;
-}
-
-export async function saveDocument(document: Partial<Document>): Promise<Document | null> {
+export async function saveDocument(document: Document) {
     const { data, error } = await supabase.from('documents').upsert(document).select().single();
     if (error) {
         console.error('Error saving document:', error);
@@ -143,8 +112,9 @@ export async function deleteDocument(id: string) {
     }
 }
 
-export async function getClients(profileId: string): Promise<Client[]> {
-    if (!profileId || profileId === 'undefined') return [];
+export async function getClients(): Promise<Client[]> {
+    const profileId = getActiveProfileId();
+    if (!profileId) return [];
     const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -157,8 +127,10 @@ export async function getClients(profileId: string): Promise<Client[]> {
     return data || [];
 }
 
-export async function getLibraryDocuments(profileId: string): Promise<LibraryDocument[]> {
-    if (!profileId || profileId === 'undefined') return [];
+export async function getLibraryDocuments(): Promise<LibraryDocument[]> {
+    const profileId = getActiveProfileId();
+    if (!profileId) return [];
+
     const { data, error } = await supabase
         .from('library_documents')
         .select('*')
@@ -168,4 +140,24 @@ export async function getLibraryDocuments(profileId: string): Promise<LibraryDoc
         return [];
     }
     return data || [];
+}
+
+export async function saveLibraryDocument(doc: LibraryDocument) {
+    const { data, error } = await supabase.from('library_documents').upsert(doc).select().single();
+    if (error) {
+        console.error('Error saving library document:', error);
+        return null;
+    }
+    return data;
+}
+
+export async function deleteLibraryDocument(id: string) {
+    const { error } = await supabase.from('library_documents').delete().eq('id', id);
+    if (error) {
+        console.error('Error deleting library document:', error);
+    }
+}
+
+export const getCompanyDetails = (profileId: string): CompanyProfile | undefined => {
+    return useStore.getState().profiles.find(p => p.id === profileId);
 }
