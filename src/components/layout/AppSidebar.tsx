@@ -105,7 +105,7 @@ export default function AppSidebar() {
               className="data-[state=open]:bg-muted hover:bg-muted/50 transition-colors rounded-xl h-14"
             >
               <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-gradient-to-br from-muted/80 to-muted/50 border text-foreground shadow-lg">
-                {currentProfile?.logo_url ? <img src={currentProfile.logo_url} alt={currentProfile.name} className="rounded-lg"/> : <Building2 className="size-5" />}
+                {currentProfile?.logo_url ? <img src={currentProfile?.logo_url} alt={currentProfile?.name} className="rounded-lg"/> : <Building2 className="size-5" />}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden ml-3">
                 <span className="font-bold truncate">

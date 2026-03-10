@@ -53,7 +53,7 @@ export default function ClientForm({ clientId }: ClientFormProps) {
           .from('clients')
           .select('*')
           .eq('id', clientId)
-          .eq('profileId', currentProfile.id)
+          .eq('profile_id', currentProfile.id)
           .single();
         
         if (client) {
@@ -86,7 +86,7 @@ export default function ClientForm({ clientId }: ClientFormProps) {
     try {
       const clientData: Client = {
         id: clientId || uuidv4(),
-        profileId: currentProfile.id,
+        profile_id: currentProfile.id,
         ...data,
       }
       const { error } = await supabase.from('clients').upsert(clientData);
@@ -111,7 +111,7 @@ export default function ClientForm({ clientId }: ClientFormProps) {
   }
 
   useEffect(() => {
-      // Prefill profileId when a profile is loaded
+      // Prefill profile_id when a profile is loaded
       if(currentProfile) {
           setLoading(false)
       }
