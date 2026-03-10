@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { 
@@ -60,7 +61,7 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
       clientEmail: "",
       clientAddress: "",
       items: [{ id: uuidv4(), description: "", quantity: 1, price: 0, costCode: "" }],
-      taxRate: 6,
+      taxRate: 8,
       date: new Date().toISOString().split('T')[0],
       dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       status: 'draft',
@@ -323,7 +324,19 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
                 type="number"
                 value={doc.taxRate}
                 onChange={e => setDoc(prev => ({ ...prev, taxRate: Number(e.target.value) }))}
+                disabled={doc.taxRate === 0}
               />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="tax-exempt"
+                checked={doc.taxRate === 0}
+                onCheckedChange={(checked) => {
+                  setDoc(prev => ({ ...prev, taxRate: checked ? 0 : 8 }))
+                }}
+              />
+              <Label htmlFor="tax-exempt" className="text-sm font-medium leading-none">Tax Exempt</Label>
             </div>
 
             <div className="space-y-2">
