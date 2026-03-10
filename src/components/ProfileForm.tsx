@@ -54,7 +54,8 @@ export function ProfileForm() {
 
   const handleFileUpload = async (file: File) => {
     if (!file) return null;
-    const fileName = `${Date.now()}_${file.name}`;
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const fileName = `${Date.now()}_${sanitizedFileName}`;
     const { data, error } = await supabase.storage
       .from('public')
       .upload(fileName, file);
