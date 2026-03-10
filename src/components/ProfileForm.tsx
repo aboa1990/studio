@@ -45,17 +45,11 @@ export function ProfileForm() {
 
   const { control, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: zodResolver(profileSchema),
-    defaultValues: currentProfile ? {
-      ...currentProfile,
-      bank_details: JSON.stringify(currentProfile.bank_details, null, 2) || "",
-    } : defaultValues,
+    defaultValues: currentProfile || defaultValues,
   });
 
   useEffect(() => {
-    reset(currentProfile ? {
-      ...currentProfile,
-      bank_details: JSON.stringify(currentProfile.bank_details, null, 2) || "",
-    } : defaultValues);
+    reset(currentProfile || defaultValues);
   }, [currentProfile, reset]);
 
 
@@ -103,20 +97,10 @@ export function ProfileForm() {
         signatureUrl = await handleFileUpload(data.signature_url);
       }
 
-      let bankDetails = null;
-      if (data.bank_details) {
-        try {
-          bankDetails = JSON.parse(data.bank_details);
-        } catch (e) {
-          throw new Error("Invalid JSON format for bank details.");
-        }
-      }
-
       const profileData = { 
         ...data, 
         logo_url: logoUrl, 
         signature_url: signatureUrl,
-        bank_details: bankDetails,
       }; 
 
       if (currentProfile) {
@@ -247,12 +231,7 @@ export function ProfileForm() {
             render={({ field }) => 
                 <div>
                   <label className='text-sm font-bold ml-1'>Bank Details</label>
-                  <Textarea placeholder='{
-  "bankName": "Global Bank",
-  "accountName": "My Company LLC",
-  "accountNumber": "1234567890",
-  "branchName": "Main Branch"
-}' {...field} className="mt-2 h-36"/>
+                  <Textarea placeholder="Bank Name: Global Bank\nAccount Name: My Company LLC\nAccount Number: 1234567890\nBranch Name: Main Branch" {...field} className="mt-2 h-36"/>
                 </div>
             }
           />

@@ -124,7 +124,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         <div className="flex justify-between items-start border-b-2 border-slate-100 pb-8 mb-8">
           <div className="flex gap-6 items-start">
             {company.logo_url && (
-              <div className="size-20 shrink-0">
+              <div className="size-24 shrink-0">
                 <img src={company.logo_url} alt={company.name} className="h-full w-full object-contain" />
               </div>
             )}
@@ -139,14 +139,14 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-5xl font-black text-slate-300 tracking-tighter uppercase mb-4 leading-none">
+            <div className="text-5xl font-black text-slate-900 tracking-tighter uppercase mb-4 leading-none">
               {getWatermarkText()}
             </div>
             <div className="text-sm">
               <span className="text-slate-400">Date:</span> {new Date(data.date).toLocaleDateString()}
             </div>
             <div className="text-sm">
-              <span className="text-slate-400">Number:</span> <span className="font-bold">{data.number}</span>
+              <span className="font-bold text-slate-500">Number:</span> <span className="font-bold">{data.number}</span>
             </div>
             {data.dueDate && (
               <div className="text-sm">
@@ -232,11 +232,8 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         {data.type === 'invoice' && company.bank_details && (
             <div className="bg-slate-50 p-4 rounded mb-8 border border-slate-100 text-sm">
                 <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1 uppercase tracking-wider">BANK DETAILS</div>
-                <div className="text-slate-600 flex flex-wrap gap-x-4 gap-y-1">
-                    <span><span className="font-semibold text-slate-500">Bank:</span> {company.bank_details.bankName}</span>
-                    <span><span className="font-semibold text-slate-500">Account Name:</span> {company.bank_details.accountName}</span>
-                    <span><span className="font-semibold text-slate-500">Account Number:</span> {company.bank_details.accountNumber}</span>
-                    {company.bank_details.branchName && <span><span className="font-semibold text-slate-500">Branch:</span> {company.bank_details.branchName}</span>}
+                <div className="text-slate-600 whitespace-pre-line">
+                    {company.bank_details}
                 </div>
             </div>
         )}
