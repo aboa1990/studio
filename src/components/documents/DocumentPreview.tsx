@@ -9,7 +9,6 @@ import { Card } from "@/components/ui/card"
 import { Document, Attachment, CompanyProfile } from "@/lib/types"
 import { useStore } from "@/lib/store"
 import Link from "next/link"
-import Image from "next/image"
 import { useEffect, useState } from "react"
 
 interface DocumentPreviewProps {
@@ -122,8 +121,8 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         <div className="flex justify-between items-start border-b-2 border-slate-100 pb-8 mb-8">
           <div className="flex gap-6 items-start">
             {company.logo_url && (
-              <div className="relative size-20 shrink-0">
-                <Image src={company.logo_url} alt={company.name} fill className="object-contain" />
+              <div className="size-20 shrink-0">
+                <img src={company.logo_url} alt={company.name} className="h-full w-full object-contain" />
               </div>
             )}
             <div>
@@ -137,7 +136,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-5xl font-black text-slate-200 tracking-tighter opacity-50 uppercase mb-4 leading-none">
+            <div className="text-5xl font-black text-slate-300 tracking-tighter uppercase mb-4 leading-none">
               {getWatermarkText()}
             </div>
             <div className="text-sm">
@@ -294,8 +293,8 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         <div className="flex justify-end mb-8">
           <div className="text-center min-w-[200px] flex flex-col items-center">
             {company.signature_url && (
-              <div className="relative h-16 w-40 mb-2">
-                <Image src={company.signature_url} alt="Signature" fill className="object-contain" />
+              <div className="h-16 w-40 mb-2">
+                <img src={company.signature_url} alt="Signature" className="h-full w-full object-contain" />
               </div>
             )}
             <div className="border-t border-slate-300 pt-1 w-full">
