@@ -42,10 +42,12 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const [loading, setLoading] = useState(false);
   const { currentProfile } = useStore();
   
-  const defaultTerms = type === 'tender' 
+  const defaultTerms = type === 'tender'
     ? "1. This proposal is valid for 90 days from the submission date.\\n2. All prices are inclusive of GST.\\n3. Delivery will be within the specified timeframe upon award."
     : type === 'boq'
     ? "1. Quantities are estimated and subject to site verification.\\n2. Rates provided are valid for 30 days.\\n3. All items are inclusive of labor and materials unless specified."
+    : type === 'quotation'
+    ? "1. Quotation validity is 15 Days\\n2. Customers Must Send Purchase Orders with Quotation Number\\n3. Goods sold out is non Refundable"
     : "1. Please pay within 14 days.\\n2. Bank transfer is preferred.\\n3. Include reference number as reference.";
 
   const [doc, setDoc] = useState<Partial<Document>>(
