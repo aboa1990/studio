@@ -168,15 +168,19 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
           {isBOQ ? (
             <div className="space-y-6">
               <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">PRICING SUMMARY</h2>
-              <table className="w-full text-sm border-collapse">
-                 {/* BOQ Table Header */}
-              </table>
-              {/* BOQ Table Body */}
+              {/* ... BOQ Table ... */}
             </div>
           ) : (
             <>
               <table className="w-full mb-12">
-                {/* Standard Table Header */}
+                <thead>
+                  <tr className="border-b-2 border-slate-900">
+                    <th className="text-left py-4 font-bold text-sm uppercase">Description</th>
+                    <th className="text-center py-4 font-bold text-sm uppercase">Qty</th>
+                    <th className="text-right py-4 font-bold text-sm uppercase">Rate</th>
+                    <th className="text-right py-4 font-bold text-sm uppercase">Amount</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {data.items.map((item) => (
                     <tr key={item.id} className="border-b border-slate-100">
@@ -192,7 +196,20 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
               </table>
 
               <div className="flex justify-end mb-12">
-                {/* Total Section */}
+                <div className="w-64 space-y-3">
+                  <div className="flex justify-between text-slate-500">
+                    <span>Subtotal:</span>
+                    <span>{data.currency} {data.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500">
+                    <span>GST ({data.taxRate}%):</span>
+                    <span>{data.currency} {data.taxAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-2xl font-black border-t-2 border-slate-900 pt-3">
+                    <span>Total:</span>
+                    <span>{data.currency} {data.total.toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
             </>
           )}
@@ -209,28 +226,14 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         )}
 
         {/* Bank & Payment Info */}
-        {data.type !== 'tender' && data.type !== 'boq' && company.bank_details && (
-            <div className="bg-slate-50 p-6 rounded mb-8 border border-slate-100">
-                <div className="text-slate-900 font-bold text-sm mb-4 border-b border-slate-200 pb-2">BANK TRANSFER DETAILS</div>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                    <div className="flex flex-col">
-                        <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Bank Name</span>
-                        <span className="font-semibold text-slate-700">{company.bank_details.bankName || "N/A"}</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Account Name</span>
-                        <span className="font-semibold text-slate-700">{company.bank_details.accountName || company.name}</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Account Number</span>
-                        <span className="font-bold text-lg text-slate-900">{company.bank_details.accountNumber || "N/A"}</span>
-                    </div>
-                    {company.bank_details.branchName && (
-                        <div className="flex flex-col">
-                            <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Branch</span>
-                            <span className="font-semibold text-slate-700">{company.bank_details.branchName}</span>
-                        </div>
-                    )}
+        {data.type === 'invoice' && company.bank_details && (
+            <div className="bg-slate-50 p-4 rounded mb-8 border border-slate-100 text-sm">
+                <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1 uppercase tracking-wider">BANK DETAILS</div>
+                <div className="text-slate-600 flex flex-wrap gap-x-4 gap-y-1">
+                    <span><span className="font-semibold text-slate-500">Bank:</span> {company.bank_details.bankName}</span>
+                    <span><span className="font-semibold text-slate-500">Account Name:</span> {company.bank_details.accountName}</span>
+                    <span><span className="font-semibold text-slate-500">Account Number:</span> {company.bank_details.accountNumber}</span>
+                    {company.bank_details.branchName && <span><span className="font-semibold text-slate-500">Branch:</span> {company.bank_details.branchName}</span>}
                 </div>
             </div>
         )}
