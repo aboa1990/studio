@@ -6,7 +6,8 @@ import { CompanyProfile, Document, DocumentType, Client, LibraryDocument } from 
 // Utility to get active profile ID from local storage
 const getActiveProfileId = () => {
     if (typeof window !== 'undefined') {
-        return localStorage.getItem('activeProfileId');
+        const id = localStorage.getItem('activeProfileId');
+        return id === 'undefined' ? null : id;
     }
     return null;
 }
@@ -94,6 +95,7 @@ export const useStore = create<AppState>((set, get) => ({
 
 // Standalone fetch functions
 export async function getDocuments(type: DocumentType, profileId: string): Promise<Document[]> {
+    if (!profileId || profileId === 'undefined') return [];
     const { data, error } = await supabase
         .from('documents')
         .select('*')
@@ -142,6 +144,7 @@ export async function deleteDocument(id: string) {
 }
 
 export async function getClients(profileId: string): Promise<Client[]> {
+    if (!profileId || profileId === 'undefined') return [];
     const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -155,6 +158,7 @@ export async function getClients(profileId: string): Promise<Client[]> {
 }
 
 export async function getLibraryDocuments(profileId: string): Promise<LibraryDocument[]> {
+    if (!profileId || profileId === 'undefined') return [];
     const { data, error } = await supabase
         .from('library_documents')
         .select('*')
