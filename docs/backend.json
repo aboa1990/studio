@@ -13,6 +13,7 @@
         "phone": { "type": "string" },
         "logoUrl": { "type": "string", "format": "uri" },
         "signatureUrl": { "type": "string", "format": "uri" },
+        "sealUrl": { "type": "string", "format": "uri" },
         "authorizedSignatory": { "type": "string" },
         "gstNumber": { "type": "string" },
         "bankDetails": {
