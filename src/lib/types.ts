@@ -1,5 +1,5 @@
 
-export type DocumentType = 'invoice' | 'quotation' | 'tender' | 'boq';
+export type DocumentType = 'invoice' | 'quotation' | 'tender' | 'boq' | 'letter';
 
 export type DocumentStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'rejected' | 'submitted' | 'awarded' | 'lost';
 
@@ -61,6 +61,7 @@ export interface Document {
   notes?: string;
   terms?: string;
   attachments?: Attachment[];
+  language?: 'english' | 'dhivehi';
 }
 
 export interface BankDetails {
@@ -80,6 +81,7 @@ export interface CompanyProfile {
   logo_url?: string;
   signature_url?: string;
   seal_url?: string;
+  letterhead_url?: string;
   authorized_signatory?: string;
   gst_number?: string;
   bank_details?: BankDetails;

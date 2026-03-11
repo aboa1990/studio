@@ -70,6 +70,11 @@ const items = [
     icon: Briefcase,
   },
   {
+    title: "Letters",
+    url: "/letters",
+    icon: FileText,
+  },
+  {
     title: "Clients",
     url: "/clients",
     icon: Users,

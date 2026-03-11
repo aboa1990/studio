@@ -93,3 +93,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+@font-face {
+  font-family: 'MV Boli';
+  src: url('/fonts/mvboli.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Faruma';
+  src: url('/fonts/faruma.ttf') format('truetype');
+}
+
+.thaana-font {
+  font-family: 'Faruma', 'MV Boli', sans-serif;
+  direction: rtl;
+}
