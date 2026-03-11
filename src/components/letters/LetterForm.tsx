@@ -2,9 +2,8 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { useStore, getClients, getDocuments } from "@/lib/store";
+import { useStore, getClients, getDocuments, saveDocument } from "@/lib/store";
 import { Document, Client } from "@/lib/types";
-import { saveDocument } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,14 +25,12 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
     const fetchClientsAndDocs = async () => {
       const [fetchedClients, allDocs] = await Promise.all([getClients(), getDocuments()]);
       
-      // Set clients
       setClients(fetchedClients);
       if (initialData?.client_id) {
         const initialClient = fetchedClients.find(c => c.id === initialData.client_id);
         setClient(initialClient || null);
       }
 
-      // Set Letter Number
       if (initialData?.number) {
         setLetterNumber(initialData.number);
       } else {
@@ -47,7 +44,6 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
     };
     fetchClientsAndDocs();
   }, [initialData]);
-
 
   useEffect(() => {
     if (initialData?.language) {
@@ -71,12 +67,12 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
       taxRate: 0,
       date: new Date().toISOString(),
       status: 'draft',
-      currency: 'USD', // Or your default currency
+      currency: 'USD',
       subtotal: 0,
       taxAmount: 0,
       total: 0,
       notes: body,
-      terms: subject, // Using terms to store the subject
+      terms: subject,
       language: language,
     };
 
@@ -88,18 +84,47 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
 
   const isThaana = language === 'dhivehi';
 
+  const t = {
+    english: {
+      to: "To:",
+      letterNo: "Letter #:",
+      subject: "Subject",
+      writeLetter: "Write your letter here...",
+      sincerely: "Sincerely,",
+      authorisedSignatory: "Authorised Signatory",
+      newLetter: "New Letter",
+      save: "Save",
+      client: "Client",
+      selectClient: "Select a client",
+      language: "Language",
+    },
+    dhivehi: {
+      to: "އިލާ:",
+      letterNo: "ނަންބަރު:",
+      subject: "މައުޟޫޢު",
+      writeLetter: "މިތަނުގައި ደብዳބީ ލިޔުއްވާ...",
+      sincerely: "އިޚްލާޞްތެރިކަމާއެކު،",
+      authorisedSignatory: "ހުއްދަ ލިބިފައިވާ ފަރާތް",
+      newLetter: "އަލަށް ደብዳބީ",
+      save: "ސޭވް",
+      client: "ደንበኛ",
+      selectClient: "ደንበኛއެއް ހޮވާ",
+      language: "ބަސް",
+    }
+  }[language];
+
   return (
     <div className="p-4 flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">New Letter</h1>
-        <Button onClick={handleSave} disabled={!client}>Save</Button>
+        <h1 className="text-2xl font-bold">{initialData ? `Edit Letter` : `New Letter`}</h1>
+        <Button onClick={handleSave} disabled={!client}>{t.save}</Button>
       </div>
       <div className="flex-grow flex flex-col lg:flex-row gap-8">
         <div className="w-full lg:w-1/3">
           <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Client</CardTitle>
+                <CardTitle>{t.client}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Select 
@@ -109,7 +134,7 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
                     setClient(selectedClient || null);
                   }}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a client" />
+                    <SelectValue placeholder={t.selectClient} />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map(c => (
@@ -121,7 +146,7 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Language</CardTitle>
+                <CardTitle>{t.language}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Select value={language} onValueChange={(value: 'english' | 'dhivehi') => setLanguage(value)}>
@@ -138,7 +163,6 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
           </div>
         </div>
         <div className={`w-full lg:w-2/3 bg-white rounded-lg p-12 shadow-lg font-serif ${isThaana ? 'thaana-font' : ''}`}>
-          {/* Letterhead */}
           {currentProfile?.letterhead_url ? (
             <img src={currentProfile.letterhead_url} alt="Letterhead" className="w-full mb-12" />
           ) : (
@@ -154,34 +178,31 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
             </header>
           )}
 
-          {/* Client Info and Date */}
-          <div className={`flex justify-between mb-8 ${isThaana ? 'text-right' : ''}`}>
-            <div className={isThaana ? 'text-right' : 'text-left'}>
-              <h3 className="font-bold text-gray-700">To:</h3>
+          <div className={`flex justify-between mb-8 ${isThaana ? 'flex-row-reverse' : ''}`}>
+            <div>
+              <h3 className="font-bold text-gray-700">{t.to}</h3>
               <p>{client?.name}</p>
               <p>{client?.address}</p>
             </div>
             <div className={isThaana ? 'text-left' : 'text-right'}>
                 <div className="flex items-center gap-2">
-                    <label htmlFor="letter-number" className="font-bold">Letter #:</label>
+                    <label htmlFor="letter-number" className="font-bold">{t.letterNo}</label>
                     <Input id="letter-number" value={letterNumber} onChange={(e) => setLetterNumber(e.target.value)} className="w-24" dir="ltr" />
                 </div>
               <p className="mt-2">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
           </div>
 
-          {/* Subject */}
           <Input 
-            placeholder="Subject"
+            placeholder={t.subject}
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             className={`mb-8 text-lg font-bold border-0 border-b-2 rounded-none px-0 focus-visible:ring-0 ${isThaana ? 'text-right' : ''}`}
             dir={isThaana ? 'rtl' : 'ltr'}
           />
 
-          {/* Body */}
           <Textarea 
-            placeholder="Write your letter here..."
+            placeholder={t.writeLetter}
             value={body}
             onChange={(e) => setBody(e.target.value)}
             className={`flex-grow border-none p-0 text-base leading-relaxed focus-visible:ring-0 resize-none ${isThaana ? 'text-right' : ''}`}
@@ -189,19 +210,19 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
             dir={isThaana ? 'rtl' : 'ltr'}
           />
 
-          {/* Closing */}
           <footer className={`mt-12 ${isThaana ? 'text-right' : ''}`}>
-            <p className="mb-4">Sincerely,</p>
+            <p className="mb-4">{t.sincerely}</p>
             {currentProfile?.signature_url ? (
-                <img src={currentProfile.signature_url} alt="Signature" className="h-16 w-auto" />
+                <img src={currentProfile.signature_url} alt="Signature" className={`h-16 w-auto ${isThaana ? 'ml-auto' : ''}`} />
             ) : (
                 <div className="h-16"></div>
             )}
             <p className="font-bold">{currentProfile?.authorized_signatory || currentProfile?.name}</p>
-            <p>Authorised Signatory</p>
+            <p>{t.authorisedSignatory}</p>
           </footer>
         </div>
       </div>
     </div>
   );
 }
+
