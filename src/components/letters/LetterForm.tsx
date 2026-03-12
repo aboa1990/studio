@@ -23,7 +23,10 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
 
   useEffect(() => {
     const fetchClientsAndDocs = async () => {
-      const [fetchedClients, allDocs] = await Promise.all([getClients(), getDocuments()]);
+      const [fetchedClients, letterDocs] = await Promise.all([
+        getClients(), 
+        getDocuments('letter')
+      ]);
       
       setClients(fetchedClients);
       if (initialData?.client_id) {
@@ -34,7 +37,6 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
       if (initialData?.number) {
         setLetterNumber(initialData.number);
       } else {
-        const letterDocs = allDocs.filter(doc => doc.type === 'letter');
         const maxNumber = letterDocs.reduce((max, doc) => {
           const currentNum = parseInt(doc.number, 10);
           return isNaN(currentNum) ? max : Math.max(max, currentNum);
@@ -183,17 +185,17 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
           {isThaana ? (
               <div dir="rtl">
                   <div className="flex flex-col items-end text-right mb-8">
-                      <Input value={client?.name || ''} readOnly className="border-none text-right px-0 mb-1 focus-visible:ring-0" placeholder="Client Name" />
-                      <Input value={client?.address || ''} readOnly className="border-none text-right px-0 mb-4 focus-visible:ring-0" placeholder="Client Address"/>
+                      <Input value={client?.name || ''} readOnly className="border-none text-right px-0 mb-1 focus-visible:ring-0 text-gray-900" placeholder="Client Name" />
+                      <Input value={client?.address || ''} readOnly className="border-none text-right px-0 mb-4 focus-visible:ring-0 text-gray-900" placeholder="Client Address"/>
                       <div className="flex items-center gap-2 mb-4">
                           <label htmlFor="letter-number" className="font-bold">{t.letterNo}</label>
-                          <Input id="letter-number" value={letterNumber} onChange={(e) => setLetterNumber(e.target.value)} className="w-24 border-none text-right px-0 focus-visible:ring-0" dir="ltr" />
+                          <Input id="letter-number" value={letterNumber} onChange={(e) => setLetterNumber(e.target.value)} className="w-24 border-none text-right px-0 focus-visible:ring-0 text-gray-900" dir="ltr" />
                       </div>
                       <Input 
                           placeholder={t.subject}
                           value={subject}
                           onChange={(e) => setSubject(e.target.value)}
-                          className={`text-lg font-bold border-none text-right px-0 focus-visible:ring-0`}
+                          className={`text-lg font-bold border-none text-right px-0 focus-visible:ring-0 text-gray-900`}
                           dir="rtl"
                       />
                   </div>
@@ -227,7 +229,7 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
             placeholder={t.writeLetter}
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className={`flex-grow border-none p-0 text-base leading-relaxed focus-visible:ring-0 resize-none ${isThaana ? 'text-right' : ''}`}
+            className={`flex-grow border-none p-0 text-base leading-relaxed focus-visible:ring-0 resize-none ${isThaana ? 'text-right' : ''} text-gray-900`}
             rows={15}
             dir={isThaana ? 'rtl' : 'ltr'}
           />

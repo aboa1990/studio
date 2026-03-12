@@ -21,8 +21,8 @@ export default function LetterDetailClient({ id }: { id: string }) {
 
   useEffect(() => {
     const fetchLetter = async () => {
-      const allDocs = await getDocuments();
-      const foundLetter = allDocs.find(doc => doc.id === id);
+      const letterDocs = await getDocuments('letter');
+      const foundLetter = letterDocs.find(doc => doc.id === id);
       setLetter(foundLetter || null);
       if (foundLetter?.client_id) {
         // You might need a getClientById function here if it exists
