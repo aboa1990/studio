@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Document, Packer, Paragraph, ImageRun } from 'docx';
+import { Document, Packer, Paragraph, ImageRun, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 import { useRouter } from "next/navigation";
 import { MoreHorizontal } from "lucide-react";
@@ -29,25 +29,50 @@ export default function LetterActions({ letter, handleDelete, handleDownload }: 
     try {
       const letterheadBlob = await fetch(currentProfile.letterhead_url).then(res => res.blob());
       const signatureBlob = await fetch(currentProfile.signature_url).then(res => res.blob());
+      const isDhivehi = letter.language === 'dhivehi';
+
+      const children = [
+        new Paragraph({ children: [new ImageRun({ data: letterheadBlob, transformation: { width: 500, height: 100 } })] }),
+        new Paragraph(""), new Paragraph(""), new Paragraph(""), new Paragraph(""), // Add spacing
+        new Paragraph(letter.clientName || ''),
+        new Paragraph(letter.clientAddress || ''),
+        new Paragraph(`Date: ${new Date(letter.date).toLocaleDateString()}`),
+        new Paragraph(`Subject: ${letter.terms}`),
+        new Paragraph(""), // Spacing
+      ];
+
+      // Add notes with line breaks
+      const notes = letter.notes || '';
+      notes.split('\n').forEach(line => {
+        children.push(new Paragraph({ text: line, style: isDhivehi ? "thaana" : "" }));
+      });
+
+      children.push(
+        new Paragraph(""), new Paragraph(""), new Paragraph(""), // Spacing
+        new Paragraph("Sincerely,"),
+        new Paragraph({ children: [new ImageRun({ data: signatureBlob, transformation: { width: 150, height: 75 } })] }),
+        new Paragraph(currentProfile.authorized_signatory || ''),
+        new Paragraph("Authorised Signatory"),
+      )
 
       const doc = new Document({
+        styles: {
+          paragraphStyles: [
+            {
+              id: "thaana",
+              name: "Thaana",
+              basedOn: "Normal",
+              next: "Normal",
+              run: {
+                rightToLeft: true,
+                font: "Thaana",
+              }
+            }
+          ]
+        },
         sections: [
           {
-            children: [
-              new Paragraph({ children: [new ImageRun({ data: letterheadBlob, transformation: { width: 500, height: 100 } })] }),
-              new Paragraph(""), new Paragraph(""), new Paragraph(""), new Paragraph(""), // Add spacing
-              new Paragraph(letter.clientName || ''),
-              new Paragraph(letter.clientAddress || ''),
-              new Paragraph(`Date: ${new Date(letter.date).toLocaleDateString()}`),
-              new Paragraph(`Subject: ${letter.terms}`),
-              new Paragraph(""), // Spacing
-              new Paragraph(letter.notes || ''),
-              new Paragraph(""), new Paragraph(""), new Paragraph(""), // Spacing
-              new Paragraph("Sincerely,"),
-              new Paragraph({ children: [new ImageRun({ data: signatureBlob, transformation: { width: 150, height: 75 } })] }),
-              new Paragraph(currentProfile.authorized_signatory || ''),
-              new Paragraph("Authorised Signatory"),
-            ],
+            children: children,
           },
         ],
       });

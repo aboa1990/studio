@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { getDocuments, deleteDocument } from '@/lib/store';
-import { Document } from '@/lib/types';
+import { Document as LetterDocument } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,10 +11,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
+import { Document, Packer, Paragraph } from 'docx';
+import { saveAs } from 'file-saver';
 
 export default function LettersClient() {
   const router = useRouter();
-  const [letters, setLetters] = useState<Document[]>([]);
+  const [letters, setLetters] = useState<LetterDocument[]>([]);
 
   useEffect(() => {
     const fetchLetters = async () => {
@@ -35,11 +37,31 @@ export default function LettersClient() {
     }
   };
 
+  const handleDownloadBlank = () => {
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          new Paragraph({
+            children: [],
+          }),
+        ],
+      }],
+    });
+
+    Packer.toBlob(doc).then((blob) => {
+      saveAs(blob, "blank-letter-template.docx");
+    });
+  };
+
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Letters</h1>
-        <Button onClick={() => router.push('/letters/new')}>New Letter</Button>
+        <div>
+          <Button onClick={handleDownloadBlank} className="mr-2">Download Blank Template</Button>
+          <Button onClick={() => router.push('/letters/new')}>New Letter</Button>
+        </div>
       </div>
       <Card>
         <CardContent>
