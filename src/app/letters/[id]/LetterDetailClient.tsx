@@ -87,6 +87,7 @@ export default function LetterDetailClient({ id }: { id: string }) {
         <h1 className="text-2xl font-bold">Letter {letter.number}</h1>
         <div>
             <Button onClick={handleDownload} className="mr-2">Download</Button>
+            <Button onClick={() => router.push(`/letters/word-export/${letter.id}`)} className="mr-2">Download as DOCX</Button>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
