@@ -1,12 +1,24 @@
+"use client";
 
-import { getDocument } from "@/lib/store";
+import { useEffect, useState } from "react";
+import { getDocuments } from "@/lib/store";
+import { Document } from "@/lib/types";
 import LetterForm from "@/components/letters/LetterForm";
 
-export default async function EditLetterPage({ params }: { params: { id: string } }) {
-  const letter = await getDocument(params.id);
+export default function EditLetterPage({ params }: { params: { id: string } }) {
+  const [letter, setLetter] = useState<Document | null>(null);
+
+  useEffect(() => {
+    const fetchLetter = async () => {
+      const allDocs = await getDocuments();
+      const foundLetter = allDocs.find(doc => doc.id === params.id);
+      setLetter(foundLetter || null);
+    };
+    fetchLetter();
+  }, [params.id]);
 
   if (!letter) {
-    return <div>Letter not found</div>;
+    return <div>Loading...</div>;
   }
 
   return <LetterForm initialData={letter} />;

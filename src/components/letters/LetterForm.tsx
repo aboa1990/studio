@@ -102,7 +102,7 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
       to: "އިލާ:",
       letterNo: "ނަންބަރު:",
       subject: "މައުޟޫޢު",
-      writeLetter: "މިތަނުގައި ደብዳބީ ލިޔުއްވާ...",
+      writeLetter: "މިތަނުގައި ދެން ލިޔުއްވާ...",
       sincerely: "އިޚްލާޞްތެރިކަމާއެކު،",
       authorisedSignatory: "ހުއްދަ ލިބިފައިވާ ފަރާތް",
       newLetter: "އަލަށް ደብዳބީ",
@@ -116,7 +116,7 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
   return (
     <div className="p-4 flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">{initialData ? `Edit Letter` : `New Letter`}</h1>
+        <h1 className="text-2xl font-bold">{initialData ? `Edit Letter` : t.newLetter}</h1>
         <Button onClick={handleSave} disabled={!client}>{t.save}</Button>
       </div>
       <div className="flex-grow flex flex-col lg:flex-row gap-8">
@@ -162,7 +162,9 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
             </Card>
           </div>
         </div>
-        <div className={`w-full lg:w-2/3 bg-white rounded-lg p-12 shadow-lg font-serif ${isThaana ? 'thaana-font' : ''}`}>
+        <div className={`w-full lg:w-2/3 bg-white rounded-lg p-12 shadow-lg font-serif text-gray-900 ${isThaana ? 'thaana-font' : ''}`}>
+          {isThaana && <div className="text-center text-xl mb-8">بِسْمِ اللَّـهِ الرَّحْمَـٰنِ الرَّحِيمِ</div>}
+          
           {currentProfile?.letterhead_url ? (
             <img src={currentProfile.letterhead_url} alt="Letterhead" className="w-full mb-12" />
           ) : (
@@ -178,28 +180,48 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
             </header>
           )}
 
-          <div className={`flex justify-between mb-8 ${isThaana ? 'flex-row-reverse' : ''}`}>
-            <div>
-              <h3 className="font-bold text-gray-700">{t.to}</h3>
-              <p>{client?.name}</p>
-              <p>{client?.address}</p>
-            </div>
-            <div className={isThaana ? 'text-left' : 'text-right'}>
-                <div className="flex items-center gap-2">
-                    <label htmlFor="letter-number" className="font-bold">{t.letterNo}</label>
-                    <Input id="letter-number" value={letterNumber} onChange={(e) => setLetterNumber(e.target.value)} className="w-24" dir="ltr" />
+          {isThaana ? (
+              <div dir="rtl">
+                  <div className="flex flex-col items-end text-right mb-8">
+                      <Input value={client?.name || ''} readOnly className="border-none text-right px-0 mb-1 focus-visible:ring-0" placeholder="Client Name" />
+                      <Input value={client?.address || ''} readOnly className="border-none text-right px-0 mb-4 focus-visible:ring-0" placeholder="Client Address"/>
+                      <div className="flex items-center gap-2 mb-4">
+                          <label htmlFor="letter-number" className="font-bold">{t.letterNo}</label>
+                          <Input id="letter-number" value={letterNumber} onChange={(e) => setLetterNumber(e.target.value)} className="w-24 border-none text-right px-0 focus-visible:ring-0" dir="ltr" />
+                      </div>
+                      <Input 
+                          placeholder={t.subject}
+                          value={subject}
+                          onChange={(e) => setSubject(e.target.value)}
+                          className={`text-lg font-bold border-none text-right px-0 focus-visible:ring-0`}
+                          dir="rtl"
+                      />
+                  </div>
+              </div>
+            ) : (
+              <>
+                <div className={`flex justify-between mb-8`}>
+                  <div>
+                    <h3 className="font-bold text-gray-700">{t.to}</h3>
+                    <p>{client?.name}</p>
+                    <p>{client?.address}</p>
+                  </div>
+                  <div className={'text-right'}>
+                      <div className="flex items-center gap-2">
+                          <label htmlFor="letter-number" className="font-bold">{t.letterNo}</label>
+                          <Input id="letter-number" value={letterNumber} onChange={(e) => setLetterNumber(e.target.value)} className="w-24" dir="ltr" />
+                      </div>
+                    <p className="mt-2">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  </div>
                 </div>
-              <p className="mt-2">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            </div>
-          </div>
-
-          <Input 
-            placeholder={t.subject}
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className={`mb-8 text-lg font-bold border-0 border-b-2 rounded-none px-0 focus-visible:ring-0 ${isThaana ? 'text-right' : ''}`}
-            dir={isThaana ? 'rtl' : 'ltr'}
-          />
+                 <Input 
+                    placeholder={t.subject}
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    className={`mb-8 text-lg font-bold border-0 border-b-2 rounded-none px-0 focus-visible:ring-0`}
+                  />
+              </>
+          )}
 
           <Textarea 
             placeholder={t.writeLetter}
@@ -210,19 +232,21 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
             dir={isThaana ? 'rtl' : 'ltr'}
           />
 
-          <footer className={`mt-12 ${isThaana ? 'text-right' : ''}`}>
-            <p className="mb-4">{t.sincerely}</p>
-            {currentProfile?.signature_url ? (
-                <img src={currentProfile.signature_url} alt="Signature" className={`h-16 w-auto ${isThaana ? 'ml-auto' : ''}`} />
-            ) : (
-                <div className="h-16"></div>
-            )}
-            <p className="font-bold">{currentProfile?.authorized_signatory || currentProfile?.name}</p>
-            <p>{t.authorisedSignatory}</p>
+          <footer className={"mt-12"}>
+            {isThaana && <p className="mb-4 text-center">{new Date().toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+            <div className="text-left">
+              <p className="mb-4">{t.sincerely}</p>
+              {currentProfile?.signature_url ? (
+                  <img src={currentProfile.signature_url} alt="Signature" className={`h-16 w-auto`} />
+              ) : (
+                  <div className="h-16"></div>
+              )}
+              <p className="font-bold">{currentProfile?.authorized_signatory || currentProfile?.name}</p>
+              <p>{t.authorisedSignatory}</p>
+            </div>
           </footer>
         </div>
       </div>
     </div>
   );
 }
-

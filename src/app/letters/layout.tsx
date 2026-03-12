@@ -1,4 +1,4 @@
 
-export default function LettersLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
-}
+import AppLayout from "@/app/(app)/layout";
+
+export default AppLayout;

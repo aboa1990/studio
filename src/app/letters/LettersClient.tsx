@@ -25,7 +25,8 @@ export default function LettersClient() {
     fetchLetters();
   }, []);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // Prevent row click event
     if (confirm('Are you sure you want to delete this letter?')) {
       const success = await deleteDocument(id);
       if (success) {
@@ -55,7 +56,7 @@ export default function LettersClient() {
             </TableHeader>
             <TableBody>
               {letters.map(letter => (
-                <TableRow key={letter.id}>
+                <TableRow key={letter.id} onClick={() => router.push(`/letters/${letter.id}`)} className="cursor-pointer">
                   <TableCell>{letter.number}</TableCell>
                   <TableCell>{letter.clientName}</TableCell>
                   <TableCell>{letter.terms}</TableCell>
@@ -64,16 +65,16 @@ export default function LettersClient() {
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button variant="ghost" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
                           <span className="sr-only">Open menu</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => router.push(`/letters/edit/${letter.id}`)}>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/letters/edit/${letter.id}`); }}>
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(letter.id)}>
+                        <DropdownMenuItem onClick={(e) => handleDelete(e, letter.id)}>
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
