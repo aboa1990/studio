@@ -24,8 +24,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-background border border-border p-2 rounded-lg shadow-lg">
-        <p className="label font-bold">{`${label}`}</p>
-        <p className="intro text-primary">{`Revenue: MVR ${payload[0].value.toFixed(2)}`}</p>
+        <p className="label font-bold text-xs">{`${label}`}</p>
+        <p className="intro text-primary text-xs">{`Revenue: MVR ${payload[0].value.toFixed(2)}`}</p>
       </div>
     );
   }
@@ -75,20 +75,20 @@ export default function NewDashboard() {
   return (
     <div className="space-y-8 animate-in fade-in duration-1000">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter">
+        <div className="space-y-1">
+          <h1 className="text-3xl md:text-4xl font-black tracking-tighter">
             Dashboard
           </h1>
-          <p className="text-muted-foreground text-lg font-medium">
-            Welcome back, {currentProfile?.companyName || 'User'}. Here's your business snapshot.
+          <p className="text-muted-foreground text-base font-medium">
+            Welcome back, {currentProfile?.name || 'User'}. Here's your business snapshot.
           </p>
         </div>
         <div className="flex items-center gap-4">
           <LogoutButton />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="rounded-full px-8 h-12 text-base font-black tracking-tight shadow-lg transition-all hover:scale-105 active:scale-95">
-                <Plus className="mr-2 size-5" /> New Document
+              <Button className="rounded-full px-6 h-10 text-sm font-bold tracking-tight shadow-lg transition-all hover:scale-105 active:scale-95">
+                <Plus className="mr-2 size-4" /> New Document
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="font-bold">
@@ -105,42 +105,42 @@ export default function NewDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Revenue</CardTitle>
             <TrendingUp className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">MVR {totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Based on paid invoices</p>
+            <div className="text-xl font-black">MVR {totalRevenue.toFixed(2)}</div>
+            <p className="text-[10px] text-muted-foreground">Based on paid invoices</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Clients</CardTitle>
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Clients</CardTitle>
             <Users className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalClients}</div>
-            <p className="text-xs text-muted-foreground">Total active clients</p>
+            <div className="text-xl font-black">{totalClients}</div>
+            <p className="text-[10px] text-muted-foreground">Total active clients</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pending</CardTitle>
             <Clock className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingInvoices}</div>
-            <p className="text-xs text-muted-foreground">Draft & Sent Invoices</p>
+            <div className="text-xl font-black">{pendingInvoices}</div>
+            <p className="text-[10px] text-muted-foreground">Draft & Sent Invoices</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Overdue</CardTitle>
             <AlertCircle className="size-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{overdueInvoices}</div>
-            <p className="text-xs text-muted-foreground">Invoices past due date</p>
+            <div className="text-xl font-black text-destructive">{overdueInvoices}</div>
+            <p className="text-[10px] text-muted-foreground">Invoices past due date</p>
           </CardContent>
         </Card>
       </div>
@@ -149,10 +149,10 @@ export default function NewDashboard() {
         {/* Revenue Chart */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Revenue Trend</CardTitle>
-            <CardDescription>Last 30 days performance</CardDescription>
+            <CardTitle className="text-lg">Revenue Trend</CardTitle>
+            <CardDescription className="text-xs">Last 30 days performance</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] w-full">
+          <CardContent className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                 <defs>
@@ -164,11 +164,11 @@ export default function NewDashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
                 <XAxis 
                   dataKey="date" 
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} 
                   tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                 />
                 <YAxis 
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} 
                   tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                   tickFormatter={(value) => `MVR ${value/1000}k`}
                 />
@@ -182,36 +182,36 @@ export default function NewDashboard() {
         {/* Recent Invoices */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Invoices</CardTitle>
-            <CardDescription>Your latest 5 invoices.</CardDescription>
+            <CardTitle className="text-lg">Recent Invoices</CardTitle>
+            <CardDescription className="text-xs">Your latest 5 invoices.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {recentInvoices.length > 0 ? (
               recentInvoices.map(invoice => (
                 <div key={invoice.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-muted rounded-md">
-                      <FileText className="size-4" />
+                    <div className="p-1.5 bg-muted rounded-md">
+                      <FileText className="size-3.5" />
                     </div>
                     <div>
-                      <Link href={`/invoices/${invoice.id}`} className="font-semibold hover:underline">{invoice.number}</Link>
-                      <p className="text-sm text-muted-foreground">{invoice.clientName}</p>
+                      <Link href={`/invoices/${invoice.id}`} className="text-sm font-semibold hover:underline">{invoice.number}</Link>
+                      <p className="text-xs text-muted-foreground">{invoice.clientName}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">MVR {invoice.total?.toFixed(2)}</p>
+                    <p className="text-sm font-bold">MVR {invoice.total?.toFixed(2)}</p>
                     <Badge variant={
                         invoice.status === 'paid' ? 'default' :
                         invoice.status === 'sent' ? 'secondary' :
                         'outline'
-                    } className="text-xs">{invoice.status}</Badge>
+                    } className="text-[10px] px-1.5 py-0 h-4 uppercase">{invoice.status}</Badge>
                   </div>
                 </div>
               ))
             ) : (
               <div className="text-center text-muted-foreground py-8">
-                <FileText className="size-8 mx-auto mb-2" />
-                <p>No invoices yet.</p>
+                <FileText className="size-6 mx-auto mb-2 opacity-20" />
+                <p className="text-xs">No invoices yet.</p>
               </div>
             )}
           </CardContent>

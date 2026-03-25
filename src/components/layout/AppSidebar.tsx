@@ -102,25 +102,25 @@ export default function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r bg-sidebar">
-      <SidebarHeader className="h-24 flex flex-col justify-center px-4 border-b">
+      <SidebarHeader className="h-20 flex flex-col justify-center px-4 border-b">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-muted hover:bg-muted/50 transition-colors rounded-xl h-14"
+              className="data-[state=open]:bg-muted hover:bg-muted/50 transition-colors rounded-xl h-12"
             >
-              <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-gradient-to-br from-muted/80 to-muted/50 border text-foreground shadow-lg">
-                {currentProfile?.logo_url ? <img src={currentProfile?.logo_url} alt={currentProfile?.name} className="rounded-lg"/> : <Building2 className="size-5" />}
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-muted/80 to-muted/50 border text-foreground shadow-lg">
+                {currentProfile?.logo_url ? <img src={currentProfile?.logo_url} alt={currentProfile?.name} className="rounded-md"/> : <Building2 className="size-4" />}
               </div>
-              <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden ml-3">
+              <div className="grid flex-1 text-left text-[11px] leading-tight group-data-[collapsible=icon]:hidden ml-2">
                 <span className="font-bold truncate">
                   {currentProfile?.name || 'My Company'}
                 </span>
-                <span className="truncate text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  {currentProfile?.address || 'Maldives Entity'}
+                <span className="truncate text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                  {currentProfile?.address ? currentProfile.address.substring(0, 15) + '...' : 'Maldives Entity'}
                 </span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden opacity-40" />
+              <ChevronsUpDown className="ml-auto size-3 group-data-[collapsible=icon]:hidden opacity-40" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -129,7 +129,7 @@ export default function AppSidebar() {
             side="bottom"
             sideOffset={12}
           >
-            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 py-3 px-2">
+            <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 py-2 px-2">
               Switch Business
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -139,11 +139,11 @@ export default function AppSidebar() {
                 className="gap-3 p-2 rounded-lg focus:bg-muted cursor-pointer mb-1"
                 onClick={() => setCurrentProfile(profile)}
               >
-                <div className="flex size-8 items-center justify-center rounded-lg border bg-background">
-                 {profile.logo_url ? <img src={profile.logo_url} alt={profile.name} className="rounded-sm"/> : <Building2 className="size-4 shrink-0" />}
+                <div className="flex size-7 items-center justify-center rounded-lg border bg-background">
+                 {profile.logo_url ? <img src={profile.logo_url} alt={profile.name} className="rounded-sm"/> : <Building2 className="size-3 shrink-0" />}
                 </div>
-                <span className="font-semibold text-sm">{profile.name}</span>
-                {currentProfile?.id === profile.id && <Check className="ml-auto size-4 text-primary" />}
+                <span className="font-semibold text-xs">{profile.name}</span>
+                {currentProfile?.id === profile.id && <Check className="ml-auto size-3 text-primary" />}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
@@ -154,32 +154,32 @@ export default function AppSidebar() {
               }}
               className="flex items-center gap-3 p-2 rounded-lg focus:bg-muted mt-1 cursor-pointer"
             >
-              <PlusCircle className="size-4" />
-              <span className="font-semibold text-sm">Add New Profile</span>
+              <PlusCircle className="size-3.5" />
+              <span className="font-semibold text-xs">Add New Profile</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarHeader>
       
-      <SidebarContent className="py-6 px-3">
+      <SidebarContent className="py-4 px-3">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-4 px-4">Workspace</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-3 px-4">Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
+            <SidebarMenu className="gap-0.5">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
                     isActive={pathname === item.url}
                     tooltip={item.title}
-                    className={`h-11 rounded-xl px-4 transition-all duration-200 ${pathname === item.url 
+                    className={`h-9 rounded-xl px-3 transition-all duration-200 ${pathname === item.url 
                         ? "bg-muted text-foreground font-bold shadow-sm" 
                         : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     <Link href={item.url} className="flex items-center gap-3">
-                      <item.icon className={`size-5 transition-colors ${pathname === item.url ? "text-foreground" : "text-muted-foreground"}`} />
-                      <span className="text-sm">{item.title}</span>
+                      <item.icon className={`size-4 transition-colors ${pathname === item.url ? "text-foreground" : "text-muted-foreground"}`} />
+                      <span className="text-xs">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -188,31 +188,23 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         
-        <SidebarGroup className="mt-8">
-          <SidebarGroupLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-4 px-4">Fast Create</SidebarGroupLabel>
+        <SidebarGroup className="mt-6">
+          <SidebarGroupLabel className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-3 px-4">Fast Create</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-2">
+            <SidebarMenu className="gap-1.5">
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="New Invoice" className="h-10 rounded-xl px-4 group/btn hover:bg-muted/50 border hover:border-border transition-all">
-                  <Link href="/invoices/new" className="font-semibold">
-                    <PlusCircle className="text-primary group-hover:scale-110 transition-transform" />
+                <SidebarMenuButton asChild tooltip="New Invoice" className="h-9 rounded-xl px-3 group/btn hover:bg-muted/50 border hover:border-border transition-all">
+                  <Link href="/invoices/new" className="font-semibold text-xs">
+                    <PlusCircle className="text-primary group-hover:scale-110 transition-transform size-4" />
                     <span>New Invoice</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="New BOQ" className="h-10 rounded-xl px-4 group/btn hover:bg-muted/50 border hover:border-border transition-all">
-                  <Link href="/boqs/new" className="font-semibold">
-                    <PlusCircle className="text-primary group-hover:scale-110 transition-transform" />
+                <SidebarMenuButton asChild tooltip="New BOQ" className="h-9 rounded-xl px-3 group/btn hover:bg-muted/50 border hover:border-border transition-all">
+                  <Link href="/boqs/new" className="font-semibold text-xs">
+                    <PlusCircle className="text-primary group-hover:scale-110 transition-transform size-4" />
                     <span>New BOQ</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="New Quotation" className="h-10 rounded-xl px-4 group/btn hover:bg-muted/50 border hover:border-border transition-all">
-                  <Link href="/quotations/new" className="font-semibold">
-                    <PlusCircle className="text-primary group-hover:scale-110 transition-transform" />
-                    <span>New Quote</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -221,14 +213,14 @@ export default function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="p-6 border-t">
-        <div className="flex items-center gap-4 group">
-          <div className="size-10 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/50 flex items-center justify-center border shadow-inner">
-            <Sparkles className="size-5 text-foreground group-hover:rotate-12 transition-transform" />
+      <SidebarFooter className="p-4 border-t">
+        <div className="flex items-center gap-3 group">
+          <div className="size-8 rounded-xl bg-gradient-to-br from-muted/80 to-muted/50 flex items-center justify-center border shadow-inner">
+            <Sparkles className="size-4 text-foreground group-hover:rotate-12 transition-transform" />
           </div>
           <div className="group-data-[collapsible=icon]:hidden">
-            <p className="font-black text-xl tracking-tighter">ForgeDocs</p>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Professional</p>
+            <p className="font-black text-lg tracking-tighter">ForgeDocs</p>
+            <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Professional</p>
           </div>
         </div>
       </SidebarFooter>
