@@ -2,10 +2,7 @@
 import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { initializeFirebase, FirebaseClientProvider } from '@/firebase';
 import { Toaster } from "@/components/ui/toaster";
-
-const { firebaseApp, firestore, auth } = initializeFirebase();
 
 export const metadata = {
   title: "ForgeDocs - Professional Document Forge",
@@ -20,17 +17,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.className}`} suppressHydrationWarning>
       <body className="bg-background text-foreground">
-        <FirebaseClientProvider firebaseApp={firebaseApp} firestore={firestore} auth={auth}>
-          <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-              <Toaster />
-          </ThemeProvider>
-        </FirebaseClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

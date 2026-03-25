@@ -1,68 +1,45 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  onAuthStateChanged,
-  signInAnonymously
-} from 'firebase/auth';
-import { useAuth } from '@/firebase';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
-  const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [view, setView] = useState('sign-in');
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    if (!auth) return;
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        router.push('/');
-      }
-    });
-    return () => unsubscribe();
-  }, [auth, router]);
-
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!auth) return;
     setError(null);
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    if (error) {
+      setError(error.message);
+    } else {
       router.push('/');
-    } catch (err: any) {
-      setError(err.message);
     }
   };
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!auth) return;
     setError(null);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      setError(error.message);
+    } else {
       router.push('/');
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const handleGuestSignIn = async () => {
-    if (!auth) return;
-    try {
-      await signInAnonymously(auth);
-      router.push('/');
-    } catch (err: any) {
-      setError(err.message);
     }
   };
 
@@ -106,9 +83,6 @@ export default function LoginPage() {
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full">
               {view === 'sign-in' ? 'Login' : 'Sign Up'}
-            </Button>
-            <Button variant="outline" className="w-full" type="button" onClick={handleGuestSignIn}>
-              Continue as Guest
             </Button>
           </form>
 
