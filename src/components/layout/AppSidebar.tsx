@@ -15,7 +15,8 @@ import {
   Users,
   FolderOpen,
   ClipboardList,
-  Sparkles
+  Sparkles,
+  Cloud
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -109,8 +110,8 @@ export default function AppSidebar() {
               size="lg"
               className="data-[state=open]:bg-muted hover:bg-muted/50 transition-colors rounded-xl h-12"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-muted/80 to-muted/50 border text-foreground shadow-lg">
-                {currentProfile?.logo_url ? <img src={currentProfile?.logo_url} alt={currentProfile?.name} className="rounded-md"/> : <Building2 className="size-4" />}
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-muted/80 to-muted/50 border text-foreground shadow-lg overflow-hidden">
+                {currentProfile?.logo_url ? <img src={currentProfile?.logo_url} alt={currentProfile?.name} className="h-full w-full object-cover"/> : <Building2 className="size-4" />}
               </div>
               <div className="grid flex-1 text-left text-[11px] leading-tight group-data-[collapsible=icon]:hidden ml-2">
                 <span className="font-bold truncate">
@@ -139,8 +140,8 @@ export default function AppSidebar() {
                 className="gap-3 p-2 rounded-lg focus:bg-muted cursor-pointer mb-1"
                 onClick={() => setCurrentProfile(profile)}
               >
-                <div className="flex size-7 items-center justify-center rounded-lg border bg-background">
-                 {profile.logo_url ? <img src={profile.logo_url} alt={profile.name} className="rounded-sm"/> : <Building2 className="size-3 shrink-0" />}
+                <div className="flex size-7 items-center justify-center rounded-lg border bg-background overflow-hidden">
+                 {profile.logo_url ? <img src={profile.logo_url} alt={profile.name} className="h-full w-full object-cover"/> : <Building2 className="size-3 shrink-0" />}
                 </div>
                 <span className="font-semibold text-xs">{profile.name}</span>
                 {currentProfile?.id === profile.id && <Check className="ml-auto size-3 text-primary" />}
@@ -216,11 +217,11 @@ export default function AppSidebar() {
       <SidebarFooter className="p-4 border-t">
         <div className="flex items-center gap-3 group">
           <div className="size-8 rounded-xl bg-gradient-to-br from-muted/80 to-muted/50 flex items-center justify-center border shadow-inner">
-            <Sparkles className="size-4 text-foreground group-hover:rotate-12 transition-transform" />
+            <Cloud className="size-4 text-foreground group-hover:scale-110 transition-transform fill-current" />
           </div>
           <div className="group-data-[collapsible=icon]:hidden">
-            <p className="font-black text-lg tracking-tighter">ForgeDocs</p>
-            <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Professional</p>
+            <p className="font-black text-lg tracking-tighter">Cloud Office</p>
+            <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest leading-none">ABOA WORKS</p>
           </div>
         </div>
       </SidebarFooter>

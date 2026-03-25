@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
+import { Cloud } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -45,13 +46,13 @@ export default function LoginPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
-      <div className="flex items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-12 relative">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
             <h1 className="text-3xl font-bold">
               {view === 'sign-in' ? 'Login' : 'Sign Up'}
             </h1>
-            <p className="text-balance text-muted-foreground">
+            <p className="text-balance text-muted-foreground text-sm">
               {view === 'sign-in'
                 ? 'Enter your email below to login to your account'
                 : 'Enter your information to create an account'}
@@ -86,7 +87,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-4 text-center text-xs">
             {view === 'sign-in' ? (
               <>
                 Don&apos;t have an account?{' '}
@@ -104,12 +105,17 @@ export default function LoginPage() {
             )}
           </div>
         </div>
+        <div className="absolute bottom-8 text-[10px] text-muted-foreground font-bold tracking-widest uppercase">
+          &copy; {new Date().getFullYear()} ABOA WORKS
+        </div>
       </div>
-      <div className="hidden bg-muted lg:flex items-center justify-center">
-        <div className="w-1/2 text-center">
-            <div className="mx-auto h-24 w-24 bg-primary rounded-3xl flex items-center justify-center text-primary-foreground font-black text-4xl mb-6">F</div>
-            <h2 className="text-3xl font-bold text-foreground mt-4">ForgeDocs</h2>
-            <p className="text-muted-foreground mt-2">Professional document management for Maldivian businesses.</p>
+      <div className="hidden bg-muted lg:flex items-center justify-center border-l">
+        <div className="w-1/2 text-center flex flex-col items-center">
+            <div className="size-24 bg-primary rounded-[2rem] flex items-center justify-center text-primary-foreground shadow-2xl mb-8">
+              <Cloud className="size-12 fill-current" />
+            </div>
+            <h2 className="text-4xl font-black text-foreground tracking-tighter">Cloud Office</h2>
+            <p className="text-muted-foreground mt-3 text-sm font-medium">Professional document management for Maldivian businesses.</p>
         </div>
       </div>
     </div>
