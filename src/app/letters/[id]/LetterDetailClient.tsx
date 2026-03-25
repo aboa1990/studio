@@ -7,6 +7,7 @@ import { Document } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import LetterActions from "@/components/letters/LetterActions";
+import EmailComposer from "@/components/documents/EmailComposer";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -107,10 +108,11 @@ export default function LetterDetailClient({ id }: { id: string }) {
           <h1 className="text-xl font-bold tracking-tight">Letter {letter.number}</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">Reference: {letter.number}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {isEditing && (
-            <Button size="sm" onClick={handleSave} className="text-xs h-8 bg-emerald-600 hover:bg-emerald-700">Save Changes</Button>
+            <Button size="sm" onClick={handleSave} className="text-[10px] font-bold uppercase tracking-widest h-8 bg-emerald-600 hover:bg-emerald-700">Save Changes</Button>
           )}
+          <EmailComposer document={letter} />
           <LetterActions letter={{...letter, notes: editedNotes}} handleDelete={handleDelete} handleDownload={handleDownload} />
         </div>
       </div>
