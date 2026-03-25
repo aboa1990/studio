@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Document, Packer, Paragraph, ImageRun, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 import { useRouter } from "next/navigation";
-import { MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Download, FileDown, Trash2, Edit } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useStore } from "@/lib/store";
 import { Document as LetterDocument } from "@/lib/types";
 
@@ -33,26 +33,36 @@ export default function LetterActions({ letter, handleDelete, handleDownload }: 
 
       const children = [
         new Paragraph({ children: [new ImageRun({ data: letterheadBlob, transformation: { width: 500, height: 100 } })] }),
-        new Paragraph(""), new Paragraph(""), new Paragraph(""), new Paragraph(""), // Add spacing
-        new Paragraph(letter.clientName || ''),
+        new Paragraph(""), new Paragraph(""),
+        new Paragraph({
+          children: [new TextRun({ text: letter.clientName || '', bold: true })]
+        }),
         new Paragraph(letter.clientAddress || ''),
+        new Paragraph(""),
+        new Paragraph(`LTR/No: ${letter.number}`),
         new Paragraph(`Date: ${new Date(letter.date).toLocaleDateString()}`),
-        new Paragraph(`Subject: ${letter.terms}`),
-        new Paragraph(""), // Spacing
+        new Paragraph(""),
+        new Paragraph({
+          children: [new TextRun({ text: `Subject: ${letter.terms}`, bold: true, size: 24 })]
+        }),
+        new Paragraph(""),
       ];
 
-      // Add notes with line breaks
       const notes = letter.notes || '';
       notes.split('\n').forEach(line => {
         children.push(new Paragraph({ text: line, style: isDhivehi ? "thaana" : "" }));
       });
 
       children.push(
-        new Paragraph(""), new Paragraph(""), new Paragraph(""), // Spacing
+        new Paragraph(""), new Paragraph(""),
         new Paragraph("Sincerely,"),
-        new Paragraph({ children: [new ImageRun({ data: signatureBlob, transformation: { width: 150, height: 75 } })] }),
-        new Paragraph(currentProfile.authorized_signatory || ''),
-        new Paragraph("Authorised Signatory"),
+        new Paragraph({ children: [new ImageRun({ data: signatureBlob, transformation: { width: 120, height: 60 } })] }),
+        new Paragraph({
+          children: [new TextRun({ text: "Authorised Signatory", bold: true, size: 18, color: "888888" })]
+        }),
+        new Paragraph({
+          children: [new TextRun({ text: currentProfile.authorized_signatory || currentProfile.name, bold: true })]
+        }),
       )
 
       const doc = new Document({
@@ -65,7 +75,7 @@ export default function LetterActions({ letter, handleDelete, handleDownload }: 
               next: "Normal",
               run: {
                 rightToLeft: true,
-                font: "Thaana",
+                font: "Faruma",
               }
             }
           ]
@@ -85,22 +95,26 @@ export default function LetterActions({ letter, handleDelete, handleDownload }: 
   };
 
   return (
-    <div>
-      <Button onClick={handleDownload} className="mr-2">Download as PDF</Button>
-      <Button onClick={generateDocx} className="mr-2">Download as DOCX</Button>
+    <div className="flex items-center gap-2">
+      <Button size="sm" onClick={handleDownload} variant="secondary" className="text-xs h-8 font-bold">
+        <Download className="size-3.5 mr-2" /> PDF
+      </Button>
+      <Button size="sm" onClick={generateDocx} variant="secondary" className="text-xs h-8 font-bold">
+        <FileDown className="size-3.5 mr-2" /> Word
+      </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => router.push(`/letters/edit/${letter.id}`)}>
-            Edit
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={() => router.push(`/letters/edit/${letter.id}`)} className="text-xs font-bold">
+            <Edit className="size-3.5 mr-2" /> Edit Letter
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDelete}>
-            Delete
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleDelete} className="text-xs font-bold text-destructive focus:text-destructive">
+            <Trash2 className="size-3.5 mr-2" /> Delete Letter
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

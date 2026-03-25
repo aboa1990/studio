@@ -84,6 +84,17 @@ export async function getDocument(id: string, type: DocumentType): Promise<Docum
   return data;
 }
 
+export async function getDocumentById(id: string): Promise<Document | null> {
+  const { data, error } = await supabase
+    .from('documents')
+    .select('*')
+    .eq('id', id)
+    .single();
+    
+  if (error) return null;
+  return data;
+}
+
 export async function getDocuments(type?: DocumentType): Promise<Document[]> {
   const activeId = await getActiveProfileId();
   if (!activeId) return [];

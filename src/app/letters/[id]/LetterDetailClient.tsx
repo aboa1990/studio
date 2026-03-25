@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { getDocuments, deleteDocument, updateDocument, useStore } from "@/lib/store";
+import { getDocumentById, deleteDocument, updateDocument, useStore } from "@/lib/store";
 import { Document } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import LetterActions from "@/components/letters/LetterActions";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 export default function LetterDetailClient({ id }: { id: string }) {
   const router = useRouter();
@@ -17,14 +18,18 @@ export default function LetterDetailClient({ id }: { id: string }) {
   const [letter, setLetter] = useState<Document | null>(null);
   const [editedNotes, setEditedNotes] = useState<string>("");
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const letterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchLetter = async () => {
-      const letterDocs = await getDocuments('letter');
-      const foundLetter = letterDocs.find(doc => doc.id === id);
-      setLetter(foundLetter || null);
-      setEditedNotes(foundLetter?.notes || "");
+      setLoading(true);
+      const foundLetter = await getDocumentById(id);
+      if (foundLetter && foundLetter.type === 'letter') {
+        setLetter(foundLetter);
+        setEditedNotes(foundLetter.notes || "");
+      }
+      setLoading(false);
     };
     fetchLetter();
   }, [id]);
@@ -43,10 +48,11 @@ export default function LetterDetailClient({ id }: { id: string }) {
       const html2canvas = (await import("html2canvas")).default;
       const jsPDF = (await import("jspdf")).default;
 
-      html2canvas(letterRef.current, { scale: 2 }).then((canvas) => {
+      html2canvas(letterRef.current, { scale: 3, useCORS: true }).then((canvas) => {
         const imgData = canvas.toDataURL("image/png");
         const pdf = new jsPDF("p", "mm", "a4");
         const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         const ratio = canvasWidth / canvasHeight;
@@ -74,8 +80,17 @@ export default function LetterDetailClient({ id }: { id: string }) {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="p-20 flex flex-col items-center justify-center gap-4">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+        <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Loading Letter...</p>
+      </div>
+    );
+  }
+
   if (!letter || !currentProfile) {
-    return <div className="p-10 text-center text-muted-foreground text-xs">Loading...</div>;
+    return <div className="p-10 text-center text-muted-foreground text-xs font-bold uppercase tracking-widest">Letter not found.</div>;
   }
 
   const isThaana = letter.language === 'dhivehi';
@@ -86,12 +101,15 @@ export default function LetterDetailClient({ id }: { id: string }) {
   }[letter.language || 'english'];
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-xl font-bold">Letter {letter.number}</h1>
+    <div className="p-4 space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Letter {letter.number}</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">Reference: {letter.number}</p>
+        </div>
         <div className="flex items-center gap-2">
           {isEditing && (
-            <Button size="sm" onClick={handleSave} className="text-xs h-8">Save Changes</Button>
+            <Button size="sm" onClick={handleSave} className="text-xs h-8 bg-emerald-600 hover:bg-emerald-700">Save Changes</Button>
           )}
           <LetterActions letter={{...letter, notes: editedNotes}} handleDelete={handleDelete} handleDownload={handleDownload} />
         </div>
@@ -102,52 +120,53 @@ export default function LetterDetailClient({ id }: { id: string }) {
           <div 
             ref={letterRef} 
             className={cn(
-              "bg-white p-12 font-serif text-black min-h-[1000px] flex flex-col",
+              "bg-white p-16 font-serif text-black min-h-[1050px] flex flex-col",
               isThaana ? 'thaana-font' : ''
             )}
           >
-            {isThaana && <div className="text-center text-sm mb-8 text-black">بِسْمِ اللَّـهِ الرَّހْمَـٰنِ الرَّހީމް</div>}
+            {isThaana && <div className="text-center text-sm mb-10 text-black">بِسْمِ اللَّـهِ الرَّހْمَـٰنِ الرَّހީމް</div>}
             
             {currentProfile.letterhead_url ? (
-              <img src={currentProfile.letterhead_url} alt="Letterhead" className="w-full mb-10" />
+              <img src={currentProfile.letterhead_url} alt="Letterhead" className="w-full mb-12" />
             ) : (
-              <header className={cn("flex justify-between items-start mb-10", isThaana ? 'text-right' : 'text-left text-black')}>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">{currentProfile.name}</h2>
-                  <p className="text-[10px] text-gray-600">{currentProfile.address}</p>
-                  <p className="text-[10px] text-gray-600">{currentProfile.email} | {currentProfile.phone}</p>
+              <header className={cn("flex justify-between items-start mb-12", isThaana ? 'text-right' : 'text-left text-black')}>
+                <div className={isThaana ? 'text-right' : 'text-left'}>
+                  <h2 className="text-lg font-bold text-gray-900 leading-tight">{currentProfile.name}</h2>
+                  <p className="text-[10px] text-gray-500">{currentProfile.address}</p>
+                  <p className="text-[10px] text-gray-500">{currentProfile.email} | {currentProfile.phone}</p>
                 </div>
                 <div>
-                  {currentProfile.logo_url && <img src={currentProfile.logo_url} alt="Company Logo" className="h-12 w-auto" />}
+                  {currentProfile.logo_url && <img src={currentProfile.logo_url} alt="Company Logo" className="h-10 w-auto" />}
                 </div>
               </header>
             )}
 
             {isThaana ? (
               <div className="text-right text-black">
-                <div className="mb-6">
-                  <p className="text-sm font-bold">{letter.clientName}</p>
-                  <p className="text-xs">{letter.clientAddress}</p>
+                <div className="mb-8">
+                  <p className="text-sm font-bold text-black">{letter.clientName}</p>
+                  <p className="text-xs text-black">{letter.clientAddress}</p>
                 </div>
-                <p className="mb-4 text-xs"><span className="font-bold">{t.letterNo}</span> {letter.number}</p>
-                <p className="mb-8 font-bold text-sm">{letter.terms}</p>
+                <p className="mb-1 text-xs text-black"><span className="font-bold">{t.letterNo}</span> {letter.number}</p>
+                <p className="mb-8 text-xs text-black"><span className="font-bold">{t.date}</span> {new Date(letter.date).toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                <p className="mb-10 font-bold text-sm text-black border-b border-gray-100 pb-2">{letter.terms}</p>
               </div>
             ) : (
               <>
-                <div className="flex justify-between mb-8 text-black">
+                <div className="flex justify-between mb-10 text-black">
                   <div>
-                    <h3 className="font-bold text-xs text-gray-700 mb-1">{t.to}</h3>
-                    <p className="text-sm font-semibold">{letter.clientName}</p>
-                    <p className="text-xs text-gray-600">{letter.clientAddress}</p>
+                    <h3 className="font-bold text-[10px] text-gray-400 mb-1">{t.to}</h3>
+                    <p className="text-sm font-bold">{letter.clientName}</p>
+                    <p className="text-[11px] text-gray-500 leading-relaxed">{letter.clientAddress}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs"><span className="font-bold">{t.letterNo}</span> {letter.number}</p>
+                    <p className="text-xs font-bold"><span className="text-gray-400 font-bold mr-1">{t.letterNo}</span> {letter.number}</p>
                     <p className="text-[10px] text-gray-500 mt-1">
-                      <span className="font-bold">{t.date}</span> {new Date(letter.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      <span className="font-bold text-gray-400">{t.date}</span> {new Date(letter.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </p>
                   </div>
                 </div>
-                <h3 className="text-sm font-bold mb-6 text-black border-b border-gray-100 pb-2">{letter.terms}</h3>
+                <h3 className="text-sm font-bold mb-8 text-black border-b border-gray-100 pb-2 uppercase tracking-tight">{letter.terms}</h3>
               </>
             )}
 
@@ -159,20 +178,19 @@ export default function LetterDetailClient({ id }: { id: string }) {
                 isThaana ? 'text-right' : 'text-left'
               )}
               dir={isThaana ? 'rtl' : 'ltr'}
-              rows={20}
+              rows={25}
             />
 
-            <footer className="mt-12 text-black">
-              {isThaana && <p className="mb-4 text-center text-xs text-black">{new Date(letter.date).toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+            <footer className="mt-16 text-black">
               <div className={cn(isThaana ? 'text-right' : 'text-left')}>
-                <p className="mb-2 text-xs">{t.sincerely}</p>
+                <p className="mb-4 text-xs">{t.sincerely}</p>
                 {currentProfile.signature_url ? (
-                  <img src={currentProfile.signature_url} alt="Signature" className={cn("h-12 w-auto mb-1", isThaana && "mr-auto")} />
+                  <img src={currentProfile.signature_url} alt="Signature" className={cn("h-12 w-auto mb-1", isThaana && "mr-0")} />
                 ) : (
                   <div className="h-12"></div>
                 )}
                 <div className="mt-2">
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{t.authorisedSignatory}</p>
+                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{t.authorisedSignatory}</p>
                   <p className="font-bold text-xs mt-0.5">{currentProfile.authorized_signatory || currentProfile.name}</p>
                 </div>
               </div>
