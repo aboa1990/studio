@@ -148,7 +148,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         </div>
 
         {/* Client Info */}
-        <div className="mb-10">
+        <div className="mb-10 text-black">
           <div className="text-slate-400 uppercase text-[9px] font-bold tracking-widest mb-1">
             {(data.type === 'tender' || data.type === 'boq') ? 'Agency / Authority:' : 'Bill To:'}
           </div>
@@ -158,7 +158,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         </div>
 
         {/* Items Table */}
-        <div className="flex-1">
+        <div className="flex-1 text-black">
           {isBOQ ? (
             <div className="space-y-6">
               <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-3">PRICING SUMMARY</h2>
@@ -250,7 +250,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
 
         {/* Notes Section */}
         {data.notes && (
-            <div className="mb-10">
+            <div className="mb-10 text-black">
                 <div className="text-slate-900 font-bold text-[10px] mb-1.5 border-b border-slate-200 pb-0.5 uppercase tracking-wider">NOTES</div>
                 <div className="text-[10px] text-slate-500 whitespace-pre-line leading-relaxed">
                     {data.notes}
@@ -260,7 +260,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
 
         {/* Terms and Conditions */}
         {data.terms && (
-          <div className="mb-10">
+          <div className="mb-10 text-black">
             <div className="text-slate-900 font-bold text-[10px] mb-1.5 border-b border-slate-200 pb-0.5 uppercase tracking-wider">TERMS & CONDITIONS</div>
             <div className="text-[10px] text-slate-500 whitespace-pre-line leading-relaxed italic">
               {data.terms}
@@ -270,7 +270,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
 
         {/* Bank & Payment Info */}
         {data.type === 'invoice' && company.bank_details && (
-            <div className="bg-slate-50 p-3 rounded mb-6 border border-slate-100 text-[11px]">
+            <div className="bg-slate-50 p-3 rounded mb-6 border border-slate-100 text-[11px] text-black">
                 <div className="text-slate-900 font-bold text-[10px] mb-1.5 border-b border-slate-200 pb-0.5 uppercase tracking-wider">BANK DETAILS</div>
                 <div className="text-slate-600 whitespace-pre-line">
                     {company.bank_details}
@@ -279,7 +279,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         )}
 
         {/* Signature Section */}
-        <div className="flex justify-between items-end mb-6">
+        <div className="flex justify-between items-end mb-6 text-black">
           <div>
             {company.seal_url && (
               <div className="h-24 w-24 relative">
@@ -294,8 +294,8 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
               </div>
             )}
             <div className="border-t border-slate-300 pt-1 w-full">
-              <div className="text-[11px] font-bold text-slate-900">{company.authorized_signatory || "Authorized Signatory"}</div>
-              <div className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Authorized Signature</div>
+              <div className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Authorised Signatory</div>
+              <div className="text-[11px] font-bold text-slate-900 mt-0.5">{company.authorized_signatory || company.name}</div>
             </div>
           </div>
         </div>

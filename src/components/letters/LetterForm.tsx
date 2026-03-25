@@ -112,8 +112,8 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
       authorisedSignatory: "ހުއްދަ ލިބިފައިވާ ފަރާތް",
       newLetter: "އަލަށް ދެންނެވުން",
       save: "ސޭވް",
-      client: "ደንበኛ",
-      selectClient: "ደንበኛއެއް ހޮވާ",
+      client: "ደንބኛ",
+      selectClient: "ደንބኛއެއް ހޮވާ",
       language: "ބަސް",
     }
   }[language];
@@ -178,7 +178,7 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
           {currentProfile?.letterhead_url ? (
             <img src={currentProfile.letterhead_url} alt="Letterhead" className="w-full mb-8" />
           ) : (
-            <header className={cn("flex justify-between items-start mb-10", isThaana ? 'text-right' : 'text-left')}>
+            <header className={cn("flex justify-between items-start mb-10", isThaana ? 'text-right' : 'text-left text-black')}>
               <div className={isThaana ? 'text-right' : 'text-left'}>
                 <h2 className="text-xl font-bold text-gray-900">{currentProfile?.name}</h2>
                 <p className="text-[10px] text-gray-600">{currentProfile?.address}</p>
@@ -246,7 +246,7 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
             dir={isThaana ? 'rtl' : 'ltr'}
           />
 
-          <footer className="mt-10">
+          <footer className="mt-10 text-black">
             {isThaana && <p className="mb-4 text-center text-xs text-black">{new Date().toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
             <div className={cn("text-black", isThaana ? 'text-right' : 'text-left')}>
               <p className="mb-2 text-xs">{t.sincerely}</p>
@@ -255,8 +255,10 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
               ) : (
                   <div className="h-12"></div>
               )}
-              <p className="font-bold text-xs">{currentProfile?.authorized_signatory || currentProfile?.name}</p>
-              <p className="text-[10px] text-gray-500">{t.authorisedSignatory}</p>
+              <div className="mt-2">
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{t.authorisedSignatory}</p>
+                <p className="font-bold text-xs mt-0.5">{currentProfile?.authorized_signatory || currentProfile?.name}</p>
+              </div>
             </div>
           </footer>
         </div>

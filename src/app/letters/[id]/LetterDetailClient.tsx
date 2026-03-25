@@ -106,12 +106,12 @@ export default function LetterDetailClient({ id }: { id: string }) {
               isThaana ? 'thaana-font' : ''
             )}
           >
-            {isThaana && <div className="text-center text-sm mb-8">بِسْمِ اللَّـهِ الرَّحْمَـٰنِ الرَّحِيمِ</div>}
+            {isThaana && <div className="text-center text-sm mb-8 text-black">بِسْمِ اللَّـهِ الرَّހْمَـٰنِ الرَّހީމް</div>}
             
             {currentProfile.letterhead_url ? (
               <img src={currentProfile.letterhead_url} alt="Letterhead" className="w-full mb-10" />
             ) : (
-              <header className={cn("flex justify-between items-start mb-10", isThaana ? 'text-right' : 'text-left')}>
+              <header className={cn("flex justify-between items-start mb-10", isThaana ? 'text-right' : 'text-left text-black')}>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">{currentProfile.name}</h2>
                   <p className="text-[10px] text-gray-600">{currentProfile.address}</p>
@@ -163,7 +163,7 @@ export default function LetterDetailClient({ id }: { id: string }) {
             />
 
             <footer className="mt-12 text-black">
-              {isThaana && <p className="mb-4 text-center text-xs">{new Date(letter.date).toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+              {isThaana && <p className="mb-4 text-center text-xs text-black">{new Date(letter.date).toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
               <div className={cn(isThaana ? 'text-right' : 'text-left')}>
                 <p className="mb-2 text-xs">{t.sincerely}</p>
                 {currentProfile.signature_url ? (
@@ -171,8 +171,10 @@ export default function LetterDetailClient({ id }: { id: string }) {
                 ) : (
                   <div className="h-12"></div>
                 )}
-                <p className="font-bold text-xs">{currentProfile.authorized_signatory || currentProfile.name}</p>
-                <p className="text-[10px] text-gray-500">{t.authorisedSignatory}</p>
+                <div className="mt-2">
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{t.authorisedSignatory}</p>
+                  <p className="font-bold text-xs mt-0.5">{currentProfile.authorized_signatory || currentProfile.name}</p>
+                </div>
               </div>
             </footer>
           </div>
