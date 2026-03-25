@@ -187,12 +187,12 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
           ) : (
             <header className={cn("flex justify-between items-start mb-10", isThaana ? 'text-right' : 'text-left text-black')}>
               <div className={isThaana ? 'text-right' : 'text-left'}>
-                <h2 className="text-lg font-bold text-gray-900 leading-tight">{currentProfile?.name}</h2>
-                <p className="text-[9px] text-gray-500">{currentProfile?.address}</p>
-                <p className="text-[9px] text-gray-500">{currentProfile?.email} | {currentProfile?.phone}</p>
+                <h2 className="text-xl font-bold text-gray-900 leading-tight">{currentProfile?.name}</h2>
+                <p className="text-[11px] text-gray-500">{currentProfile?.address}</p>
+                <p className="text-[11px] text-gray-500">{currentProfile?.email} | {currentProfile?.phone}</p>
               </div>
               <div>
-                {currentProfile?.logo_url && <img src={currentProfile?.logo_url} alt="Company Logo" className="h-10 w-auto" />}
+                {currentProfile?.logo_url && <img src={currentProfile?.logo_url} alt="Company Logo" className="h-20 w-auto" />}
               </div>
             </header>
           )}
