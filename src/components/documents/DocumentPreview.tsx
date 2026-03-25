@@ -96,16 +96,16 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold">{getDocTitle()}</h1>
-          <p className="text-muted-foreground">Ref: {data.number}</p>
+          <p className="text-muted-foreground text-sm">Ref: {data.number}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" asChild>
+          <Button variant="outline" size="sm" asChild>
             <Link href={`/${data.type}s/${data.id}/edit`}>
-              <Edit className="mr-2 h-4 w-4" /> Edit
+              <Edit className="mr-2 h-3.5 w-3.5" /> Edit
             </Link>
           </Button>
-          <Button onClick={downloadPDF} className="bg-primary text-primary-foreground">
-            <Download className="mr-2 h-4 w-4" /> Download PDF
+          <Button size="sm" onClick={downloadPDF} className="bg-primary text-primary-foreground">
+            <Download className="mr-2 h-3.5 w-3.5" /> Download PDF
           </Button>
         </div>
       </div>
@@ -115,13 +115,13 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         <div className="flex justify-between items-start border-b-2 border-slate-100 pb-8 mb-8">
           <div className="flex gap-6 items-start">
             {company.logo_url && (
-              <div className="size-24 shrink-0">
+              <div className="size-20 shrink-0">
                 <img src={company.logo_url} alt={company.name} className="h-full w-full object-contain" />
               </div>
             )}
             <div>
-              <div className="text-3xl font-bold text-slate-900 mb-2">{company.name}</div>
-              <div className="text-slate-500 text-sm whitespace-pre-line leading-relaxed">
+              <div className="text-2xl font-bold text-slate-900 mb-1">{company.name}</div>
+              <div className="text-slate-500 text-[11px] whitespace-pre-line leading-relaxed">
                 {company.address}<br />
                 Email: {company.email}<br />
                 Phone: {company.phone}<br />
@@ -130,17 +130,17 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-5xl font-black text-slate-900 tracking-tighter uppercase mb-4 leading-none">
+            <div className="text-3xl font-black text-slate-900 tracking-tighter uppercase mb-2 leading-none">
               {getWatermarkText()}
             </div>
-            <div className="text-sm">
+            <div className="text-[10px]">
               <span className="text-slate-400">Date:</span> {new Date(data.date).toLocaleDateString()}
             </div>
-            <div className="text-sm">
+            <div className="text-[10px]">
               <span className="font-bold text-slate-500">Number:</span> <span className="font-bold">{data.number}</span>
             </div>
             {data.dueDate && (
-              <div className="text-sm">
+              <div className="text-[10px]">
                 <span className="text-slate-400">Due Date:</span> {new Date(data.dueDate).toLocaleDateString()}
               </div>
             )}
@@ -148,46 +148,46 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         </div>
 
         {/* Client Info */}
-        <div className="mb-12">
-          <div className="text-slate-400 uppercase text-xs font-bold tracking-widest mb-2">
+        <div className="mb-10">
+          <div className="text-slate-400 uppercase text-[9px] font-bold tracking-widest mb-1">
             {(data.type === 'tender' || data.type === 'boq') ? 'Agency / Authority:' : 'Bill To:'}
           </div>
-          <div className="text-xl font-bold text-slate-800">{data.clientName}</div>
-          <div className="text-slate-500 whitespace-pre-line">{data.clientAddress}</div>
-          <div className="text-slate-500 mt-1">{data.clientEmail}</div>
+          <div className="text-lg font-bold text-slate-800">{data.clientName}</div>
+          <div className="text-slate-500 text-[11px] whitespace-pre-line">{data.clientAddress}</div>
+          <div className="text-slate-500 text-[11px] mt-0.5">{data.clientEmail}</div>
         </div>
 
         {/* Items Table */}
         <div className="flex-1">
           {isBOQ ? (
             <div className="space-y-6">
-              <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-4">PRICING SUMMARY</h2>
+              <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-3">PRICING SUMMARY</h2>
               <table className="w-full">
                 <thead>
-                  <tr className="border-b-2 border-slate-900">
-                    <th className="text-left py-3 font-bold text-xs uppercase">Cost Code</th>
-                    <th className="text-left py-3 font-bold text-xs uppercase w-2/5">Description / Element</th>
-                    <th className="text-center py-3 font-bold text-xs uppercase">Qty</th>
-                    <th className="text-right py-3 font-bold text-xs uppercase">Rate</th>
-                    <th className="text-right py-3 font-bold text-xs uppercase">Amount</th>
+                  <tr className="border-b border-slate-900">
+                    <th className="text-left py-2 font-bold text-[10px] uppercase">Cost Code</th>
+                    <th className="text-left py-2 font-bold text-[10px] uppercase w-2/5">Description / Element</th>
+                    <th className="text-center py-2 font-bold text-[10px] uppercase">Qty</th>
+                    <th className="text-right py-2 font-bold text-[10px] uppercase">Rate</th>
+                    <th className="text-right py-2 font-bold text-[10px] uppercase">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.items.map((item) => (
                     <tr key={item.id} className="border-b border-slate-100">
-                      <td className="py-3 text-slate-700 text-sm font-mono">{item.costCode}</td>
-                      <td className="py-3 text-slate-700 text-sm">{item.description}</td>
-                      <td className="text-center py-3 text-slate-700 text-sm">{item.quantity}</td>
-                      <td className="text-right py-3 text-slate-700 text-sm">{data.currency} {item.price.toFixed(2)}</td>
-                      <td className="text-right py-3 font-medium text-slate-900 text-sm">
+                      <td className="py-2 text-slate-700 text-[11px] font-mono">{item.costCode}</td>
+                      <td className="py-2 text-slate-700 text-[11px]">{item.description}</td>
+                      <td className="text-center py-2 text-slate-700 text-[11px]">{item.quantity}</td>
+                      <td className="text-right py-2 text-slate-700 text-[11px]">{data.currency} {item.price.toFixed(2)}</td>
+                      <td className="text-right py-2 font-medium text-slate-900 text-[11px]">
                         {data.currency} {(item.quantity * item.price).toFixed(2)}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <div className="flex justify-end mt-8">
-                <div className="w-72 space-y-3 text-sm">
+              <div className="flex justify-end mt-6">
+                <div className="w-64 space-y-2 text-[11px]">
                   <div className="flex justify-between text-slate-500">
                     <span>Subtotal:</span>
                     <span className="font-medium text-slate-700">{data.currency} {data.subtotal.toFixed(2)}</span>
@@ -196,7 +196,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
                     <span>GST ({data.taxRate}%):</span>
                     <span className="font-medium text-slate-700">{data.currency} {data.taxAmount.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-xl font-black border-t-2 border-slate-900 pt-3 mt-2">
+                  <div className="flex justify-between text-base font-black border-t border-slate-900 pt-2 mt-1">
                     <span>Total Value:</span>
                     <span className="text-slate-900">{data.currency} {data.total.toFixed(2)}</span>
                   </div>
@@ -205,22 +205,22 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
             </div>
           ) : (
             <>
-              <table className="w-full mb-12">
+              <table className="w-full mb-10">
                 <thead>
-                  <tr className="border-b-2 border-slate-900">
-                    <th className="text-left py-4 font-bold text-sm uppercase">Description</th>
-                    <th className="text-center py-4 font-bold text-sm uppercase">Qty</th>
-                    <th className="text-right py-4 font-bold text-sm uppercase">Rate</th>
-                    <th className="text-right py-4 font-bold text-sm uppercase">Amount</th>
+                  <tr className="border-b border-slate-900">
+                    <th className="text-left py-3 font-bold text-[10px] uppercase">Description</th>
+                    <th className="text-center py-3 font-bold text-[10px] uppercase">Qty</th>
+                    <th className="text-right py-3 font-bold text-[10px] uppercase">Rate</th>
+                    <th className="text-right py-3 font-bold text-[10px] uppercase">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.items.map((item) => (
                     <tr key={item.id} className="border-b border-slate-100">
-                      <td className="py-4 text-slate-700">{item.description}</td>
-                      <td className="text-center py-4 text-slate-700">{item.quantity}</td>
-                      <td className="text-right py-4 text-slate-700">{data.currency} {item.price.toFixed(2)}</td>
-                      <td className="text-right py-4 font-medium text-slate-900">
+                      <td className="py-3 text-slate-700 text-[11px]">{item.description}</td>
+                      <td className="text-center py-3 text-slate-700 text-[11px]">{item.quantity}</td>
+                      <td className="text-right py-3 text-slate-700 text-[11px]">{data.currency} {item.price.toFixed(2)}</td>
+                      <td className="text-right py-3 font-medium text-slate-900 text-[11px]">
                         {data.currency} {(item.quantity * item.price).toFixed(2)}
                       </td>
                     </tr>
@@ -228,8 +228,8 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
                 </tbody>
               </table>
 
-              <div className="flex justify-end mb-12">
-                <div className="w-64 space-y-3">
+              <div className="flex justify-end mb-10">
+                <div className="w-56 space-y-2 text-[11px]">
                   <div className="flex justify-between text-slate-500">
                     <span>Subtotal:</span>
                     <span>{data.currency} {data.subtotal.toFixed(2)}</span>
@@ -238,7 +238,7 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
                     <span>GST ({data.taxRate}%):</span>
                     <span>{data.currency} {data.taxAmount.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-2xl font-black border-t-2 border-slate-900 pt-3">
+                  <div className="flex justify-between text-lg font-black border-t border-slate-900 pt-2">
                     <span>Total:</span>
                     <span>{data.currency} {data.total.toFixed(2)}</span>
                   </div>
@@ -250,9 +250,9 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
 
         {/* Notes Section */}
         {data.notes && (
-            <div className="mb-12">
-                <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1 uppercase tracking-wider">NOTES</div>
-                <div className="text-xs text-slate-500 whitespace-pre-line leading-relaxed">
+            <div className="mb-10">
+                <div className="text-slate-900 font-bold text-[10px] mb-1.5 border-b border-slate-200 pb-0.5 uppercase tracking-wider">NOTES</div>
+                <div className="text-[10px] text-slate-500 whitespace-pre-line leading-relaxed">
                     {data.notes}
                 </div>
             </div>
@@ -260,9 +260,9 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
 
         {/* Terms and Conditions */}
         {data.terms && (
-          <div className="mb-12">
-            <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1 uppercase tracking-wider">TERMS & CONDITIONS</div>
-            <div className="text-xs text-slate-500 whitespace-pre-line leading-relaxed italic">
+          <div className="mb-10">
+            <div className="text-slate-900 font-bold text-[10px] mb-1.5 border-b border-slate-200 pb-0.5 uppercase tracking-wider">TERMS & CONDITIONS</div>
+            <div className="text-[10px] text-slate-500 whitespace-pre-line leading-relaxed italic">
               {data.terms}
             </div>
           </div>
@@ -270,8 +270,8 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
 
         {/* Bank & Payment Info */}
         {data.type === 'invoice' && company.bank_details && (
-            <div className="bg-slate-50 p-4 rounded mb-8 border border-slate-100 text-sm">
-                <div className="text-slate-900 font-bold text-sm mb-2 border-b border-slate-200 pb-1 uppercase tracking-wider">BANK DETAILS</div>
+            <div className="bg-slate-50 p-3 rounded mb-6 border border-slate-100 text-[11px]">
+                <div className="text-slate-900 font-bold text-[10px] mb-1.5 border-b border-slate-200 pb-0.5 uppercase tracking-wider">BANK DETAILS</div>
                 <div className="text-slate-600 whitespace-pre-line">
                     {company.bank_details}
                 </div>
@@ -279,29 +279,29 @@ export default function DocumentPreview({ data }: DocumentPreviewProps) {
         )}
 
         {/* Signature Section */}
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex justify-between items-end mb-6">
           <div>
             {company.seal_url && (
-              <div className="h-28 w-28 relative">
+              <div className="h-24 w-24 relative">
                 <img src={company.seal_url} alt="Company Seal" className="h-full w-full object-contain opacity-80" />
               </div>
             )}
           </div>
-          <div className="text-center min-w-[200px] flex flex-col items-center">
+          <div className="text-center min-w-[180px] flex flex-col items-center">
             {company.signature_url && (
-              <div className="h-16 w-40 mb-2">
+              <div className="h-14 w-36 mb-1">
                 <img src={company.signature_url} alt="Signature" className="h-full w-full object-contain" />
               </div>
             )}
             <div className="border-t border-slate-300 pt-1 w-full">
-              <div className="text-sm font-bold text-slate-900">{company.authorized_signatory || "Authorized Signatory"}</div>
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Authorized Signature</div>
+              <div className="text-[11px] font-bold text-slate-900">{company.authorized_signatory || "Authorized Signatory"}</div>
+              <div className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Authorized Signature</div>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-auto pt-8 border-t border-slate-100 text-center text-slate-400 text-[10px] uppercase tracking-widest font-bold">
+        <div className="mt-auto pt-6 border-t border-slate-100 text-center text-slate-400 text-[9px] uppercase tracking-widest font-bold">
           Thank you for choosing {company.name}
         </div>
       </Card>
