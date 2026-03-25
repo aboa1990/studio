@@ -90,7 +90,8 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
   const t = {
     english: {
       to: "To:",
-      letterNo: "Letter #:",
+      letterNo: "LTR/No:",
+      date: "Date:",
       subject: "Subject",
       writeLetter: "Write your letter here...",
       sincerely: "Sincerely,",
@@ -104,11 +105,12 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
     dhivehi: {
       to: "އިލާ:",
       letterNo: "ނަންބަރު:",
+      date: "ތާރީޚް:",
       subject: "މައުޟޫޢު",
       writeLetter: "މިތަނުގައި ދެން ލިޔުއްވާ...",
       sincerely: "އިޚްލާޞްތެރިކަމާއެކު،",
       authorisedSignatory: "ހުއްދަ ލިބިފައިވާ ފަރާތް",
-      newLetter: "އަލަށް ደބްދާބީ",
+      newLetter: "އަލަށް ދެންނެވުން",
       save: "ސޭވް",
       client: "ደንበኛ",
       selectClient: "ደንበኛއެއް ހޮވާ",
@@ -171,7 +173,7 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
           "w-full lg:w-2/3 bg-white rounded-md p-10 shadow-xl font-serif text-black border min-h-[800px]",
           isThaana ? 'thaana-font' : ''
         )}>
-          {isThaana && <div className="text-center text-sm mb-6 text-black">بِسْمِ اللَّـهِ الرَّحْمَـٰنِ الرَّحِيمِ</div>}
+          {isThaana && <div className="text-center text-sm mb-6 text-black">بِسْمِ اللَّـهِ الرَّހْمَـٰنِ الرَّހީމް</div>}
           
           {currentProfile?.letterhead_url ? (
             <img src={currentProfile.letterhead_url} alt="Letterhead" className="w-full mb-8" />
@@ -219,7 +221,9 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
                           <label htmlFor="letter-number" className="font-bold text-xs">{t.letterNo}</label>
                           <Input id="letter-number" value={letterNumber} onChange={(e) => setLetterNumber(e.target.value)} className="w-20 border-b border-gray-200 rounded-none px-1 h-6 text-xs focus-visible:ring-0 text-black bg-transparent" dir="ltr" />
                       </div>
-                    <p className="text-[10px] text-gray-500 mt-1">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      <span className="font-bold">{t.date}</span> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
                   </div>
                 </div>
                  <Input 

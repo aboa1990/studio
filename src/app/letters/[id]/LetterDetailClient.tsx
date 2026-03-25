@@ -75,14 +75,14 @@ export default function LetterDetailClient({ id }: { id: string }) {
   };
 
   if (!letter || !currentProfile) {
-    return <div className="p-10 text-center text-muted-foreground text-sm">Loading...</div>;
+    return <div className="p-10 text-center text-muted-foreground text-xs">Loading...</div>;
   }
 
   const isThaana = letter.language === 'dhivehi';
 
   const t = {
-    english: { to: "To:", letterNo: "Letter #:", subject: "Subject", sincerely: "Sincerely,", authorisedSignatory: "Authorised Signatory" },
-    dhivehi: { to: "އިލާ:", letterNo: "ނަންބަރު:", subject: "މައުޟޫޢު", sincerely: "އިޚްލާޞްތެރިކަމާއެކު،", authorisedSignatory: "ހުއްދަ ލިބިފައިވާ ފަރާތް" }
+    english: { to: "To:", letterNo: "LTR/No:", subject: "Subject", sincerely: "Sincerely,", authorisedSignatory: "Authorised Signatory", date: "Date:" },
+    dhivehi: { to: "އިލާ:", letterNo: "ނަންބަރު:", subject: "މައުޟޫޢު", sincerely: "އިޚްލާޞްތެރިކަމާއެކު،", authorisedSignatory: "ހުއްދަ ލިބިފައިވާ ފަރާތް", date: "ތާރީޚް:" }
   }[letter.language || 'english'];
 
   return (
@@ -142,7 +142,9 @@ export default function LetterDetailClient({ id }: { id: string }) {
                   </div>
                   <div className="text-right">
                     <p className="text-xs"><span className="font-bold">{t.letterNo}</span> {letter.number}</p>
-                    <p className="text-[10px] text-gray-500 mt-1">{new Date(letter.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      <span className="font-bold">{t.date}</span> {new Date(letter.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
                   </div>
                 </div>
                 <h3 className="text-sm font-bold mb-6 text-black border-b border-gray-100 pb-2">{letter.terms}</h3>
