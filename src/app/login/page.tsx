@@ -1,49 +1,69 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabase';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  onAuthStateChanged,
+  signInAnonymously
+} from 'firebase/auth';
+import { useAuth } from '@/firebase';
 
 export default function LoginPage() {
+  const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [view, setView] = useState('sign-in');
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!auth) return;
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.push('/');
+      }
+    });
+    return () => unsubscribe();
+  }, [auth, router]);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
-      },
-    });
-    setView('check-email');
+    if (!auth) return;
+    setError(null);
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      router.push('/');
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    router.push('/');
-    router.refresh();
+    if (!auth) return;
+    setError(null);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/');
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
-  const handleMagicLink = async () => {
-    await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
-      },
-    });
-    setView('check-email');
+  const handleGuestSignIn = async () => {
+    if (!auth) return;
+    try {
+      await signInAnonymously(auth);
+      router.push('/');
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -61,68 +81,36 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {view === 'check-email' ? (
-            <div className="text-center">
-              <p className="text-muted-foreground mb-4">We've sent a magic link to your email. Click the link to sign in automatically.</p>
-              <Button onClick={() => setView('sign-in')} variant='link'>Back to Sign In</Button>
+          <form onSubmit={view === 'sign-in' ? handleSignIn : handleSignUp} className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                required
+                onChange={(e) => setEmail(e.target.value)}
+                value={email}
+              />
             </div>
-          ) : view === 'sign-in' ? (
-            <form onSubmit={handleSignIn} className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  onChange={(e) => setEmail(e.target.value)}
-                  value={email}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <a href="#" className="ml-auto inline-block text-sm text-primary hover:underline">
-                    Forgot your password?
-                  </a>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  onChange={(e) => setPassword(e.target.value)}
-                  value={password}
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Login
-              </Button>
-              <Button variant="outline" className="w-full" type="button" onClick={handleMagicLink}>
-                Sign in with Magic Link
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleSignUp} className="grid gap-4">
-               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  onChange={(e) => setEmail(e.target.value)}
-                  value={email}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required onChange={(e) => setPassword(e.target.value)} value={password} />
-              </div>
-              <Button type="submit" className="w-full">
-                Sign Up
-              </Button>
-            </form>
-          )}
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                required
+                onChange={(e) => setPassword(e.target.value)}
+                value={password}
+              />
+            </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button type="submit" className="w-full">
+              {view === 'sign-in' ? 'Login' : 'Sign Up'}
+            </Button>
+            <Button variant="outline" className="w-full" type="button" onClick={handleGuestSignIn}>
+              Continue as Guest
+            </Button>
+          </form>
 
           <div className="mt-4 text-center text-sm">
             {view === 'sign-in' ? (
@@ -145,9 +133,9 @@ export default function LoginPage() {
       </div>
       <div className="hidden bg-muted lg:flex items-center justify-center">
         <div className="w-1/2 text-center">
-            <img src="/logo.png" alt="Roseware Logo" className="mx-auto h-24 w-24 object-contain" />
-            <h2 className="text-3xl font-bold text-foreground mt-4">Zero Zero Private Limmited</h2>
-            <p className="text-muted-foreground mt-2">Build, manage, and track your construction projects with ease.</p>
+            <div className="mx-auto h-24 w-24 bg-primary rounded-3xl flex items-center justify-center text-primary-foreground font-black text-4xl mb-6">F</div>
+            <h2 className="text-3xl font-bold text-foreground mt-4">ForgeDocs</h2>
+            <p className="text-muted-foreground mt-2">Professional document management for Maldivian businesses.</p>
         </div>
       </div>
     </div>
