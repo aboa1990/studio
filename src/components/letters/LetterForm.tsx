@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export default function LetterForm({ initialData }: { initialData?: Document }) {
   const router = useRouter();
@@ -107,7 +108,7 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
       writeLetter: "މިތަނުގައި ދެން ލިޔުއްވާ...",
       sincerely: "އިޚްލާޞްތެރިކަމާއެކު،",
       authorisedSignatory: "ހުއްދަ ލިބިފައިވާ ފަރާތް",
-      newLetter: "އަލަށް ደብዳބީ",
+      newLetter: "އަލަށް ደބްދާބީ",
       save: "ސޭވް",
       client: "ደንበኛ",
       selectClient: "ደንበኛއެއް ހޮވާ",
@@ -118,109 +119,114 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
   return (
     <div className="p-4 flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">{initialData ? `Edit Letter` : t.newLetter}</h1>
-        <Button onClick={handleSave} disabled={!client}>{t.save}</Button>
+        <h1 className="text-xl font-bold">{initialData ? `Edit Letter` : t.newLetter}</h1>
+        <Button onClick={handleSave} size="sm" disabled={!client} className="text-xs h-8">{t.save}</Button>
       </div>
-      <div className="flex-grow flex flex-col lg:flex-row gap-8">
+      <div className="flex-grow flex flex-col lg:flex-row gap-6">
         <div className="w-full lg:w-1/3">
           <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.client}</CardTitle>
+            <Card className="shadow-sm">
+              <CardHeader className="py-3">
+                <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground">{t.client}</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pb-4">
                 <Select 
                   value={client?.id}
                   onValueChange={(clientId) => {
                     const selectedClient = clients.find(c => c.id === clientId);
                     setClient(selectedClient || null);
                   }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder={t.selectClient} />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      <SelectItem key={c.id} value={c.id} className="text-xs">{c.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.language}</CardTitle>
+            <Card className="shadow-sm">
+              <CardHeader className="py-3">
+                <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground">{t.language}</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pb-4">
                 <Select value={language} onValueChange={(value: 'english' | 'dhivehi') => setLanguage(value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="Select a language" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="english">English</SelectItem>
-                    <SelectItem value="dhivehi">Dhivehi (Thaana)</SelectItem>
+                    <SelectItem value="english" className="text-xs">English</SelectItem>
+                    <SelectItem value="dhivehi" className="text-xs">Dhivehi (Thaana)</SelectItem>
                   </SelectContent>
                 </Select>
               </CardContent>
             </Card>
           </div>
         </div>
-        <div className={`w-full lg:w-2/3 bg-white rounded-lg p-12 shadow-lg font-serif text-gray-900 ${isThaana ? 'thaana-font' : ''}`}>
-          {isThaana && <div className="text-center text-xl mb-8">بِسْمِ اللَّـهِ الرَّحْمَـٰنِ الرَّحِيمِ</div>}
+        
+        {/* Letter Sheet */}
+        <div className={cn(
+          "w-full lg:w-2/3 bg-white rounded-md p-10 shadow-xl font-serif text-black border min-h-[800px]",
+          isThaana ? 'thaana-font' : ''
+        )}>
+          {isThaana && <div className="text-center text-sm mb-6 text-black">بِسْمِ اللَّـهِ الرَّحْمَـٰنِ الرَّحِيمِ</div>}
           
           {currentProfile?.letterhead_url ? (
-            <img src={currentProfile.letterhead_url} alt="Letterhead" className="w-full mb-12" />
+            <img src={currentProfile.letterhead_url} alt="Letterhead" className="w-full mb-8" />
           ) : (
-            <header className={`flex justify-between items-start mb-12 ${isThaana ? 'text-right' : ''}`}>
+            <header className={cn("flex justify-between items-start mb-10", isThaana ? 'text-right' : 'text-left')}>
               <div className={isThaana ? 'text-right' : 'text-left'}>
-                <h2 className="text-3xl font-bold text-gray-800">{currentProfile?.name}</h2>
-                <p className="text-sm text-gray-600">{currentProfile?.address}</p>
-                <p className="text-sm text-gray-600">{currentProfile?.email} | {currentProfile?.phone}</p>
+                <h2 className="text-xl font-bold text-gray-900">{currentProfile?.name}</h2>
+                <p className="text-[10px] text-gray-600">{currentProfile?.address}</p>
+                <p className="text-[10px] text-gray-600">{currentProfile?.email} | {currentProfile?.phone}</p>
               </div>
               <div>
-                {currentProfile?.logo_url && <img src={currentProfile?.logo_url} alt="Company Logo" className="h-20 w-auto" />}
+                {currentProfile?.logo_url && <img src={currentProfile?.logo_url} alt="Company Logo" className="h-12 w-auto" />}
               </div>
             </header>
           )}
 
           {isThaana ? (
               <div dir="rtl">
-                  <div className="flex flex-col items-end text-right mb-8">
-                      <Input value={client?.name || ''} readOnly className="border-none text-right px-0 mb-1 focus-visible:ring-0 text-gray-900" placeholder="Client Name" />
-                      <Input value={client?.address || ''} readOnly className="border-none text-right px-0 mb-4 focus-visible:ring-0 text-gray-900" placeholder="Client Address"/>
-                      <div className="flex items-center gap-2 mb-4">
-                          <label htmlFor="letter-number" className="font-bold">{t.letterNo}</label>
-                          <Input id="letter-number" value={letterNumber} onChange={(e) => setLetterNumber(e.target.value)} className="w-24 border-none text-right px-0 focus-visible:ring-0 text-gray-900" dir="ltr" />
+                  <div className="flex flex-col items-end text-right mb-6">
+                      <Input value={client?.name || ''} readOnly className="border-none text-right px-0 h-6 focus-visible:ring-0 text-black bg-transparent text-sm font-semibold" placeholder="Client Name" />
+                      <Input value={client?.address || ''} readOnly className="border-none text-right px-0 h-6 focus-visible:ring-0 text-black bg-transparent text-xs" placeholder="Client Address"/>
+                      <div className="flex items-center gap-2 mt-4 mb-2">
+                          <label htmlFor="letter-number" className="font-bold text-xs text-black">{t.letterNo}</label>
+                          <Input id="letter-number" value={letterNumber} onChange={(e) => setLetterNumber(e.target.value)} className="w-16 border-none text-right px-0 h-6 focus-visible:ring-0 text-black bg-transparent text-xs" dir="ltr" />
                       </div>
                       <Input 
                           placeholder={t.subject}
                           value={subject}
                           onChange={(e) => setSubject(e.target.value)}
-                          className={`text-lg font-bold border-none text-right px-0 focus-visible:ring-0 text-gray-900`}
+                          className="text-sm font-bold border-none text-right px-0 h-8 focus-visible:ring-0 text-black bg-transparent mt-2"
                           dir="rtl"
                       />
                   </div>
               </div>
             ) : (
               <>
-                <div className={`flex justify-between mb-8`}>
-                  <div>
-                    <h3 className="font-bold text-gray-700">{t.to}</h3>
-                    <p>{client?.name}</p>
-                    <p>{client?.address}</p>
+                <div className="flex justify-between mb-6">
+                  <div className="text-black">
+                    <h3 className="font-bold text-xs text-gray-700 mb-1">{t.to}</h3>
+                    <p className="text-xs font-semibold">{client?.name || 'Client Name'}</p>
+                    <p className="text-[10px] text-gray-600">{client?.address || 'Client Address'}</p>
                   </div>
-                  <div className={'text-right'}>
-                      <div className="flex items-center gap-2">
-                          <label htmlFor="letter-number" className="font-bold">{t.letterNo}</label>
-                          <Input id="letter-number" value={letterNumber} onChange={(e) => setLetterNumber(e.target.value)} className="w-24" dir="ltr" />
+                  <div className="text-right text-black">
+                      <div className="flex items-center justify-end gap-1">
+                          <label htmlFor="letter-number" className="font-bold text-xs">{t.letterNo}</label>
+                          <Input id="letter-number" value={letterNumber} onChange={(e) => setLetterNumber(e.target.value)} className="w-20 border-b border-gray-200 rounded-none px-1 h-6 text-xs focus-visible:ring-0 text-black bg-transparent" dir="ltr" />
                       </div>
-                    <p className="mt-2">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <p className="text-[10px] text-gray-500 mt-1">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                   </div>
                 </div>
                  <Input 
                     placeholder={t.subject}
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className={`mb-8 text-lg font-bold border-0 border-b-2 rounded-none px-0 focus-visible:ring-0`}
+                    className="mb-6 text-sm font-bold border-0 border-b-2 border-gray-100 rounded-none px-0 h-10 focus-visible:ring-0 text-black bg-transparent placeholder:text-gray-300"
                   />
               </>
           )}
@@ -229,22 +235,24 @@ export default function LetterForm({ initialData }: { initialData?: Document }) 
             placeholder={t.writeLetter}
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className={`flex-grow border-none p-0 text-base leading-relaxed focus-visible:ring-0 resize-none ${isThaana ? 'text-right' : ''} text-gray-900`}
-            rows={15}
+            className={cn(
+              "flex-grow border-none p-0 text-xs leading-relaxed focus-visible:ring-0 resize-none text-black bg-transparent min-h-[400px] placeholder:text-gray-300",
+              isThaana ? 'text-right' : 'text-left'
+            )}
             dir={isThaana ? 'rtl' : 'ltr'}
           />
 
-          <footer className={"mt-12"}>
-            {isThaana && <p className="mb-4 text-center">{new Date().toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
-            <div className="text-left">
-              <p className="mb-4">{t.sincerely}</p>
+          <footer className="mt-10">
+            {isThaana && <p className="mb-4 text-center text-xs text-black">{new Date().toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+            <div className={cn("text-black", isThaana ? 'text-right' : 'text-left')}>
+              <p className="mb-2 text-xs">{t.sincerely}</p>
               {currentProfile?.signature_url ? (
-                  <img src={currentProfile.signature_url} alt="Signature" className={`h-16 w-auto`} />
+                  <img src={currentProfile.signature_url} alt="Signature" className="h-12 w-auto mb-1" />
               ) : (
-                  <div className="h-16"></div>
+                  <div className="h-12"></div>
               )}
-              <p className="font-bold">{currentProfile?.authorized_signatory || currentProfile?.name}</p>
-              <p>{t.authorisedSignatory}</p>
+              <p className="font-bold text-xs">{currentProfile?.authorized_signatory || currentProfile?.name}</p>
+              <p className="text-[10px] text-gray-500">{t.authorisedSignatory}</p>
             </div>
           </footer>
         </div>

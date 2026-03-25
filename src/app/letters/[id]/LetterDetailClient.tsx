@@ -3,12 +3,13 @@
 
 import { useEffect, useState, useRef } from "react";
 import { getDocuments, deleteDocument, updateDocument, useStore } from "@/lib/store";
-import { Document, Client } from "@/lib/types";
+import { Document } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import LetterActions from "@/components/letters/LetterActions";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function LetterDetailClient({ id }: { id: string }) {
   const router = useRouter();
@@ -74,7 +75,7 @@ export default function LetterDetailClient({ id }: { id: string }) {
   };
 
   if (!letter || !currentProfile) {
-    return <div>Loading...</div>;
+    return <div className="p-10 text-center text-muted-foreground text-sm">Loading...</div>;
   }
 
   const isThaana = letter.language === 'dhivehi';
@@ -85,77 +86,91 @@ export default function LetterDetailClient({ id }: { id: string }) {
   }[letter.language || 'english'];
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Letter {letter.number}</h1>
-        <LetterActions letter={{...letter, notes: editedNotes}} handleDelete={handleDelete} handleDownload={handleDownload} />
+    <div className="p-4 space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-xl font-bold">Letter {letter.number}</h1>
+        <div className="flex items-center gap-2">
+          {isEditing && (
+            <Button size="sm" onClick={handleSave} className="text-xs h-8">Save Changes</Button>
+          )}
+          <LetterActions letter={{...letter, notes: editedNotes}} handleDelete={handleDelete} handleDownload={handleDownload} />
+        </div>
       </div>
-      {isEditing && (
-          <div className="flex justify-end mb-4">
-            <Button onClick={handleSave}>Save Changes</Button>
-          </div>
-        )}
-      <Card>
-        <CardContent>
-          <div ref={letterRef} className={`bg-white rounded-lg p-12 font-serif text-gray-900 ${isThaana ? 'thaana-font' : ''}`}>
-            {isThaana && <div className="text-center text-xl mb-8">بِسْمِ اللَّـهِ الرَّحْمَـٰنِ الرَّحِيمِ</div>}
+
+      <Card className="max-w-4xl mx-auto overflow-hidden shadow-2xl border-none">
+        <CardContent className="p-0">
+          <div 
+            ref={letterRef} 
+            className={cn(
+              "bg-white p-12 font-serif text-black min-h-[1000px] flex flex-col",
+              isThaana ? 'thaana-font' : ''
+            )}
+          >
+            {isThaana && <div className="text-center text-sm mb-8">بِسْمِ اللَّـهِ الرَّحْمَـٰنِ الرَّحِيمِ</div>}
+            
             {currentProfile.letterhead_url ? (
-              <img src={currentProfile.letterhead_url} alt="Letterhead" className="w-full mb-12" />
+              <img src={currentProfile.letterhead_url} alt="Letterhead" className="w-full mb-10" />
             ) : (
-              <header className={`flex justify-between items-start mb-12 ${isThaana ? 'text-right' : ''}`}>
-                <div className={isThaana ? 'text-right' : 'text-left'}>
-                  <h2 className="text-3xl font-bold text-gray-800">{currentProfile.name}</h2>
-                  <p className="text-sm text-gray-600">{currentProfile.address}</p>
-                  <p className="text-sm text-gray-600">{currentProfile.email} | {currentProfile.phone}</p>
+              <header className={cn("flex justify-between items-start mb-10", isThaana ? 'text-right' : 'text-left')}>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">{currentProfile.name}</h2>
+                  <p className="text-[10px] text-gray-600">{currentProfile.address}</p>
+                  <p className="text-[10px] text-gray-600">{currentProfile.email} | {currentProfile.phone}</p>
                 </div>
                 <div>
-                  {currentProfile.logo_url && <img src={currentProfile.logo_url} alt="Company Logo" className="h-20 w-auto" />}
+                  {currentProfile.logo_url && <img src={currentProfile.logo_url} alt="Company Logo" className="h-12 w-auto" />}
                 </div>
               </header>
             )}
+
             {isThaana ? (
-              <div className="text-right">
-                <div className="mb-4">
-                  <p>{letter.clientName}</p>
-                  <p>{letter.clientAddress}</p>
+              <div className="text-right text-black">
+                <div className="mb-6">
+                  <p className="text-sm font-bold">{letter.clientName}</p>
+                  <p className="text-xs">{letter.clientAddress}</p>
                 </div>
-                <p className="mb-4"><span className="font-bold">{t.letterNo}</span> {letter.number}</p>
-                <p className="mb-8 font-bold">{letter.terms}</p>
+                <p className="mb-4 text-xs"><span className="font-bold">{t.letterNo}</span> {letter.number}</p>
+                <p className="mb-8 font-bold text-sm">{letter.terms}</p>
               </div>
             ) : (
               <>
-                <div className={`flex justify-between mb-8`}>
+                <div className="flex justify-between mb-8 text-black">
                   <div>
-                    <h3 className="font-bold text-gray-700">{t.to}</h3>
-                    <p>{letter.clientName}</p>
-                    <p>{letter.clientAddress}</p>
+                    <h3 className="font-bold text-xs text-gray-700 mb-1">{t.to}</h3>
+                    <p className="text-sm font-semibold">{letter.clientName}</p>
+                    <p className="text-xs text-gray-600">{letter.clientAddress}</p>
                   </div>
-                  <div className={'text-right'}>
-                    <p><span className="font-bold">{t.letterNo}</span> {letter.number}</p>
-                    <p>{new Date(letter.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  <div className="text-right">
+                    <p className="text-xs"><span className="font-bold">{t.letterNo}</span> {letter.number}</p>
+                    <p className="text-[10px] text-gray-500 mt-1">{new Date(letter.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                   </div>
                 </div>
-                <h3 className={`text-lg font-bold mb-4`}>{letter.terms}</h3>
+                <h3 className="text-sm font-bold mb-6 text-black border-b border-gray-100 pb-2">{letter.terms}</h3>
               </>
             )}
+
             <Textarea
               value={editedNotes}
               onChange={handleNotesChange}
-              className={`whitespace-pre-wrap w-full h-auto p-2 border rounded-md ${isThaana ? 'text-right' : ''}`}
+              className={cn(
+                "flex-grow whitespace-pre-wrap w-full border-none p-0 text-xs leading-relaxed focus-visible:ring-0 text-black bg-transparent resize-none",
+                isThaana ? 'text-right' : 'text-left'
+              )}
               dir={isThaana ? 'rtl' : 'ltr'}
-              rows={10}
+              rows={20}
             />
-            <footer className={"mt-12"}>
-              {isThaana && <p className="mb-4 text-center">{new Date(letter.date).toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
-              <div className={isThaana ? 'text-right' : 'text-left'}>
-                <p className="mb-4">{t.sincerely}</p>
+
+            <footer className="mt-12 text-black">
+              {isThaana && <p className="mb-4 text-center text-xs">{new Date(letter.date).toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+              <div className={cn(isThaana ? 'text-right' : 'text-left')}>
+                <p className="mb-2 text-xs">{t.sincerely}</p>
                 {currentProfile.signature_url ? (
-                  <img src={currentProfile.signature_url} alt="Signature" className={`h-16 w-auto ${isThaana ? 'ml-auto' : ''}`} />
+                  <img src={currentProfile.signature_url} alt="Signature" className={cn("h-12 w-auto mb-1", isThaana && "mr-auto")} />
                 ) : (
-                  <div className="h-16"></div>
+                  <div className="h-12"></div>
                 )}
-                <p className="font-bold">{currentProfile.authorized_signatory || currentProfile.name}</p>
-                <p>{t.authorisedSignatory}</p>
+                <p className="font-bold text-xs">{currentProfile.authorized_signatory || currentProfile.name}</p>
+                <p className="text-[10px] text-gray-500">{t.authorisedSignatory}</p>
               </div>
             </footer>
           </div>
