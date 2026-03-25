@@ -28,7 +28,33 @@ export default function AppLayout({
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          {children}
+          <div className="min-h-full flex flex-col">
+            <div className="flex-1">
+              {children}
+            </div>
+            
+            <footer className="mt-20 pt-8 pb-6 border-t border-white/5">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <div className="size-6 rounded-lg bg-muted/30 flex items-center justify-center border border-white/5 shadow-inner">
+                    <Cloud className="size-3 fill-current" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black tracking-tighter leading-none">Cloud Office</span>
+                    <span className="text-[6px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] leading-none mt-0.5 italic">Professional Document Suite</span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center sm:items-end gap-1">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-30">
+                    &copy; {new Date().getFullYear()} ABOA WORKS. ALL RIGHTS RESERVED.
+                  </p>
+                  <p className="text-[7px] font-medium text-muted-foreground/20 uppercase tracking-widest">
+                    Crafted for excellence in business administration.
+                  </p>
+                </div>
+              </div>
+            </footer>
+          </div>
         </main>
       </div>
     </SidebarProvider>
