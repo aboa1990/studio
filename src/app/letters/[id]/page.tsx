@@ -1,5 +1,6 @@
 import LetterDetailClient from "./LetterDetailClient";
 
-export default function LetterDetailPage({ params }: { params: { id: string } }) {
-  return <LetterDetailClient id={params.id} />;
+export default async function LetterDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <LetterDetailClient id={id} />;
 }

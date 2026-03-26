@@ -1,10 +1,11 @@
 'use client';
 
 import { getDocuments, useStore } from '@/lib/store';
-import { useEffect } from 'react';
+import { useEffect, use } from 'react';
 
-const WordExportPage = ({ params }: { params: { id: string } }) => {
+const WordExportPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const { currentProfile } = useStore();
+  const { id } = use(params);
 
   useEffect(() => {
     const generateDocx = async () => {
@@ -19,7 +20,7 @@ const WordExportPage = ({ params }: { params: { id: string } }) => {
       const { saveAs } = await import('file-saver');
 
       const letterDocs = await getDocuments('letter');
-      const letter = letterDocs.find((doc) => doc.id === params.id);
+      const letter = letterDocs.find((doc) => doc.id === id);
 
       if (!letter) return;
 
@@ -54,24 +55,6 @@ const WordExportPage = ({ params }: { params: { id: string } }) => {
                 }),
                 new Paragraph(''),
                 new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
-                new Paragraph(''),
                 new Paragraph({
                   children: [
                     new ImageRun({
@@ -97,10 +80,10 @@ const WordExportPage = ({ params }: { params: { id: string } }) => {
     };
 
     generateDocx();
-  }, [currentProfile, params.id]);
+  }, [currentProfile, id]);
 
   return (
-    <div>
+    <div className="p-20 text-center text-muted-foreground text-xs font-bold uppercase tracking-widest">
       Generating Word document... If download does not start, please check
       console for errors.
     </div>
