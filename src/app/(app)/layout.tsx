@@ -1,15 +1,61 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Cloud } from "lucide-react";
+import { Cloud, Loader2 } from "lucide-react";
 
 export default function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/login");
+      } else {
+        setLoading(false);
+      }
+    };
+
+    checkUser();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        router.push("/login");
+      } else if (event === 'SIGNED_IN') {
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="h-svh w-full flex flex-col items-center justify-center gap-4 bg-background">
+        <div className="size-14 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-2xl animate-pulse">
+          <Cloud className="size-7 fill-current" />
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground animate-pulse leading-none">Cloud Office</span>
+          <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest animate-pulse">ABOA WORKS</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />
