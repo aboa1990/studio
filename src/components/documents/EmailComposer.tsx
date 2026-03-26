@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from "react"
-import { Mail, Loader2, Copy, Check, Send } from "lucide-react"
+import { Mail, Loader2, Copy, Check, Send, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
@@ -53,6 +53,8 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
         totalAmount: doc.total,
         currency: doc.currency,
         companyName: company.name,
+        senderEmail: company.email,
+        senderPhone: company.phone,
         customInstructions: doc.type === 'invoice' ? "Mention that bank transfer is preferred." : "",
       });
 
@@ -79,7 +81,7 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
     setIsOpen(false);
     toast({
       title: "Opening Gmail",
-      description: "Redirecting to your default mail client...",
+      description: "Opening your default mail client with the draft...",
     });
   }
 
@@ -104,8 +106,8 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
       <DialogContent className="sm:max-w-[600px] glass-card border-none">
         <DialogHeader>
           <DialogTitle className="text-lg font-black tracking-tight">AI Email Composer</DialogTitle>
-          <DialogDescription className="text-xs">
-            Draft a professional message for this {doc.type} using Cloud Office AI.
+          <DialogDescription className="text-[10px] uppercase tracking-widest font-bold opacity-60">
+            Professional Drafting & Gmail Integration
           </DialogDescription>
         </DialogHeader>
 
@@ -114,9 +116,14 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
             <div className="size-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20">
                 <Mail className="size-8 text-primary" />
             </div>
-            <p className="text-xs text-muted-foreground font-medium max-w-xs mx-auto">
-              Ready to generate a professional email draft for <span className="text-white font-bold">{doc.clientName}</span>?
-            </p>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground font-medium max-w-xs mx-auto leading-relaxed">
+                Cloud Office AI will draft a professional message for <span className="text-white font-bold">{doc.clientName}</span> using your profile details.
+              </p>
+              <p className="text-[9px] text-muted-foreground/40 uppercase tracking-widest font-bold italic">
+                Sent from your logged-in Gmail account
+              </p>
+            </div>
             <Button onClick={generateEmail} disabled={loading || !company} className="rounded-full px-8 h-10 font-bold text-xs shadow-xl shadow-primary/20">
               {loading ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Mail className="mr-2 h-3.5 w-3.5" />}
               Generate Draft
@@ -140,7 +147,7 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
           </div>
         )}
 
-        <DialogFooter className="flex justify-between sm:justify-between items-center w-full border-t border-white/5 pt-6">
+        <DialogFooter className="flex flex-col sm:flex-row justify-between items-center w-full border-t border-white/5 pt-6 gap-4">
           {email.subject && (
             <>
               <Button variant="ghost" onClick={generateEmail} disabled={loading} className="text-[10px] font-bold uppercase tracking-widest h-9">
@@ -153,7 +160,7 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
                   Copy
                 </Button>
                 <Button onClick={handleSendGmail} className="bg-primary text-primary-foreground rounded-full px-6 h-9 font-bold text-[10px] uppercase tracking-widest">
-                  <Send className="mr-2 h-3.5 w-3.5" /> Open in Gmail
+                  <ExternalLink className="mr-2 h-3.5 w-3.5" /> Send via Gmail
                 </Button>
               </div>
             </>

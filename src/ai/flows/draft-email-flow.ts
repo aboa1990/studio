@@ -19,6 +19,8 @@ const DraftEmailInputSchema = z.object({
   currency: z.string().optional().describe('The currency code, e.g., MVR.'),
   dueDate: z.string().optional().describe('The payment or submission deadline.'),
   companyName: z.string().describe('The sender business name.'),
+  senderEmail: z.string().optional().describe('The sender contact email.'),
+  senderPhone: z.string().optional().describe('The sender contact phone.'),
   customInstructions: z.string().optional().describe('Any additional notes to include in the drafting logic.'),
 });
 export type DraftEmailInput = z.infer<typeof DraftEmailInputSchema>;
@@ -46,13 +48,16 @@ Context:
 - Deadline/Due Date: {{dueDate}}
 {{/if}}
 - Sender: {{companyName}}
+- Sender Email: {{senderEmail}}
+- Sender Phone: {{senderPhone}}
 
 Instructions:
 1. Ensure the tone is professional yet friendly.
 2. If it is an invoice, clearly mention the total and the due date.
 3. If it is a quotation or tender, express enthusiasm for the project and offer further assistance.
 4. Use standard professional greetings and closings.
-5. If custom instructions are provided, incorporate them naturally: {{customInstructions}}
+5. In the closing, include the sender's name, email, and phone as a professional signature.
+6. If custom instructions are provided, incorporate them naturally: {{customInstructions}}
 
 Draft the subject line and the body.`,
 });
