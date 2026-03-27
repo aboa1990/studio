@@ -33,7 +33,7 @@ export type DraftEmailOutput = z.infer<typeof DraftEmailOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'draftEmailPrompt',
-  model: 'googleai/gemini-1.5-flash-latest',
+  model: 'gemini-1.5-flash',
   input: { schema: DraftEmailInputSchema },
   output: { schema: DraftEmailOutputSchema },
   prompt: `You are a professional business communications assistant. 
