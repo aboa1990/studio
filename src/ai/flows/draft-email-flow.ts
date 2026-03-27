@@ -33,6 +33,7 @@ export type DraftEmailOutput = z.infer<typeof DraftEmailOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'draftEmailPrompt',
+  model: 'googleai/gemini-1.5-flash',
   input: { schema: DraftEmailInputSchema },
   output: { schema: DraftEmailOutputSchema },
   prompt: `You are a professional business communications assistant for a company in the Maldives.
@@ -62,8 +63,19 @@ Instructions:
 Draft the subject line and the body.`,
 });
 
+const draftEmailFlow = ai.defineFlow(
+  {
+    name: 'draftEmailFlow',
+    inputSchema: DraftEmailInputSchema,
+    outputSchema: DraftEmailOutputSchema,
+  },
+  async (input) => {
+    const { output } = await prompt(input);
+    if (!output) throw new Error('Failed to generate email draft');
+    return output;
+  }
+);
+
 export async function draftEmail(input: DraftEmailInput): Promise<DraftEmailOutput> {
-  const { output } = await prompt(input);
-  if (!output) throw new Error('Failed to generate email draft');
-  return output;
+  return draftEmailFlow(input);
 }
