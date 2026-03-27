@@ -21,9 +21,15 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data;
     }
 
+    function isCompanyOwner(companyId) {
+      // Checks if the user is the direct owner of the company document
+      return isSignedIn() && get(/databases/$(database)/documents/companies/$(companyId)).data.ownerUserId == request.auth.uid;
+    }
+
     function belongsToCompany(companyId) {
       // Checks if the user's profile explicitly links them to this company
-      return isSignedIn() && getUserProfile().companyProfileId == companyId;
+      // OR if they are the direct owner
+      return isSignedIn() && (getUserProfile().companyProfileId == companyId || isCompanyOwner(companyId));
     }
 
     // --- Collection Rules ---
@@ -61,18 +67,18 @@ service cloud.firestore {
        */
       match /clients/{clientId} {
         allow get, list: if belongsToCompany(companyId);
-        allow create, update: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
+        allow create, update: if belongsToCompany(companyId) && request.resource.data.profile_id == companyId;
         allow delete: if belongsToCompany(companyId);
       }
 
       match /documents/{documentId} {
         allow get, list: if belongsToCompany(companyId);
-        allow create, update: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
+        allow create, update: if belongsToCompany(companyId) && request.resource.data.profile_id == companyId;
         allow delete: if belongsToCompany(companyId);
 
         match /items/{itemId} {
           allow get, list: if belongsToCompany(companyId);
-          allow create, update: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
+          allow create, update: if belongsToCompany(companyId) && request.resource.data.profile_id == companyId;
           allow delete: if belongsToCompany(companyId);
         }
 
