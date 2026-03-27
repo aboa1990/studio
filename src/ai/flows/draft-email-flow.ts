@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A professional email drafting flow for business documents.
@@ -36,29 +35,29 @@ const prompt = ai.definePrompt({
   model: 'googleai/gemini-1.5-flash',
   input: { schema: DraftEmailInputSchema },
   output: { schema: DraftEmailOutputSchema },
-  prompt: `You are a professional business communications assistant for a company in the Maldives.
+  prompt: `You are a professional business communications assistant. 
 Your task is to draft a polite, professional, and clear email for a client regarding a {{documentType}}.
 
 Context:
-- Client: {{clientName}}
-- Document Ref: {{documentNumber}}
+- Client: {{{clientName}}}
+- Document Ref: {{{documentNumber}}}
 {{#if totalAmount}}
-- Total Value: {{currency}} {{totalAmount}}
+- Total Value: {{{currency}}} {{{totalAmount}}}
 {{/if}}
 {{#if dueDate}}
-- Deadline/Due Date: {{dueDate}}
+- Deadline/Due Date: {{{dueDate}}}
 {{/if}}
-- Sender: {{companyName}}
-- Sender Email: {{senderEmail}}
-- Sender Phone: {{senderPhone}}
+- Sender: {{{companyName}}}
+- Sender Email: {{{senderEmail}}}
+- Sender Phone: {{{senderPhone}}}
 
 Instructions:
-1. Ensure the tone is professional yet friendly.
-2. If it is an invoice, clearly mention the total and the due date.
-3. If it is a quotation or tender, express enthusiasm for the project and offer further assistance.
-4. Use standard professional greetings and closings.
-5. In the closing, include the sender's name, email, and phone as a professional signature.
-6. If custom instructions are provided, incorporate them naturally: {{customInstructions}}
+1. Tone: Professional yet friendly.
+2. Content: 
+   - If invoice: Mention total and due date.
+   - If quotation/tender: Express enthusiasm and offer help.
+3. Signature: Include name, email, and phone professionally.
+4. Custom Notes: {{{customInstructions}}}
 
 Draft the subject line and the body.`,
 });
@@ -71,7 +70,7 @@ const draftEmailFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await prompt(input);
-    if (!output) throw new Error('Failed to generate email draft');
+    if (!output) throw new Error('Failed to generate email draft from AI model.');
     return output;
   }
 );
