@@ -4,11 +4,6 @@ service cloud.firestore {
 
     /**
      * ForgeDocs Management Security Rules
-     * 
-     * Core Philosophy:
-     * This ruleset implements a multi-tenant security model where data is strictly partitioned by Company ID. 
-     * It leverages "Authorization Independence" via denormalization: essential fields like 'companyProfileId' 
-     * are stored on every document to allow rules to evaluate access without performing deep hierarchical lookups.
      */
 
     // --- Helper Functions ---
@@ -22,18 +17,13 @@ service cloud.firestore {
     }
 
     function getUserProfile() {
-      // Safely attempt to get the user profile
+      // Safely get the user's authorization profile
       return get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data;
     }
 
     function belongsToCompany(companyId) {
       // Checks if the user's profile explicitly links them to this company
       return isSignedIn() && getUserProfile().companyProfileId == companyId;
-    }
-
-    function isCompanyOwner(companyId) {
-      // Checks if the user is the technical creator/owner of the company document
-      return isSignedIn() && (resource == null || resource.data.ownerUserId == request.auth.uid);
     }
 
     // --- Collection Rules ---
@@ -43,52 +33,65 @@ service cloud.firestore {
      */
     match /user_profiles/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false; 
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if false;
+      allow create, update: if isOwner(userId);
+      allow list, delete: if false;
     }
 
     /**
      * @path /companies/{companyId}
      */
     match /companies/{companyId} {
-      // Allow list if the query filters by the user's UID as owner
-      allow list: if isSignedIn() && request.query.limit <= 100; 
-      // Allow get if they belong to it OR they are the owner record holder
-      allow get: if isSignedIn() && (belongsToCompany(companyId) || resource.data.ownerUserId == request.auth.uid);
-      allow create: if isSignedIn(); 
-      allow update: if isSignedIn() && (belongsToCompany(companyId) || resource.data.ownerUserId == request.auth.uid);
+      // Allow listing companies where the user is the owner
+      allow list: if isSignedIn() && resource.data.ownerUserId == request.auth.uid;
+      
+      // Allow get if owner or linked via authorization profile
+      allow get: if isSignedIn() && (resource.data.ownerUserId == request.auth.uid || belongsToCompany(companyId));
+      
+      // Allow creation if setting themselves as owner
+      allow create: if isSignedIn() && request.resource.data.ownerUserId == request.auth.uid;
+      
+      // Allow update if owner or authorized staff
+      allow update: if isSignedIn() && (resource.data.ownerUserId == request.auth.uid || belongsToCompany(companyId));
+      
+      // Only the primary owner can delete the company record
       allow delete: if isSignedIn() && resource.data.ownerUserId == request.auth.uid;
+
+      /**
+       * Sub-collections inherit the belongsToCompany check
+       */
+      match /clients/{clientId} {
+        allow get, list: if belongsToCompany(companyId);
+        allow create, update: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
+        allow delete: if belongsToCompany(companyId);
+      }
+
+      match /documents/{documentId} {
+        allow get, list: if belongsToCompany(companyId);
+        allow create, update: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
+        allow delete: if belongsToCompany(companyId);
+
+        match /items/{itemId} {
+          allow get, list: if belongsToCompany(companyId);
+          allow create, update: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
+          allow delete: if belongsToCompany(companyId);
+        }
+
+        match /email_logs/{logId} {
+          allow get, list: if belongsToCompany(companyId);
+          allow create: if belongsToCompany(companyId);
+        }
+      }
     }
 
     /**
-     * @path /companies/{companyId}/clients/{clientId}
+     * @path /library_documents/{docId}
      */
-    match /companies/{companyId}/clients/{clientId} {
-      allow get, list: if belongsToCompany(companyId);
-      allow create: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
-      allow update: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
-      allow delete: if belongsToCompany(companyId);
-    }
-
-    /**
-     * @path /companies/{companyId}/documents/{documentId}
-     */
-    match /companies/{companyId}/documents/{documentId} {
-      allow get, list: if belongsToCompany(companyId);
-      allow create: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
-      allow update: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
-      allow delete: if belongsToCompany(companyId);
-    }
-
-    /**
-     * @path /companies/{companyId}/documents/{documentId}/items/{documentItemId}
-     */
-    match /companies/{companyId}/documents/{documentId}/items/{documentItemId} {
-      allow get, list: if belongsToCompany(companyId);
-      allow create, update: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
-      allow delete: if belongsToCompany(companyId);
+    match /library_documents/{docId} {
+      // Library docs are secured by the profile_id they are uploaded to
+      allow list: if isSignedIn() && belongsToCompany(resource.data.profile_id);
+      allow get: if isSignedIn() && belongsToCompany(resource.data.profile_id);
+      allow create, update: if isSignedIn() && belongsToCompany(request.resource.data.profile_id);
+      allow delete: if isSignedIn() && belongsToCompany(resource.data.profile_id);
     }
   }
 }
