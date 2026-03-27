@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
-import { Cloud, Loader2 } from 'lucide-react';
+import { Cloud, Loader2, Info } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -84,6 +85,15 @@ export default function LoginPage() {
                 : 'Create your professional account to start managing documents.'}
             </p>
           </div>
+
+          {view === 'sign-in' && (
+            <Alert className="bg-primary/5 border-primary/10 py-2">
+              <Info className="size-3.5 text-primary" />
+              <AlertDescription className="text-[10px] text-muted-foreground leading-tight">
+                New here? Click <span className="font-bold text-primary">Register now</span> below to create your own admin account.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <form onSubmit={view === 'sign-in' ? handleSignIn : handleSignUp} className="grid gap-4">
             <div className="grid gap-2">
