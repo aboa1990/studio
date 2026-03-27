@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -9,21 +8,27 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { supabase } from "@/lib/supabase"
 import { useStore } from "@/lib/store"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore"
+import { initializeFirebase } from "@/firebase"
+import { errorEmitter } from "@/firebase/error-emitter"
+import { FirestorePermissionError } from "@/firebase/errors"
+import { useToast } from "@/hooks/use-toast"
+
+const { firestore, auth } = initializeFirebase();
 
 const profileSchema = z.object({
   name: z.string().min(1, "Company name is required"),
   address: z.string().optional(),
   email: z.string().email("Invalid email address").optional(),
   phone: z.string().optional(),
-  logo_url: z.any().optional(),
+  logo_url: z.string().optional(),
   gst_number: z.string().optional(),
   authorized_signatory: z.string().optional(),
   bank_details: z.string().optional(),
-  signature_url: z.any().optional(),
-  seal_url: z.any().optional(),
+  signature_url: z.string().optional(),
+  seal_url: z.string().optional(),
 })
 
 const defaultValues = {
@@ -40,10 +45,9 @@ const defaultValues = {
 }
 
 export function ProfileForm() {
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const { profiles, currentProfile, setCurrentProfile, fetchProfiles } = useStore()
+  const { currentProfile, setCurrentProfile, fetchProfiles } = useStore()
 
   const { control, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: zodResolver(profileSchema),
@@ -54,118 +58,80 @@ export function ProfileForm() {
     reset(currentProfile || defaultValues);
   }, [currentProfile, reset]);
 
-
-  const handleFileUpload = async (file: File) => {
-    if (!file) return null;
-    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const fileName = `${Date.now()}_${sanitizedFileName}`;
-    const { data, error } = await supabase.storage
-      .from('public')
-      .upload(fileName, file);
-
-    if (error) {
-      throw new Error(`Failed to upload file: ${error.message}`);
-    }
-
-    const { data: publicUrlData } = supabase.storage
-    .from('public')
-    .getPublicUrl(fileName);
-
-    return publicUrlData.publicUrl;
-  };
-
-  const isFile = (value: any): value is File => {
-    return value && typeof value === 'object' && typeof value.name === 'string';
-  };
-
   const onSubmit = async (data: any) => {
     setLoading(true)
-    setError(null)
-    setSuccess(false)
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("You must be logged in to create a profile.");
-      }
-
-      let logoUrl = data.logo_url;
-      if (isFile(data.logo_url)) {
-        logoUrl = await handleFileUpload(data.logo_url);
-      }
-
-      let signatureUrl = data.signature_url;
-      if (isFile(data.signature_url)) {
-        signatureUrl = await handleFileUpload(data.signature_url);
-      }
-
-      let sealUrl = data.seal_url;
-      if (isFile(data.seal_url)) {
-        sealUrl = await handleFileUpload(data.seal_url);
-      }
-
-      const profileData = { 
-        ...data, 
-        logo_url: logoUrl, 
-        signature_url: signatureUrl,
-        seal_url: sealUrl,
-      }; 
-
-      if (currentProfile) {
-        const { data: updatedProfile, error } = await supabase
-          .from("company_profiles")
-          .update(profileData)
-          .eq('id', currentProfile.id)
-          .select()
-          .single();
-        if (error) throw error;
-        await fetchProfiles();
-        setCurrentProfile(updatedProfile);
-      } else {
-        const { data: newProfile, error } = await supabase
-          .from("company_profiles")
-          .insert([{ ...profileData, user_id: user.id }])
-          .select()
-          .single();
-        if (error) throw error;
-        await fetchProfiles();
-        setCurrentProfile(newProfile);
-      }
-
-      setSuccess(true)
-    } catch (error: any) {
-      setError(error.message)
-    } finally {
-      setLoading(false)
+    const user = auth.currentUser;
+    
+    if (!user) {
+      toast({ title: "Auth Error", description: "You must be logged in.", variant: "destructive" });
+      setLoading(false);
+      return;
     }
+
+    const profileId = currentProfile?.id || doc(collection(firestore, 'companies')).id;
+    const companyRef = doc(firestore, 'companies', profileId);
+    const userProfileRef = doc(firestore, 'user_profiles', user.uid);
+
+    const profileData = {
+      ...data,
+      id: profileId,
+      ownerUserId: user.uid,
+      updatedAt: serverTimestamp(),
+      createdAt: currentProfile ? currentProfile.createdAt : serverTimestamp(),
+    };
+
+    // 1. Update Company Profile
+    setDoc(companyRef, profileData, { merge: true })
+      .then(async () => {
+        // 2. Update User Profile (Crucial for rules!)
+        await setDoc(userProfileRef, {
+          id: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          role: 'Admin',
+          companyProfileId: profileId,
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+        }, { merge: true });
+
+        await fetchProfiles();
+        toast({ title: "Success", description: "Profile saved successfully." });
+      })
+      .catch(async (err) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: companyRef.path,
+          operation: 'write',
+          requestResourceData: profileData
+        }));
+      })
+      .finally(() => setLoading(false));
   }
 
   const handleDelete = async () => {
     if (!currentProfile) return;
-
     setLoading(true);
-    setError(null);
 
-    try {
-      const { error } = await supabase.from('company_profiles').delete().eq('id', currentProfile.id);
-      if (error) throw error;
-
-      await fetchProfiles(); 
-      const newProfiles = profiles.filter(p => p.id !== currentProfile.id);
-      setCurrentProfile(newProfiles.length > 0 ? newProfiles[0] : null);
-
-    } catch (error: any) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
+    const companyRef = doc(firestore, 'companies', currentProfile.id);
+    deleteDoc(companyRef)
+      .then(async () => {
+        await fetchProfiles();
+        setCurrentProfile(null);
+        toast({ title: "Deleted", description: "Profile removed." });
+      })
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: companyRef.path,
+          operation: 'delete'
+        }));
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
     <Card className="glass-card rounded-[2.5rem]">
       <CardHeader>
         <CardTitle className="text-2xl font-black tracking-tight">{currentProfile ? 'Edit' : 'Create'} Company Profile</CardTitle>
-        <CardDescription>This information will appear on your invoices, quotations, and other documents.</CardDescription>
+        <CardDescription>This information will appear on your professional documents.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -239,45 +205,10 @@ export function ProfileForm() {
             render={({ field }) => 
                 <div>
                   <label className='text-sm font-bold ml-1'>Bank Details</label>
-                  <Textarea placeholder="Bank Name: Global Bank\nAccount Name: My Company LLC\nAccount Number: 1234567890\nBranch Name: Main Branch" {...field} className="mt-2 h-36"/>
+                  <Textarea placeholder="Bank Name: Global Bank\nAccount Name: My Company LLC\nAccount Number: 1234567890" {...field} className="mt-2 h-36"/>
                 </div>
             }
           />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Controller
-              name="logo_url"
-              control={control}
-              render={({ field: { onChange, value, ...rest } }) => (
-                <div>
-                  <label className='text-sm font-bold ml-1'>Logo</label>
-                  <Input type="file" onChange={(e) => onChange(e.target.files?.[0])} {...rest} className="mt-2"/>
-                  {value && typeof value === 'string' && <img src={value} alt="Logo Preview" className="mt-2 h-16 w-16 object-cover rounded-md"/>}
-                </div>
-              )}
-            />
-            <Controller
-              name="signature_url"
-              control={control}
-              render={({ field: { onChange, value, ...rest } }) => (
-                <div>
-                  <label className='text-sm font-bold ml-1'>Signature</label>
-                  <Input type="file" onChange={(e) => onChange(e.target.files?.[0])} {...rest} className="mt-2"/>
-                  {value && typeof value === 'string' && <img src={value} alt="Signature Preview" className="mt-2 h-16 w-auto rounded-md"/>}
-                </div>
-              )}
-            />
-             <Controller
-              name="seal_url"
-              control={control}
-              render={({ field: { onChange, value, ...rest } }) => (
-                <div>
-                  <label className='text-sm font-bold ml-1'>Company Seal</label>
-                  <Input type="file" onChange={(e) => onChange(e.target.files?.[0])} {...rest} className="mt-2"/>
-                  {value && typeof value === 'string' && <img src={value} alt="Seal Preview" className="mt-2 h-16 w-auto rounded-md"/>}
-                </div>
-              )}
-            />
-          </div>
           
           <div className="flex gap-4">
             <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold tracking-tight">
@@ -292,7 +223,7 @@ export function ProfileForm() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete your company profile and all associated data.
+                        This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -303,8 +234,6 @@ export function ProfileForm() {
                 </AlertDialog>
             )}
           </div>
-          {error && <p className="text-red-500 text-sm mt-2 text-center">Error: {error}</p>}
-          {success && <p className="text-green-500 text-sm mt-2 text-center">Profile saved successfully!</p>}
         </form>
       </CardContent>
     </Card>

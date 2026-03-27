@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -14,9 +13,13 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { useStore } from "@/lib/store"
-import { supabase } from "@/lib/supabase"
-import { Client } from "@/lib/types"
+import { initializeFirebase } from "@/firebase"
+import { doc, setDoc, getDoc, collection, serverTimestamp } from "firebase/firestore"
+import { errorEmitter } from "@/firebase/error-emitter"
+import { FirestorePermissionError } from "@/firebase/errors"
 import { v4 as uuidv4 } from "uuid"
+
+const { firestore } = initializeFirebase();
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Client name is required" }),
@@ -49,14 +52,17 @@ export default function ClientForm({ clientId }: ClientFormProps) {
     if (clientId && currentProfile) {
       const fetchClient = async () => {
         setLoading(true);
-        const { data: client, error } = await supabase
-          .from('clients')
-          .select('*')
-          .eq('id', clientId)
-          .eq('profile_id', currentProfile.id)
-          .single();
+        const docRef = doc(firestore, 'companies', currentProfile.id, 'clients', clientId);
+        const snap = await getDoc(docRef).catch(async () => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'get'
+          }));
+          return null;
+        });
         
-        if (client) {
+        if (snap && snap.exists()) {
+          const client = snap.data();
           setValue("name", client.name)
           setValue("contactPerson", client.contactPerson)
           setValue("email", client.email)
@@ -72,57 +78,33 @@ export default function ClientForm({ clientId }: ClientFormProps) {
   }, [clientId, setValue, currentProfile])
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    if (!currentProfile) {
-        toast({
-          title: "No Company Profile Selected",
-          description: "Please select a company profile before adding a client.",
-          variant: "destructive",
-        });
-        router.push('/settings');
-        return;
-    }
+    if (!currentProfile) return;
 
     setLoading(true)
-    try {
-      const clientData: Client = {
-        id: clientId || uuidv4(),
-        profile_id: currentProfile.id,
-        ...data,
-      }
-      const { error } = await supabase.from('clients').upsert(clientData);
-      if (error) throw error;
-
-      toast({
-        title: isNew ? "Client Added" : "Client Updated",
-        description: `Successfully ${isNew ? 'added' : 'updated'} ${data.name}.`,
-      })
-      router.push("/clients")
-      router.refresh()
-    } catch (error) {
-      console.error(error)
-      toast({
-        title: "Error",
-        description: `Failed to ${isNew ? 'add' : 'update'} client. Please try again.`,
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
+    const id = clientId || uuidv4();
+    const docRef = doc(firestore, 'companies', currentProfile.id, 'clients', id);
+    
+    const clientData = {
+      ...data,
+      id,
+      companyProfileId: currentProfile.id,
+      updatedAt: serverTimestamp(),
+      createdAt: isNew ? serverTimestamp() : undefined,
     }
-  }
 
-  useEffect(() => {
-      // Prefill profile_id when a profile is loaded
-      if(currentProfile) {
-          setLoading(false)
-      }
-  }, [currentProfile])
-
-  if (loading && !currentProfile) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    setDoc(docRef, clientData, { merge: true })
+      .then(() => {
+        toast({ title: isNew ? "Client Added" : "Client Updated" });
+        router.push("/clients");
+      })
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'write',
+          requestResourceData: clientData
+        }));
+      })
+      .finally(() => setLoading(false));
   }
 
   if (!currentProfile) {
@@ -131,10 +113,10 @@ export default function ClientForm({ clientId }: ClientFormProps) {
         <AlertTriangle className="size-12 text-destructive" />
         <h2 className="text-2xl font-bold text-destructive">No Company Profile Found</h2>
         <p className="text-muted-foreground max-w-sm">
-          You must have at least one company profile set up before you can add clients.
+          You must set up a company profile before you can add clients.
         </p>
         <Button onClick={() => router.push('/settings')} className="mt-4">
-          Go to Settings to Create a Profile
+          Go to Settings
         </Button>
       </div>
     );
@@ -143,7 +125,7 @@ export default function ClientForm({ clientId }: ClientFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <Button variant="ghost" size="icon" type="button" onClick={() => router.back()}>
           <ChevronLeft className="size-5" />
         </Button>
         <h1 className="text-3xl font-headline font-bold">
@@ -182,7 +164,7 @@ export default function ClientForm({ clientId }: ClientFormProps) {
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="notes">Notes (Optional)</Label>
-            <Textarea id="notes" {...register("notes")} placeholder="Any special instructions or notes..." />
+            <Textarea id="notes" {...register("notes")} placeholder="Any special instructions..." />
           </div>
         </CardContent>
       </Card>
