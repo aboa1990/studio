@@ -1,21 +1,22 @@
 
 "use client";
 
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 import { LogOut } from "lucide-react";
+import { signOut } from "firebase/auth";
 
 export default function LogoutButton() {
   const router = useRouter();
+  const auth = useAuth();
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      await signOut(auth);
       router.push("/login");
     } catch (error) {
       console.error("Logout failed:", error);
-      // Ensure the user is redirected even if the session clear fails
       router.push("/login");
     }
   };

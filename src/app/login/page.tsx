@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabase';
-import { Cloud, Loader2, Info, ShieldCheck } from 'lucide-react';
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Cloud, Loader2 } from 'lucide-react';
+import { useAuth, useUser } from '@/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -16,34 +16,26 @@ export default function LoginPage() {
   const [view, setView] = useState('sign-in');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push('/');
-      } else {
-        setCheckingAuth(false);
-      }
-    };
-    checkAuth();
-  }, [router]);
+    if (user && !isUserLoading) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
       router.push('/');
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
     }
   };
 
@@ -51,57 +43,16 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
-    // Development Shortcut Logic
-    if (email === 'admin' && password === 'admin') {
-      const devEmail = 'admin@cloudoffice.com';
-      const devPass = 'password123';
-      
-      // Try to sign in with dev credentials
-      let { error: signInError } = await supabase.auth.signInWithPassword({
-        email: devEmail,
-        password: devPass,
-      });
-
-      // If account doesn't exist, create it automatically
-      if (signInError && signInError.message.includes('Invalid login credentials')) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email: devEmail,
-          password: devPass,
-        });
-        if (signUpError) {
-          setError(signUpError.message);
-          setLoading(false);
-          return;
-        }
-      } else if (signInError) {
-        setError(signInError.message);
-        setLoading(false);
-        return;
-      }
-      
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       router.push('/');
-      return;
-    }
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) {
-      setError(error.message);
+    } catch (err: any) {
+      setError(err.message);
       setLoading(false);
-    } else {
-      router.push('/');
     }
   };
 
-  const quickDevLogin = () => {
-    setEmail('admin');
-    setPassword('admin');
-  };
-
-  if (checkingAuth) {
+  if (isUserLoading) {
     return (
       <div className="h-svh w-full flex items-center justify-center bg-background">
         <Loader2 className="size-8 animate-spin text-muted-foreground/20" />
@@ -127,21 +78,12 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {view === 'sign-in' && (
-            <Alert className="bg-primary/5 border-primary/10 py-2">
-              <ShieldCheck className="size-3.5 text-primary" />
-              <AlertDescription className="text-[10px] text-muted-foreground leading-tight">
-                Dev Shortcut: Use <span className="font-bold text-primary">admin / admin</span> to bypass or <button onClick={quickDevLogin} className="underline font-bold text-primary">click here</button>.
-              </AlertDescription>
-            </Alert>
-          )}
-
           <form onSubmit={view === 'sign-in' ? handleSignIn : handleSignUp} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-black text-muted-foreground ml-1">Email</Label>
               <Input
                 id="email"
-                type="text"
+                type="email"
                 placeholder="m@example.com"
                 className="bg-muted/30 border-white/5 h-10 text-xs"
                 required

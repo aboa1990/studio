@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { useUser } from "@/firebase";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Cloud, Loader2 } from "lucide-react";
@@ -14,35 +14,15 @@ export default function AppLayout({
   children: React.ReactNode;
 }>) {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/login");
-      } else {
-        setLoading(false);
-      }
-    };
+    if (!isUserLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isUserLoading, router]);
 
-    checkUser();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        router.push("/login");
-      } else if (event === 'SIGNED_IN') {
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [router]);
-
-  if (loading) {
+  if (isUserLoading) {
     return (
       <div className="h-svh w-full flex flex-col items-center justify-center gap-4 bg-background">
         <div className="size-14 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-2xl animate-pulse">
@@ -56,11 +36,14 @@ export default function AppLayout({
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />
       <div className="flex flex-col flex-1 h-svh overflow-hidden">
-        {/* Mobile Header: Only visible on screens smaller than LG (1024px) */}
         <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:hidden shrink-0">
           <SidebarTrigger />
           <div className="flex items-center gap-2">
