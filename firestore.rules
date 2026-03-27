@@ -1,0 +1,141 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * ForgeDocs Management Security Rules
+     * 
+     * Core Philosophy:
+     * This ruleset implements a multi-tenant security model where data is strictly partitioned by Company ID. 
+     * It leverages "Authorization Independence" via denormalization: essential fields like 'companyProfileId' 
+     * are stored on every document to allow rules to evaluate access without performing deep hierarchical lookups.
+     * 
+     * Data Structure:
+     * - /user_profiles/{userId}: Private user metadata, including their assigned role and companyId.
+     * - /companies/{companyId}: Core company branding and settings.
+     * - /companies/{companyId}/...: All operational data (clients, documents, items, logs) nested under the company.
+     * 
+     * Key Security Decisions:
+     * 1. Identity Source: 'request.auth.uid' and 'request.auth.token.email_verified' are the primary sources of truth.
+     * 2. Company Isolation: Users can only read/write data where the path's {companyId} matches the 'companyProfileId' 
+     *    stored in their specific UserProfile document.
+     * 3. Denormalized Validation: To prevent "id-swapping" or data leaking between companies, rules enforce that 
+     *    the 'companyProfileId' field in the document data matches the URL path.
+     * 4. Prototyping Flexibility: Rules do not enforce strict schema types (strings, ints) for non-authorization 
+     *    fields to allow for rapid frontend iteration.
+     */
+
+    // --- Helper Functions ---
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    function getUserProfile() {
+      return get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data;
+    }
+
+    function belongsToCompany(companyId) {
+      return isSignedIn() && getUserProfile().companyProfileId == companyId;
+    }
+
+    function isExistingCompanyMember(companyId) {
+      return belongsToCompany(companyId) && resource != null;
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for user accounts. Users can only manage their own profile.
+     * @path /user_profiles/{userId}
+     * @allow Authenticated user (create) where doc ID matches auth.uid.
+     * @deny User A (update) User B's profile.
+     * @principle Ownership and Path-to-Data consistency.
+     */
+    match /user_profiles/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // Users cannot be listed/browsed.
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Company-level settings. Access is limited to members of the company.
+     * @path /companies/{companyId}
+     * @allow User (get) where user.companyProfileId == companyId.
+     * @deny User from Company B (update) Company A.
+     * @principle Shared access based on user profile association.
+     */
+    match /companies/{companyId} {
+      allow get, list: if belongsToCompany(companyId);
+      allow create: if isSignedIn(); // Allow initial creation; logic assumes user will link themselves.
+      allow update: if isExistingCompanyMember(companyId);
+      allow delete: if isExistingCompanyMember(companyId);
+    }
+
+    /**
+     * @description Client records within a company.
+     * @path /companies/{companyId}/clients/{clientId}
+     * @allow User (list) clients where user.companyProfileId == path.companyId.
+     * @deny User (create) client with a 'companyProfileId' field that doesn't match the path.
+     * @principle Relational integrity via denormalized companyId.
+     */
+    match /companies/{companyId}/clients/{clientId} {
+      allow get, list: if belongsToCompany(companyId);
+      allow create: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
+      allow update: if isExistingCompanyMember(companyId) && request.resource.data.companyProfileId == companyId;
+      allow delete: if isExistingCompanyMember(companyId);
+    }
+
+    /**
+     * @description Financial documents (Invoices/Quotations).
+     * @path /companies/{companyId}/documents/{documentId}
+     * @allow User (create) document if they belong to companyId and set creatorId to self.
+     * @deny User (update) to change the creatorId (immutability).
+     * @principle Shared company access with creator attribution.
+     */
+    match /companies/{companyId}/documents/{documentId} {
+      allow get, list: if belongsToCompany(companyId);
+      allow create: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId && request.resource.data.createdByUserId == request.auth.uid;
+      allow update: if isExistingCompanyMember(companyId) && request.resource.data.companyProfileId == companyId && request.resource.data.createdByUserId == resource.data.createdByUserId;
+      allow delete: if isExistingCompanyMember(companyId);
+    }
+
+    /**
+     * @description Individual line items for a document.
+     * @path /companies/{companyId}/documents/{documentId}/items/{documentItemId}
+     * @allow User (list) items belonging to their company's document.
+     * @deny User (create) item where companyProfileId field is missing or mismatched.
+     * @principle Deeply nested relational integrity.
+     */
+    match /companies/{companyId}/documents/{documentId}/items/{documentItemId} {
+      allow get, list: if belongsToCompany(companyId);
+      allow create: if belongsToCompany(companyId) && request.resource.data.companyProfileId == companyId;
+      allow update: if isExistingCompanyMember(companyId) && request.resource.data.companyProfileId == companyId;
+      allow delete: if isExistingCompanyMember(companyId);
+    }
+
+    /**
+     * @description Logs of emails sent for a document.
+     * @path /companies/{companyId}/documents/{documentId}/email_logs/{emailLogId}
+     * @allow User (create) log entry if they are the sender and belong to the company.
+     * @deny User (delete) logs (usually logs are append-only/read-only).
+     * @principle Audit logging security.
+     */
+    match /companies/{companyId}/documents/{documentId}/email_logs/{emailLogId} {
+      allow get, list: if belongsToCompany(companyId);
+      allow create: if belongsToCompany(companyId) && request.resource.data.sentByUserId == request.auth.uid && request.resource.data.companyProfileId == companyId;
+      allow update: if false; // Email logs are typically immutable for audit purposes.
+      allow delete: if false; // Email logs are typically immutable for audit purposes.
+    }
+  }
+}
