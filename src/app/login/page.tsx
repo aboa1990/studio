@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
-import { Cloud, Loader2, Info } from 'lucide-react';
+import { Cloud, Loader2, Info, ShieldCheck } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LoginPage() {
@@ -51,6 +51,39 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Development Shortcut Logic
+    if (email === 'admin' && password === 'admin') {
+      const devEmail = 'admin@cloudoffice.com';
+      const devPass = 'password123';
+      
+      // Try to sign in with dev credentials
+      let { error: signInError } = await supabase.auth.signInWithPassword({
+        email: devEmail,
+        password: devPass,
+      });
+
+      // If account doesn't exist, create it automatically
+      if (signInError && signInError.message.includes('Invalid login credentials')) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: devEmail,
+          password: devPass,
+        });
+        if (signUpError) {
+          setError(signUpError.message);
+          setLoading(false);
+          return;
+        }
+      } else if (signInError) {
+        setError(signInError.message);
+        setLoading(false);
+        return;
+      }
+      
+      router.push('/');
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -61,6 +94,11 @@ export default function LoginPage() {
     } else {
       router.push('/');
     }
+  };
+
+  const quickDevLogin = () => {
+    setEmail('admin');
+    setPassword('admin');
   };
 
   if (checkingAuth) {
@@ -76,6 +114,9 @@ export default function LoginPage() {
       <div className="flex flex-col items-center justify-center py-12 relative">
         <div className="mx-auto grid w-[320px] gap-6">
           <div className="grid gap-2 text-center">
+            <div className="size-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-xl mx-auto mb-4 lg:hidden">
+              <Cloud className="size-6 fill-current" />
+            </div>
             <h1 className="text-2xl font-black tracking-tight">
               {view === 'sign-in' ? 'Login' : 'Sign Up'}
             </h1>
@@ -88,9 +129,9 @@ export default function LoginPage() {
 
           {view === 'sign-in' && (
             <Alert className="bg-primary/5 border-primary/10 py-2">
-              <Info className="size-3.5 text-primary" />
+              <ShieldCheck className="size-3.5 text-primary" />
               <AlertDescription className="text-[10px] text-muted-foreground leading-tight">
-                New here? Click <span className="font-bold text-primary">Register now</span> below to create your own admin account.
+                Dev Shortcut: Use <span className="font-bold text-primary">admin / admin</span> to bypass or <button onClick={quickDevLogin} className="underline font-bold text-primary">click here</button>.
               </AlertDescription>
             </Alert>
           )}
@@ -100,7 +141,7 @@ export default function LoginPage() {
               <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-black text-muted-foreground ml-1">Email</Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 placeholder="m@example.com"
                 className="bg-muted/30 border-white/5 h-10 text-xs"
                 required
