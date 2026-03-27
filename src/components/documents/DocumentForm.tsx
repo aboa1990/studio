@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { Trash2, Plus, Save, FileCheck, Upload, FileText, X, Users, BookOpen } from "lucide-react"
+import { Trash2, Plus, Save, FileCheck, Upload, FileText, X, Users, BookOpen, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,22 +21,17 @@ import {
 } from "@/components/ui/dialog"
 import { Document, LineItem, DocumentType, DocumentStatus, Attachment, Client, LibraryDocument } from "@/lib/types"
 import { useRouter } from "next/navigation"
-import { useStore } from "@/lib/store"
-import { supabase } from "@/lib/supabase"
+import { useStore, saveDocument, getClients, getLibraryDocuments } from "@/lib/store"
+import { useToast } from "@/hooks/use-toast"
 
 interface DocumentFormProps {
   initialData?: Document;
   type: DocumentType;
 }
 
-async function saveDocument(doc: Document) {
-    const { data, error } = await supabase.from('documents').upsert(doc).select();
-    if (error) throw error;
-    return data[0];
-}
-
 export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [savedClients, setSavedClients] = useState<Client[]>([])
   const [libraryDocs, setLibraryDocs] = useState<LibraryDocument[]>([])
   const [isLibraryOpen, setIsLibraryOpen] = useState(false)
@@ -44,17 +39,17 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   const { currentProfile } = useStore();
   
   const defaultTerms = type === 'tender'
-    ? "1. This proposal is valid for 90 days from the submission date.\\n2. All prices are inclusive of GST.\\n3. Delivery will be within the specified timeframe upon award."
+    ? "1. This proposal is valid for 90 days from the submission date.\n2. All prices are inclusive of GST.\n3. Delivery will be within the specified timeframe upon award."
     : type === 'boq'
-    ? "1. Quantities are estimated and subject to site verification.\\n2. Rates provided are valid for 30 days.\\n3. All items are inclusive of labor and materials unless specified."
+    ? "1. Quantities are estimated and subject to site verification.\n2. Rates provided are valid for 30 days.\n3. All items are inclusive of labor and materials unless specified."
     : type === 'quotation'
     ? "This quotation is valid for 30 days from the date of issue. After this period, prices and timelines may be subject to review based on resource availability or cost fluctuations."
-    : "1. Please pay within 14 days.\\n2. Bank transfer is preferred.\\n3. Include reference number as reference.";
+    : "1. Please pay within 14 days.\n2. Bank transfer is preferred.\n3. Include reference number as reference.";
 
   const [doc, setDoc] = useState<Partial<Document>>(
     initialData || {
       id: uuidv4(),
-      profile_id: '', // Will be set in useEffect
+      profile_id: currentProfile?.id || '',
       type,
       number: `${type === 'invoice' ? 'INV' : type === 'tender' ? 'TDR' : type === 'boq' ? 'BOQ' : 'QT'}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`,
       clientName: "",
@@ -83,13 +78,11 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
   useEffect(() => {
     if (currentProfile) {
       const fetchData = async () => {
-        const { data: clients, error: clientsError } = await supabase.from('clients').select('*').eq('profile_id', currentProfile.id)
-        if (clientsError) console.error('Error fetching clients:', clientsError)
-        else setSavedClients(clients || [])
+        const clients = await getClients();
+        setSavedClients(clients);
 
-        const { data: libraryDocuments, error: libraryError } = await supabase.from('library_documents').select('*').eq('profile_id', currentProfile.id)
-        if (libraryError) console.error('Error fetching library documents:', libraryError)
-        else setLibraryDocs(libraryDocuments || [])
+        const libraryDocuments = await getLibraryDocuments();
+        setLibraryDocs(libraryDocuments);
 
         if (!initialData) {
           setDoc(prev => ({ ...prev, profile_id: currentProfile.id }));
@@ -190,9 +183,15 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
     e.preventDefault();
     if (doc.items && doc.items.length > 0 && doc.profile_id) {
       setLoading(true);
-      await saveDocument(doc as Document);
-      setLoading(false);
-      router.push(type === 'invoice' ? '/invoices' : type === 'tender' ? '/tenders' : type === 'boq' ? '/boqs' : '/quotations');
+      try {
+        await saveDocument(doc as Document);
+        toast({ title: "Success", description: `${type.toUpperCase()} saved successfully.` });
+        router.push(type === 'invoice' ? '/invoices' : type === 'tender' ? '/tenders' : type === 'boq' ? '/boqs' : '/quotations');
+      } catch (err) {
+        toast({ title: "Error", description: "Failed to save document.", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
     }
   }
 
@@ -207,7 +206,8 @@ export default function DocumentForm({ initialData, type }: DocumentFormProps) {
             Cancel
           </Button>
           <Button type="submit" className="bg-primary text-primary-foreground" disabled={loading}>
-            {loading ? 'Saving...' : <><Save className="mr-2 h-4 w-4" />Save {type.toUpperCase()}</>}
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            Save {type.toUpperCase()}
           </Button>
         </div>
       </div>

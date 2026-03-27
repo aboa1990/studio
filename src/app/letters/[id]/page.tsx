@@ -1,4 +1,7 @@
+
 import LetterDetailClient from "./LetterDetailClient";
+
+export const dynamic = 'force-dynamic';
 
 export default async function LetterDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

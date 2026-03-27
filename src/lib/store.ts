@@ -1,3 +1,4 @@
+
 'use client';
 
 import { create } from 'zustand';
@@ -12,7 +13,8 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc, 
-  limit
+  limit,
+  serverTimestamp
 } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { initializeFirebase } from '@/firebase';
@@ -138,16 +140,15 @@ export async function getDocuments(type?: DocumentType): Promise<Document[]> {
   const activeId = await getActiveProfileId();
   if (!activeId) return [];
 
-  const q = type 
-    ? query(collection(firestore, 'companies', activeId, 'documents'), where('type', '==', type))
-    : collection(firestore, 'companies', activeId, 'documents');
+  const colRef = collection(firestore, 'companies', activeId, 'documents');
+  const q = type ? query(colRef, where('type', '==', type)) : colRef;
   
   const querySnapshot = await getDocs(q).catch(async () => {
     errorEmitter.emit('permission-error', new FirestorePermissionError({
       path: `companies/${activeId}/documents`,
       operation: 'list'
     }));
-    return { docs: [] };
+    return { docs: [] } as any;
   });
 
   return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Document))
@@ -155,16 +156,27 @@ export async function getDocuments(type?: DocumentType): Promise<Document[]> {
 }
 
 export async function saveDocument(document: Document) {
-  const activeId = document.profile_id;
+  const activeId = document.profile_id || await getActiveProfileId();
+  if (!activeId) throw new Error("No active profile ID found");
+
   const docRef = doc(firestore, 'companies', activeId, 'documents', document.id);
   
-  setDoc(docRef, { ...document, createdByUserId: auth.currentUser?.uid }, { merge: true })
+  const dataToSave = { 
+    ...document, 
+    profile_id: activeId,
+    createdByUserId: auth.currentUser?.uid,
+    updatedAt: serverTimestamp(),
+    createdAt: document.date || new Date().toISOString()
+  };
+
+  await setDoc(docRef, dataToSave, { merge: true })
     .catch(async (err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
         operation: 'write',
-        requestResourceData: document
+        requestResourceData: dataToSave
       }));
+      throw err;
     });
     
   return document;
@@ -175,7 +187,7 @@ export async function updateDocument(id: string, data: Partial<Document>) {
   if (!activeId) return false;
 
   const docRef = doc(firestore, 'companies', activeId, 'documents', id);
-  updateDoc(docRef, data)
+  await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() })
     .catch(async () => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
@@ -191,7 +203,7 @@ export async function deleteDocument(id: string) {
   if (!activeId) return false;
 
   const docRef = doc(firestore, 'companies', activeId, 'documents', id);
-  deleteDoc(docRef)
+  await deleteDoc(docRef)
     .catch(async () => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
@@ -211,7 +223,7 @@ export async function getClients(): Promise<Client[]> {
       path: colRef.path,
       operation: 'list'
     }));
-    return { docs: [] };
+    return { docs: [] } as any;
   });
   return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Client));
 }
@@ -220,21 +232,21 @@ export async function getLibraryDocuments(): Promise<LibraryDocument[]> {
   const activeId = await getActiveProfileId();
   if (!activeId) return [];
 
-  const colRef = collection(firestore, 'library_documents'); // Global or could be nested
+  const colRef = collection(firestore, 'library_documents');
   const q = query(colRef, where('profile_id', '==', activeId));
   const querySnapshot = await getDocs(q).catch(async () => {
     errorEmitter.emit('permission-error', new FirestorePermissionError({
       path: colRef.path,
       operation: 'list'
     }));
-    return { docs: [] };
+    return { docs: [] } as any;
   });
   return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as LibraryDocument));
 }
 
 export async function saveLibraryDocument(libDoc: LibraryDocument) {
   const docRef = doc(firestore, 'library_documents', libDoc.id);
-  setDoc(docRef, libDoc, { merge: true }).catch(async () => {
+  await setDoc(docRef, libDoc, { merge: true }).catch(async () => {
     errorEmitter.emit('permission-error', new FirestorePermissionError({
       path: docRef.path,
       operation: 'write',
@@ -246,7 +258,7 @@ export async function saveLibraryDocument(libDoc: LibraryDocument) {
 
 export async function deleteLibraryDocument(id: string) {
   const docRef = doc(firestore, 'library_documents', id);
-  deleteDoc(docRef).catch(async () => {
+  await deleteDoc(docRef).catch(async () => {
     errorEmitter.emit('permission-error', new FirestorePermissionError({
       path: docRef.path,
       operation: 'delete'
