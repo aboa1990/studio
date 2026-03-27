@@ -1,8 +1,7 @@
-
 "use client"
 
 import { useState } from "react"
-import { Mail, Loader2, Copy, Check, Send, ExternalLink } from "lucide-react"
+import { Mail, Loader2, Copy, Check, Send, ExternalLink, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
@@ -50,11 +49,12 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
         clientName: doc.clientName,
         documentNumber: doc.number,
         dueDate: doc.dueDate,
-        totalAmount: doc.total,
-        currency: doc.currency,
+        totalAmount: doc.total || 0,
+        currency: doc.currency || 'MVR',
         companyName: company.name,
         senderEmail: company.email,
         senderPhone: company.phone,
+        documentContent: doc.notes || doc.terms || "", // Pass letter body if available
         customInstructions: doc.type === 'invoice' ? "Mention that bank transfer is preferred." : "",
       });
 
@@ -75,13 +75,15 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
   const handleSendGmail = () => {
     if (!email.subject || !email.body) return;
     
-    const mailtoUrl = `mailto:${doc.clientEmail}?subject=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`;
-    window.location.href = mailtoUrl;
+    // Direct Gmail Compose URL is more reliable for long text than mailto:
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(doc.clientEmail)}&su=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`;
+    
+    window.open(gmailUrl, '_blank');
     
     setIsOpen(false);
     toast({
       title: "Opening Gmail",
-      description: "Opening your default mail client with the draft...",
+      description: "Gmail compose window opened. Don't forget to attach your PDF!",
     });
   }
 
@@ -118,10 +120,10 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
             </div>
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground font-medium max-w-xs mx-auto leading-relaxed">
-                Cloud Office AI will draft a professional message for <span className="text-white font-bold">{doc.clientName}</span> using your profile details.
+                Cloud Office AI will draft a professional message for <span className="text-white font-bold">{doc.clientName}</span> based on this {doc.type}.
               </p>
               <p className="text-[9px] text-muted-foreground/40 uppercase tracking-widest font-bold italic">
-                Sent from your logged-in Gmail account
+                Best used with your logged-in Gmail account
               </p>
             </div>
             <Button onClick={generateEmail} disabled={loading || !company} className="rounded-full px-8 h-10 font-bold text-xs shadow-xl shadow-primary/20">
@@ -132,6 +134,12 @@ export default function EmailComposer({ document: doc }: EmailComposerProps) {
           </div>
         ) : (
           <div className="space-y-4 py-4">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex items-start gap-3 mb-2">
+              <Info className="size-4 text-blue-400 mt-0.5" />
+              <p className="text-[10px] text-blue-200/70 font-medium leading-normal">
+                Tip: Download the PDF first, then click "Send via Gmail" to open the composer and attach your file.
+              </p>
+            </div>
             <div className="space-y-2">
               <Label className="text-[10px] uppercase tracking-widest font-black text-muted-foreground ml-1">Subject</Label>
               <Input value={email.subject} onChange={e => setEmail(prev => ({ ...prev, subject: e.target.value }))} className="bg-white/5 border-white/5 text-sm h-10" />

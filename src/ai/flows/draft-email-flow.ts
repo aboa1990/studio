@@ -20,6 +20,7 @@ const DraftEmailInputSchema = z.object({
   companyName: z.string().describe('The sender business name.'),
   senderEmail: z.string().optional().describe('The sender contact email.'),
   senderPhone: z.string().optional().describe('The sender contact phone.'),
+  documentContent: z.string().optional().describe('The actual text or body content of the document.'),
   customInstructions: z.string().optional().describe('Any additional notes to include in the drafting logic.'),
 });
 export type DraftEmailInput = z.infer<typeof DraftEmailInputSchema>;
@@ -51,15 +52,21 @@ Context:
 - Sender Email: {{{senderEmail}}}
 - Sender Phone: {{{senderPhone}}}
 
+{{#if documentContent}}
+Document Content Summary:
+{{{documentContent}}}
+{{/if}}
+
 Instructions:
 1. Tone: Professional yet friendly.
-2. Content: 
-   - If invoice: Mention total and due date.
-   - If quotation/tender: Express enthusiasm and offer help.
+2. Content Strategy: 
+   - If invoice: Mention total and due date clearly.
+   - If quotation/tender: Express enthusiasm for the project and offer assistance.
+   - If letter: Provide a 1-2 sentence summary of the letter's purpose based on the content provided and invite them to read the attachment.
 3. Signature: Include name, email, and phone professionally.
 4. Custom Notes: {{{customInstructions}}}
 
-Draft the subject line and the body.`,
+Draft the subject line and the body text. Do not include placeholders like [Your Name], use the provided sender information.`,
 });
 
 const draftEmailFlow = ai.defineFlow(
