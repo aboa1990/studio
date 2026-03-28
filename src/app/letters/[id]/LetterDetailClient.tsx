@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -103,7 +102,7 @@ export default function LetterDetailClient({ id }: { id: string }) {
 
   return (
     <div className="p-4 space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4 no-print">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Letter {letter.number}</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">Reference: {letter.number}</p>
@@ -117,12 +116,12 @@ export default function LetterDetailClient({ id }: { id: string }) {
         </div>
       </div>
 
-      <Card className="max-w-4xl mx-auto overflow-hidden shadow-2xl border-none">
+      <Card className="max-w-4xl mx-auto overflow-hidden shadow-2xl border-none print-content">
         <CardContent className="p-0">
           <div 
             ref={letterRef} 
             className={cn(
-              "bg-white p-16 font-serif text-black min-h-[1050px] flex flex-col",
+              "bg-white p-16 font-serif text-black min-h-[1050px] flex flex-col print:p-10",
               isThaana ? 'thaana-font' : ''
             )}
           >
@@ -133,9 +132,9 @@ export default function LetterDetailClient({ id }: { id: string }) {
             ) : (
               <header className={cn("flex justify-between items-start mb-12", isThaana ? 'text-right' : 'text-left text-black')}>
                 <div className={isThaana ? 'text-right' : 'text-left'}>
-                  <h2 className="text-xl font-bold text-gray-900 leading-tight">{currentProfile.name}</h2>
-                  <p className="text-[11px] text-gray-500">{currentProfile.address}</p>
-                  <p className="text-[11px] text-gray-500">{currentProfile.email} | {currentProfile.phone}</p>
+                  <h2 className="text-xl font-bold text-slate-950 leading-tight">{currentProfile.name}</h2>
+                  <p className="text-[11px] text-slate-700 font-medium">{currentProfile.address}</p>
+                  <p className="text-[11px] text-slate-700 font-medium">{currentProfile.email} | {currentProfile.phone}</p>
                 </div>
                 <div>
                   {currentProfile.logo_url && <img src={currentProfile.logo_url} alt="Company Logo" className="h-20 w-auto" />}
@@ -146,31 +145,31 @@ export default function LetterDetailClient({ id }: { id: string }) {
             {isThaana ? (
               <div className="text-right text-black">
                 <div className="mb-8">
-                  <p className="text-sm font-bold text-black">{letter.clientName}</p>
-                  <p className="text-xs text-black">{letter.clientAddress}</p>
+                  <p className="text-sm font-bold text-slate-950">{letter.clientName}</p>
+                  <p className="text-xs text-slate-800 font-medium">{letter.clientAddress}</p>
                 </div>
                 <div className="flex items-center justify-end gap-2 mb-1">
-                    <p className="text-xs text-black"><span className="font-bold">{t.letterNo}</span> {letter.number}</p>
+                    <p className="text-xs text-slate-900 font-medium"><span className="font-bold text-slate-950">{t.letterNo}</span> {letter.number}</p>
                 </div>
-                <p className="mb-8 text-xs text-black"><span className="font-bold">{t.date}</span> {new Date(letter.date).toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                <p className="mb-10 font-bold text-sm text-black border-b border-gray-100 pb-2">{letter.terms}</p>
+                <p className="mb-8 text-xs text-slate-900 font-medium"><span className="font-bold text-slate-950">{t.date}</span> {new Date(letter.date).toLocaleDateString('ar-SA-u-nu-arab', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                <p className="mb-10 font-bold text-sm text-slate-950 border-b-2 border-slate-100 pb-2">{letter.terms}</p>
               </div>
             ) : (
               <>
                 <div className="flex justify-between mb-10 text-black">
                   <div>
-                    <h3 className="font-bold text-[10px] text-gray-400 mb-1">{t.to}</h3>
-                    <p className="text-sm font-bold">{letter.clientName}</p>
-                    <p className="text-[11px] text-gray-500 leading-relaxed">{letter.clientAddress}</p>
+                    <h3 className="font-bold text-[10px] text-slate-600 mb-1">{t.to}</h3>
+                    <p className="text-sm font-bold text-slate-950">{letter.clientName}</p>
+                    <p className="text-[11px] text-slate-700 leading-relaxed font-medium">{letter.clientAddress}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-bold"><span className="text-gray-400 font-bold mr-1">{t.letterNo}</span> {letter.number}</p>
-                    <p className="text-[10px] text-gray-500 mt-1">
-                      <span className="font-bold text-gray-400">{t.date}</span> {new Date(letter.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    <p className="text-xs font-bold text-slate-950"><span className="text-slate-600 font-bold mr-1">{t.letterNo}</span> {letter.number}</p>
+                    <p className="text-[10px] text-slate-700 mt-1 font-medium">
+                      <span className="font-bold text-slate-600">{t.date}</span> {new Date(letter.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </p>
                   </div>
                 </div>
-                <h3 className="text-sm font-bold mb-8 text-black border-b border-gray-100 pb-2 uppercase tracking-tight">{letter.terms}</h3>
+                <h3 className="text-sm font-bold mb-8 text-slate-950 border-b-2 border-slate-100 pb-2 uppercase tracking-tight">{letter.terms}</h3>
               </>
             )}
 
@@ -178,7 +177,7 @@ export default function LetterDetailClient({ id }: { id: string }) {
               value={editedNotes}
               onChange={handleNotesChange}
               className={cn(
-                "flex-grow whitespace-pre-wrap w-full border-none p-0 text-xs leading-relaxed focus-visible:ring-0 text-black bg-transparent resize-none",
+                "flex-grow whitespace-pre-wrap w-full border-none p-0 text-xs leading-relaxed focus-visible:ring-0 text-slate-900 font-medium bg-transparent resize-none",
                 isThaana ? 'text-right' : 'text-left'
               )}
               dir={isThaana ? 'rtl' : 'ltr'}
@@ -187,15 +186,15 @@ export default function LetterDetailClient({ id }: { id: string }) {
 
             <footer className="mt-16 text-black">
               <div className={cn(isThaana ? 'text-right' : 'text-left')}>
-                <p className="mb-4 text-xs">{t.sincerely}</p>
+                <p className="mb-4 text-xs text-slate-900 font-medium">{t.sincerely}</p>
                 {currentProfile.signature_url ? (
                   <img src={currentProfile.signature_url} alt="Signature" className={cn("h-12 w-auto mb-1", isThaana && "mr-0")} />
                 ) : (
                   <div className="h-12"></div>
                 )}
                 <div className="mt-2">
-                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{t.authorisedSignatory}</p>
-                  <p className="font-bold text-xs mt-0.5">{currentProfile.authorized_signatory || currentProfile.name}</p>
+                  <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">{t.authorisedSignatory}</p>
+                  <p className="font-bold text-xs mt-0.5 text-slate-950">{currentProfile.authorized_signatory || currentProfile.name}</p>
                 </div>
               </div>
             </footer>
