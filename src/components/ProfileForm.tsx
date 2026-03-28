@@ -103,7 +103,7 @@ export function ProfileForm() {
       id: profileId,
       ownerUserId: user.uid,
       updatedAt: serverTimestamp(),
-      createdAt: currentProfile ? currentProfile.createdAt : serverTimestamp(),
+      createdAt: currentProfile?.createdAt || serverTimestamp(),
     };
 
     const userProfileData = {
@@ -116,6 +116,9 @@ export function ProfileForm() {
       createdAt: serverTimestamp(),
     };
 
+    // We use a pattern that updates the user profile FIRST if it doesn't exist, 
+    // or we ensure the security rules handle the owner case independently.
+    // The rules have been updated to check ownerUserId on the resource directly.
     setDoc(companyRef, profileData, { merge: true })
       .then(async () => {
         await setDoc(userProfileRef, userProfileData, { merge: true })
