@@ -15,8 +15,8 @@ import {
   Users,
   FolderOpen,
   ClipboardList,
-  Sparkles,
-  Cloud
+  Cloud,
+  Wallet
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -74,6 +74,11 @@ const items = [
     title: "Letters",
     url: "/letters",
     icon: FileText,
+  },
+  {
+    title: "Expenses",
+    url: "/expenses",
+    icon: Wallet,
   },
   {
     title: "Clients",

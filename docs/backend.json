@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -50,6 +51,24 @@
         "uploaded_at": { "type": "string" }
       },
       "required": ["id", "profile_id", "name", "data"]
+    },
+    "Expense": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Expense",
+      "type": "object",
+      "description": "A business expenditure record.",
+      "properties": {
+        "id": { "type": "string" },
+        "profile_id": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "category": { "type": "string" },
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["paid", "pending"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "profile_id", "date", "category", "amount"]
     }
   },
   "auth": {
@@ -69,6 +88,13 @@
         "definition": {
           "entityName": "CompanyProfile",
           "description": "Top-level company identity."
+        }
+      },
+      {
+        "path": "/companies/{companyId}/expenses/{expenseId}",
+        "definition": {
+          "entityName": "Expense",
+          "description": "Financial outgoings for the company."
         }
       },
       {

@@ -40,6 +40,19 @@ export interface Client {
   notes?: string;
 }
 
+export interface Expense {
+  id: string;
+  profile_id: string;
+  date: string;
+  category: string;
+  amount: number;
+  description: string;
+  status: 'paid' | 'pending';
+  receipt_url?: string;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
 export interface Document {
   id: string;
   profile_id: string; // Linked to a specific company profile
@@ -84,7 +97,7 @@ export interface CompanyProfile {
   letterhead_url?: string;
   authorized_signatory?: string;
   gst_number?: string;
-  bank_details?: BankDetails;
+  bank_details?: string;
   last_active_at?: string;
 }
 

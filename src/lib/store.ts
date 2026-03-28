@@ -2,7 +2,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { CompanyProfile, Document, DocumentType, Client, LibraryDocument } from './types';
+import { CompanyProfile, Document, DocumentType, Client, LibraryDocument, Expense } from './types';
 import { 
   collection, 
   query, 
@@ -14,7 +14,8 @@ import {
   updateDoc, 
   deleteDoc, 
   limit,
-  serverTimestamp
+  serverTimestamp,
+  orderBy
 } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { initializeFirebase } from '@/firebase';
@@ -258,6 +259,60 @@ export async function saveLibraryDocument(libDoc: LibraryDocument) {
 
 export async function deleteLibraryDocument(id: string) {
   const docRef = doc(firestore, 'library_documents', id);
+  await deleteDoc(docRef).catch(async () => {
+    errorEmitter.emit('permission-error', new FirestorePermissionError({
+      path: docRef.path,
+      operation: 'delete'
+    }));
+  });
+  return true;
+}
+
+// Expense Management
+export async function getExpenses(): Promise<Expense[]> {
+  const activeId = await getActiveProfileId();
+  if (!activeId) return [];
+
+  const colRef = collection(firestore, 'companies', activeId, 'expenses');
+  const q = query(colRef, orderBy('date', 'desc'));
+  const querySnapshot = await getDocs(q).catch(async () => {
+    errorEmitter.emit('permission-error', new FirestorePermissionError({
+      path: `companies/${activeId}/expenses`,
+      operation: 'list'
+    }));
+    return { docs: [] } as any;
+  });
+  return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Expense));
+}
+
+export async function saveExpense(expense: Expense) {
+  const activeId = await getActiveProfileId();
+  if (!activeId) throw new Error("No active profile ID");
+
+  const docRef = doc(firestore, 'companies', activeId, 'expenses', expense.id);
+  const dataToSave = {
+    ...expense,
+    profile_id: activeId,
+    updatedAt: serverTimestamp(),
+    createdAt: expense.createdAt || serverTimestamp()
+  };
+
+  await setDoc(docRef, dataToSave, { merge: true }).catch(async (err) => {
+    errorEmitter.emit('permission-error', new FirestorePermissionError({
+      path: docRef.path,
+      operation: 'write',
+      requestResourceData: dataToSave
+    }));
+    throw err;
+  });
+  return expense;
+}
+
+export async function deleteExpense(id: string) {
+  const activeId = await getActiveProfileId();
+  if (!activeId) return false;
+
+  const docRef = doc(firestore, 'companies', activeId, 'expenses', id);
   await deleteDoc(docRef).catch(async () => {
     errorEmitter.emit('permission-error', new FirestorePermissionError({
       path: docRef.path,

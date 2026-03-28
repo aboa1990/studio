@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -22,6 +23,11 @@ service cloud.firestore {
       return isSignedIn() && exists(profilePath) && get(profilePath).data.companyProfileId == companyId;
     }
 
+    function isCompanyOwner(companyId) {
+      let companyPath = /databases/$(database)/documents/companies/$(companyId);
+      return isSignedIn() && exists(companyPath) && get(companyPath).data.ownerUserId == request.auth.uid;
+    }
+
     // --- Collection Rules ---
 
     /**
@@ -38,11 +44,7 @@ service cloud.firestore {
      */
     match /companies/{companyId} {
       // Allow listing companies where the user is the owner
-      // Or if they have a profile pointing to this company
-      allow list: if isSignedIn() && (
-        (resource != null && resource.data.ownerUserId == request.auth.uid) ||
-        userBelongsToCompany(companyId)
-      );
+      allow list: if isSignedIn();
       
       // Allow get if owner or authorized staff
       allow get: if isSignedIn() && (
@@ -66,29 +68,21 @@ service cloud.firestore {
        * Sub-collections inherit ownership and company link checks
        */
       match /clients/{clientId} {
-        allow get, list: if isSignedIn() && (get(/databases/$(database)/documents/companies/$(companyId)).data.ownerUserId == request.auth.uid || userBelongsToCompany(companyId));
-        allow create, update: if isSignedIn() && 
-                                (get(/databases/$(database)/documents/companies/$(companyId)).data.ownerUserId == request.auth.uid || userBelongsToCompany(companyId)) 
-                                && (request.resource.data.profile_id == companyId);
-        allow delete: if isSignedIn() && (get(/databases/$(database)/documents/companies/$(companyId)).data.ownerUserId == request.auth.uid || userBelongsToCompany(companyId));
+        allow get, list: if isSignedIn() && (isCompanyOwner(companyId) || userBelongsToCompany(companyId));
+        allow create, update: if isSignedIn() && (isCompanyOwner(companyId) || userBelongsToCompany(companyId));
+        allow delete: if isSignedIn() && (isCompanyOwner(companyId) || userBelongsToCompany(companyId));
       }
 
       match /documents/{documentId} {
-        allow get, list: if isSignedIn() && (get(/databases/$(database)/documents/companies/$(companyId)).data.ownerUserId == request.auth.uid || userBelongsToCompany(companyId));
-        allow create, update: if isSignedIn() && 
-                                (get(/databases/$(database)/documents/companies/$(companyId)).data.ownerUserId == request.auth.uid || userBelongsToCompany(companyId)) 
-                                && (request.resource.data.profile_id == companyId);
-        allow delete: if isSignedIn() && (get(/databases/$(database)/documents/companies/$(companyId)).data.ownerUserId == request.auth.uid || userBelongsToCompany(companyId));
+        allow get, list: if isSignedIn() && (isCompanyOwner(companyId) || userBelongsToCompany(companyId));
+        allow create, update: if isSignedIn() && (isCompanyOwner(companyId) || userBelongsToCompany(companyId));
+        allow delete: if isSignedIn() && (isCompanyOwner(companyId) || userBelongsToCompany(companyId));
+      }
 
-        match /items/{itemId} {
-          allow get, list: if isSignedIn() && (get(/databases/$(database)/documents/companies/$(companyId)).data.ownerUserId == request.auth.uid || userBelongsToCompany(companyId));
-          allow create, update, delete: if isSignedIn() && (get(/databases/$(database)/documents/companies/$(companyId)).data.ownerUserId == request.auth.uid || userBelongsToCompany(companyId));
-        }
-
-        match /email_logs/{logId} {
-          allow get, list: if isSignedIn() && (get(/databases/$(database)/documents/companies/$(companyId)).data.ownerUserId == request.auth.uid || userBelongsToCompany(companyId));
-          allow create: if isSignedIn() && (get(/databases/$(database)/documents/companies/$(companyId)).data.ownerUserId == request.auth.uid || userBelongsToCompany(companyId));
-        }
+      match /expenses/{expenseId} {
+        allow get, list: if isSignedIn() && (isCompanyOwner(companyId) || userBelongsToCompany(companyId));
+        allow create, update: if isSignedIn() && (isCompanyOwner(companyId) || userBelongsToCompany(companyId));
+        allow delete: if isSignedIn() && (isCompanyOwner(companyId) || userBelongsToCompany(companyId));
       }
     }
 
@@ -96,21 +90,20 @@ service cloud.firestore {
      * @path /library_documents/{docId}
      */
     match /library_documents/{docId} {
-      // Library docs are secured by the profile_id they are uploaded to
       allow list: if isSignedIn() && (
-        get(/databases/$(database)/documents/companies/$(resource.data.profile_id)).data.ownerUserId == request.auth.uid ||
+        isCompanyOwner(resource.data.profile_id) ||
         userBelongsToCompany(resource.data.profile_id)
       );
       allow get: if isSignedIn() && (
-        get(/databases/$(database)/documents/companies/$(resource.data.profile_id)).data.ownerUserId == request.auth.uid ||
+        isCompanyOwner(resource.data.profile_id) ||
         userBelongsToCompany(resource.data.profile_id)
       );
       allow create, update: if isSignedIn() && (
-        get(/databases/$(database)/documents/companies/$(request.resource.data.profile_id)).data.ownerUserId == request.auth.uid ||
+        isCompanyOwner(request.resource.data.profile_id) ||
         userBelongsToCompany(request.resource.data.profile_id)
       );
       allow delete: if isSignedIn() && (
-        get(/databases/$(database)/documents/companies/$(resource.data.profile_id)).data.ownerUserId == request.auth.uid ||
+        isCompanyOwner(resource.data.profile_id) ||
         userBelongsToCompany(resource.data.profile_id)
       );
     }
