@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { useStore } from "@/lib/store"
 import { initializeFirebase } from "@/firebase"
-import { doc, setDoc, getDoc, collection, serverTimestamp } from "firebase/firestore"
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore"
 import { errorEmitter } from "@/firebase/error-emitter"
 import { FirestorePermissionError } from "@/firebase/errors"
 import { v4 as uuidv4 } from "uuid"
@@ -87,7 +87,7 @@ export default function ClientForm({ clientId }: ClientFormProps) {
     const clientData = {
       ...data,
       id,
-      companyProfileId: currentProfile.id,
+      profile_id: currentProfile.id, // Correct field name for security rules
       updatedAt: serverTimestamp(),
       createdAt: isNew ? serverTimestamp() : undefined,
     }

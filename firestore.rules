@@ -48,7 +48,7 @@ service cloud.firestore {
      */
     match /companies/{companyId} {
       // Allow listing companies where the user is the owner
-      allow list: if isSignedIn() && resource.data.ownerUserId == request.auth.uid;
+      allow list: if isSignedIn() && (resource == null || resource.data.ownerUserId == request.auth.uid);
       
       // Allow get if owner or linked via authorization profile
       allow get: if isSignedIn() && (resource.data.ownerUserId == request.auth.uid || belongsToCompany(companyId));
@@ -63,22 +63,24 @@ service cloud.firestore {
       allow delete: if isSignedIn() && resource.data.ownerUserId == request.auth.uid;
 
       /**
-       * Sub-collections inherit the belongsToCompany check
+       * Sub-collections inherit ownership and company link checks
        */
       match /clients/{clientId} {
         allow get, list: if belongsToCompany(companyId);
-        allow create, update: if belongsToCompany(companyId) && request.resource.data.profile_id == companyId;
+        allow create, update: if (isCompanyOwner(companyId) || belongsToCompany(companyId)) 
+                                && (request.resource.data.profile_id == companyId || request.resource.data.companyProfileId == companyId);
         allow delete: if belongsToCompany(companyId);
       }
 
       match /documents/{documentId} {
         allow get, list: if belongsToCompany(companyId);
-        allow create, update: if belongsToCompany(companyId) && request.resource.data.profile_id == companyId;
+        allow create, update: if (isCompanyOwner(companyId) || belongsToCompany(companyId)) 
+                                && (request.resource.data.profile_id == companyId || request.resource.data.companyProfileId == companyId);
         allow delete: if belongsToCompany(companyId);
 
         match /items/{itemId} {
           allow get, list: if belongsToCompany(companyId);
-          allow create, update: if belongsToCompany(companyId) && request.resource.data.profile_id == companyId;
+          allow create, update: if belongsToCompany(companyId);
           allow delete: if belongsToCompany(companyId);
         }
 
