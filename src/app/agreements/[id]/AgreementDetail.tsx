@@ -85,12 +85,14 @@ export default function AgreementDetail() {
               <p className="text-[10px] text-slate-500 font-bold tracking-widest">AGREEMENT REF: {doc.number}</p>
             </div>
 
-            <div className={cn(
-              "flex-grow whitespace-pre-wrap text-xs leading-relaxed text-slate-900 font-medium",
-              isThaana ? 'text-right' : 'text-left'
-            )} dir={isThaana ? 'rtl' : 'ltr'}>
-              {doc.notes}
-            </div>
+            <div 
+              className={cn(
+                "flex-grow text-xs leading-relaxed text-slate-900 font-medium rich-text-content",
+                isThaana ? 'text-right' : 'text-left'
+              )} 
+              dir={isThaana ? 'rtl' : 'ltr'}
+              dangerouslySetInnerHTML={{ __html: doc.notes || "" }}
+            />
 
             <footer className="mt-16 text-black border-t border-slate-100 pt-8">
               <div className="grid grid-cols-2 gap-20">

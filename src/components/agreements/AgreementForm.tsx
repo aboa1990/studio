@@ -1,77 +1,42 @@
 
 "use client"
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useStore, getClients, getDocuments, saveDocument } from "@/lib/store";
 import { Document, Client } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
-import { Loader2, FileSignature, Save, ChevronLeft } from "lucide-react";
+import { Loader2, Save, ChevronLeft, Bold, Italic, Underline, Type } from "lucide-react";
 
 const AGREEMENT_TEMPLATES = {
   rent: {
     title: "Rent Agreement",
-    content: `TENANCY AGREEMENT
-
-This agreement is made on [DATE] between [COMPANY_NAME] (the "Landlord") and [CLIENT_NAME] (the "Tenant").
-
-1. PREMISES: The Landlord agrees to rent the premises located at [ADDRESS].
-2. TERM: The tenancy shall begin on [START_DATE] and end on [END_DATE].
-3. RENT: The monthly rent is [AMOUNT] MVR, payable on the 1st of each month.
-4. SECURITY DEPOSIT: A deposit of [DEPOSIT] MVR shall be held by the Landlord.
-5. UTILITIES: The Tenant shall be responsible for all utility payments.
-6. MAINTENANCE: The Tenant shall maintain the premises in a clean and sanitary condition.
-
-Signed by:
-
-______________________
-Landlord (For [COMPANY_NAME])
-
-______________________
-Tenant (For [CLIENT_NAME])`
+    content: `<div><strong>TENANCY AGREEMENT</strong></div><div><br></div><div>This agreement is made on [DATE] between <strong>[COMPANY_NAME]</strong> (the "Landlord") and <strong>[CLIENT_NAME]</strong> (the "Tenant").</div><div><br></div><div>1. PREMISES: The Landlord agrees to rent the premises located at [ADDRESS].</div><div>2. TERM: The tenancy shall begin on [START_DATE] and end on [END_DATE].</div><div>3. RENT: The monthly rent is [AMOUNT] MVR, payable on the 1st of each month.</div><div>4. SECURITY DEPOSIT: A deposit of [DEPOSIT] MVR shall be held by the Landlord.</div><div>5. UTILITIES: The Tenant shall be responsible for all utility payments.</div><div>6. MAINTENANCE: The Tenant shall maintain the premises in a clean and sanitary condition.</div><div><br></div><div>Signed by:</div><div><br></div><div>______________________</div><div>Landlord (For [COMPANY_NAME])</div><div><br></div><div>______________________</div><div>Tenant (For [CLIENT_NAME])</div>`
   },
   project: {
     title: "Project Service Agreement",
-    content: `SERVICE AGREEMENT
-
-This Service Agreement is entered into as of [DATE] by and between [COMPANY_NAME] (the "Provider") and [CLIENT_NAME] (the "Client").
-
-1. SERVICES: The Provider agrees to provide the following services: [SERVICES_DESCRIPTION].
-2. COMPENSATION: The Client agrees to pay [TOTAL_VALUE] MVR for the completed services.
-3. TIMELINE: The project is expected to be completed by [COMPLETION_DATE].
-4. INTELLECTUAL PROPERTY: Upon full payment, all deliverables become the property of the Client.
-5. CONFIDENTIALITY: Both parties agree to keep project details confidential.
-6. TERMINATION: Either party may terminate this agreement with [NOTICE_PERIOD] days written notice.
-
-Signed by:
-
-______________________
-Provider (For [COMPANY_NAME])
-
-______________________
-Client (For [CLIENT_NAME])`
+    content: `<div><strong>SERVICE AGREEMENT</strong></div><div><br></div><div>This Service Agreement is entered into as of [DATE] by and between <strong>[COMPANY_NAME]</strong> (the "Provider") and <strong>[CLIENT_NAME]</strong> (the "Client").</div><div><br></div><div>1. SERVICES: The Provider agrees to provide the following services: [SERVICES_DESCRIPTION].</div><div>2. COMPENSATION: The Client agrees to pay [TOTAL_VALUE] MVR for the completed services.</div><div>3. TIMELINE: The project is expected to be completed by [COMPLETION_DATE].</div><div>4. INTELLECTUAL PROPERTY: Upon full payment, all deliverables become the property of the Client.</div><div>5. CONFIDENTIALITY: Both parties agree to keep project details confidential.</div><div>6. TERMINATION: Either party may terminate this agreement with [NOTICE_PERIOD] days written notice.</div><div><br></div><div>Signed by:</div><div><br></div><div>______________________</div><div>Provider (For [COMPANY_NAME])</div><div><br></div><div>______________________</div><div>Client (For [CLIENT_NAME])</div>`
   },
   custom: {
     title: "Custom Agreement",
-    content: "Enter your custom agreement text here..."
+    content: "<div>Start typing your agreement here...</div>"
   }
 };
 
 export default function AgreementForm({ initialData }: { initialData?: Document }) {
   const router = useRouter();
   const { currentProfile } = useStore();
+  const editorRef = useRef<HTMLDivElement>(null);
   const [clients, setClients] = useState<Client[]>([]);
   const [client, setClient] = useState<Client | null>(null);
   const [docNumber, setLetterNumber] = useState("");
   const [subject, setSubject] = useState(initialData?.terms || "");
-  const [body, setBody] = useState(initialData?.notes || "");
   const [language, setLanguage] = useState<'english' | 'dhivehi'>('english');
   const [templateType, setTemplateType] = useState<'rent' | 'project' | 'custom'>(initialData?.template_type || 'custom');
   const [isSaving, setIsSaving] = useState(false);
@@ -88,9 +53,11 @@ export default function AgreementForm({ initialData }: { initialData?: Document 
         setClient(initialClient || null);
         setLetterNumber(initialData.number);
         setSubject(initialData.terms || "");
-        setBody(initialData.notes || "");
         setLanguage(initialData.language || 'english');
         setTemplateType(initialData.template_type || 'custom');
+        if (editorRef.current) {
+          editorRef.current.innerHTML = initialData.notes || "";
+        }
       } else {
         const maxNumber = docs.reduce((max, d) => {
           const currentNum = parseInt(d.number.split('-').pop() || "0", 10);
@@ -110,9 +77,16 @@ export default function AgreementForm({ initialData }: { initialData?: Document 
       if (client) content = content.replace(/\[CLIENT_NAME\]/g, client.name);
       content = content.replace(/\[DATE\]/g, new Date().toLocaleDateString());
       
-      setBody(content);
+      if (editorRef.current) {
+        editorRef.current.innerHTML = content;
+      }
       setSubject(AGREEMENT_TEMPLATES[type].title);
     }
+  };
+
+  const execCommand = (command: string, value: string = "") => {
+    document.execCommand(command, false, value);
+    if (editorRef.current) editorRef.current.focus();
   };
 
   const handleSave = async () => {
@@ -120,6 +94,7 @@ export default function AgreementForm({ initialData }: { initialData?: Document 
     setIsSaving(true);
 
     try {
+      const bodyHtml = editorRef.current?.innerHTML || "";
       const newDoc: Document = {
         id: initialData?.id || uuidv4(),
         profile_id: currentProfile.id,
@@ -137,7 +112,7 @@ export default function AgreementForm({ initialData }: { initialData?: Document 
         subtotal: 0,
         taxAmount: 0,
         total: 0,
-        notes: body,
+        notes: bodyHtml,
         terms: subject,
         language: language,
         template_type: templateType,
@@ -224,6 +199,40 @@ export default function AgreementForm({ initialData }: { initialData?: Document 
               </div>
             </CardContent>
           </Card>
+
+          <Card className="glass-card border-white/5">
+            <CardHeader className="py-4">
+              <CardTitle className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Editor Tools</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => execCommand('bold')} title="Bold">
+                  <Bold className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => execCommand('italic')} title="Italic">
+                  <Italic className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => execCommand('underline')} title="Underline">
+                  <Underline className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[9px] uppercase font-bold opacity-50">Font Size</Label>
+                <Select onValueChange={(v) => execCommand('fontSize', v)}>
+                  <SelectTrigger className="h-8 text-[10px] bg-white/5">
+                    <SelectValue placeholder="Size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2">Small</SelectItem>
+                    <SelectItem value="3">Normal</SelectItem>
+                    <SelectItem value="4">Medium</SelectItem>
+                    <SelectItem value="5">Large</SelectItem>
+                    <SelectItem value="6">Extra Large</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="lg:col-span-3">
@@ -258,15 +267,14 @@ export default function AgreementForm({ initialData }: { initialData?: Document 
                   dir={isThaana ? 'rtl' : 'ltr'}
                 />
 
-                <Textarea
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
+                <div
+                  ref={editorRef}
+                  contentEditable
                   className={cn(
-                    "flex-grow whitespace-pre-wrap w-full border-none p-0 text-xs leading-relaxed focus-visible:ring-0 text-slate-900 font-medium bg-transparent resize-none",
+                    "flex-grow outline-none text-xs leading-relaxed text-slate-900 font-medium bg-transparent min-h-[600px]",
                     isThaana ? 'text-right' : 'text-left'
                   )}
                   dir={isThaana ? 'rtl' : 'ltr'}
-                  placeholder="Draft your agreement terms here..."
                 />
 
                 <footer className="mt-16 text-black border-t border-slate-100 pt-8">
