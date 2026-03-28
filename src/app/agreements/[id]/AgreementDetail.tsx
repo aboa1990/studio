@@ -120,6 +120,10 @@ export default function AgreementDetail() {
                 </div>
               )}
             </footer>
+
+            <div className="print-page-number">
+              Agreement Ref: {doc.number} | 
+            </div>
           </div>
         </CardContent>
       </Card>

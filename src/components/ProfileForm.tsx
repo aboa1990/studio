@@ -72,6 +72,14 @@ export function ProfileForm() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fieldName: any) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 800000) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image smaller than 800KB for best results.",
+          variant: "destructive"
+        });
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setValue(fieldName, reader.result as string, { shouldDirty: true });
@@ -116,9 +124,6 @@ export function ProfileForm() {
       createdAt: serverTimestamp(),
     };
 
-    // We use a pattern that updates the user profile FIRST if it doesn't exist, 
-    // or we ensure the security rules handle the owner case independently.
-    // The rules have been updated to check ownerUserId on the resource directly.
     setDoc(companyRef, profileData, { merge: true })
       .then(async () => {
         await setDoc(userProfileRef, userProfileData, { merge: true })
@@ -131,7 +136,7 @@ export function ProfileForm() {
           });
 
         await fetchProfiles();
-        toast({ title: "Success", description: "Profile and Authorization updated." });
+        toast({ title: "Success", description: "Company profile and branding saved successfully." });
       })
       .catch(async (err) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -221,6 +226,7 @@ export function ProfileForm() {
 
           <div className="space-y-6">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b border-white/5 pb-2">Branding & Assets</h3>
+            <p className="text-[9px] text-muted-foreground uppercase font-bold italic">Max size 800KB per image for reliable saving.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Logo Upload */}
               <div className="space-y-3">
