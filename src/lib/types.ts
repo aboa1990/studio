@@ -1,7 +1,7 @@
 
-export type DocumentType = 'invoice' | 'quotation' | 'tender' | 'boq' | 'letter';
+export type DocumentType = 'invoice' | 'quotation' | 'tender' | 'boq' | 'letter' | 'agreement';
 
-export type DocumentStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'rejected' | 'submitted' | 'awarded' | 'lost';
+export type DocumentStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'rejected' | 'submitted' | 'awarded' | 'lost' | 'active' | 'signed' | 'expired';
 
 export interface LineItem {
   id: string;
@@ -75,6 +75,7 @@ export interface Document {
   terms?: string;
   attachments?: Attachment[];
   language?: 'english' | 'dhivehi';
+  template_type?: 'rent' | 'project' | 'custom';
 }
 
 export interface BankDetails {

@@ -16,7 +16,8 @@ import {
   FolderOpen,
   ClipboardList,
   Cloud,
-  Wallet
+  Wallet,
+  FileSignature
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -64,6 +65,11 @@ const items = [
     title: "BOQs",
     url: "/boqs",
     icon: ClipboardList,
+  },
+  {
+    title: "Agreements",
+    url: "/agreements",
+    icon: FileSignature,
   },
   {
     title: "Tenders & Bids",
@@ -207,10 +213,10 @@ export default function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="New BOQ" className="h-9 rounded-xl px-3 group/btn hover:bg-muted/50 border hover:border-border transition-all">
-                  <Link href="/boqs/new" className="font-semibold text-xs">
+                <SidebarMenuButton asChild tooltip="New Agreement" className="h-9 rounded-xl px-3 group/btn hover:bg-muted/50 border hover:border-border transition-all">
+                  <Link href="/agreements/new" className="font-semibold text-xs">
                     <PlusCircle className="text-primary group-hover:scale-110 transition-transform size-4" />
-                    <span>New BOQ</span>
+                    <span>New Agreement</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
