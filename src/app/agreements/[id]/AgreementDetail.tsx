@@ -1,12 +1,11 @@
-
 "use client"
 
 import { useEffect, useState, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { getDocumentById, deleteDocument, updateDocument, useStore } from "@/lib/store"
+import { getDocumentById, useStore } from "@/lib/store"
 import { Document } from "@/lib/types"
 import EmailComposer from "@/components/documents/EmailComposer"
-import { ChevronLeft, Download, Edit, Trash2, Printer, Loader2 } from "lucide-react"
+import { ChevronLeft, Edit, Printer, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -60,7 +59,7 @@ export default function AgreementDetail() {
           <div 
             ref={printRef} 
             className={cn(
-              "bg-white p-16 font-serif text-black min-h-[1050px] flex flex-col print:p-10",
+              "bg-white p-16 font-serif text-black min-h-[1050px] flex flex-col print:p-0",
               isThaana ? 'thaana-font' : ''
             )}
           >
@@ -82,7 +81,7 @@ export default function AgreementDetail() {
 
             <div className={cn("mb-10", isThaana ? 'text-right' : 'text-center')}>
               <h1 className="text-2xl font-black text-slate-950 uppercase border-b-2 border-slate-900 pb-2 mb-2">{doc.terms}</h1>
-              <p className="text-[10px] text-slate-500 font-bold tracking-widest">AGREEMENT REF: {doc.number}</p>
+              <p className="text-[10px] text-slate-600 font-bold tracking-widest">AGREEMENT REF: {doc.number}</p>
             </div>
 
             <div 
@@ -94,30 +93,30 @@ export default function AgreementDetail() {
               dangerouslySetInnerHTML={{ __html: doc.notes || "" }}
             />
 
-            <footer className="mt-16 text-black border-t border-slate-100 pt-8">
+            <footer className="mt-16 text-black border-t border-slate-100 pt-8 agreement-footer">
               <div className="grid grid-cols-2 gap-20">
                 <div className={cn(isThaana ? 'text-right order-2' : 'text-left')}>
-                  <p className="text-[9px] text-slate-500 font-bold uppercase mb-8">For the First Party:</p>
+                  <p className="text-[9px] text-slate-600 font-bold uppercase mb-8">For the First Party:</p>
                   {currentProfile.signature_url && (
                     <img src={currentProfile.signature_url} alt="Signature" className="h-12 w-auto mb-2" />
                   )}
                   <div className="border-t border-slate-300 pt-2 w-full">
                     <p className="font-bold text-xs text-slate-950">{currentProfile.authorized_signatory || currentProfile.name}</p>
-                    <p className="text-[8px] text-slate-500 uppercase font-bold">Authorized Signatory</p>
+                    <p className="text-[8px] text-slate-600 uppercase font-bold">Authorized Signatory</p>
                   </div>
                 </div>
                 <div className={cn(isThaana ? 'text-right order-1' : 'text-left')}>
-                  <p className="text-[9px] text-slate-500 font-bold uppercase mb-8">For the Second Party:</p>
+                  <p className="text-[9px] text-slate-600 font-bold uppercase mb-8">For the Second Party:</p>
                   <div className="h-12"></div>
                   <div className="border-t border-slate-300 pt-2 w-full">
                     <p className="font-bold text-xs text-slate-950">{doc.clientName}</p>
-                    <p className="text-[8px] text-slate-500 uppercase font-bold">Party Representative</p>
+                    <p className="text-[8px] text-slate-600 uppercase font-bold">Party Representative</p>
                   </div>
                 </div>
               </div>
               {currentProfile.seal_url && (
                 <div className="flex justify-center mt-8">
-                  <img src={currentProfile.seal_url} alt="Seal" className="h-24 w-24 opacity-80" />
+                  <img src={currentProfile.seal_url} alt="Seal" className="h-24 w-24 opacity-90" />
                 </div>
               )}
             </footer>

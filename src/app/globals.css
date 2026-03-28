@@ -95,8 +95,8 @@
 
 @media print {
   @page {
-    margin: 0;
-    size: auto;
+    margin: 1.5cm;
+    size: A4;
   }
   body {
     margin: 0 !important;
@@ -110,6 +110,7 @@
   main {
     padding: 0 !important;
     margin: 0 !important;
+    display: block !important;
   }
   .print-content {
     padding: 0 !important;
@@ -118,6 +119,21 @@
     max-width: 100% !important;
     box-shadow: none !important;
     border: none !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+  
+  /* Prevent elements from breaking mid-line if possible */
+  .rich-text-content p, .rich-text-content div {
+    page-break-inside: auto;
+    orphans: 3;
+    widows: 3;
+    margin-bottom: 0.5em;
+  }
+
+  /* Ensure signature/seal footer stays together */
+  .agreement-footer {
+    page-break-inside: avoid;
   }
 }
 
@@ -134,4 +150,12 @@
 .thaana-font {
   font-family: 'Faruma', 'MV Boli', sans-serif;
   direction: rtl;
+}
+
+.rich-text-content {
+  min-height: 200px;
+}
+
+.rich-text-content strong {
+  font-weight: 900;
 }
