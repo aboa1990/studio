@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -10,12 +11,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { useStore } from "@/lib/store"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { doc, setDoc, deleteDoc, serverTimestamp, collection } from "firebase/firestore"
 import { initializeFirebase } from "@/firebase"
 import { errorEmitter } from "@/firebase/error-emitter"
 import { FirestorePermissionError } from "@/firebase/errors"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Upload, X, ImageIcon, Signature, Stamp, FileType } from "lucide-react"
+import { Loader2, Upload, X, ImageIcon, Signature, Stamp, FileType, LayoutTemplate } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const { firestore, auth } = initializeFirebase();
@@ -32,6 +34,8 @@ const profileSchema = z.object({
   signature_url: z.string().optional(),
   seal_url: z.string().optional(),
   letterhead_url: z.string().optional(),
+  invoice_template: z.enum(['modern', 'classic', 'minimal']).default('modern'),
+  quotation_template: z.enum(['modern', 'classic', 'minimal']).default('modern'),
 })
 
 const defaultValues = {
@@ -46,6 +50,8 @@ const defaultValues = {
     signature_url: "",
     seal_url: "",
     letterhead_url: "",
+    invoice_template: "modern",
+    quotation_template: "modern",
 }
 
 export function ProfileForm() {
@@ -346,6 +352,54 @@ export function ProfileForm() {
                     </label>
                   )}
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b border-white/5 pb-2">Templates</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className='text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2'>
+                  <LayoutTemplate className="size-3" /> Invoice Style
+                </label>
+                <Controller
+                  name="invoice_template"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="bg-white/5 border-white/5 h-11">
+                        <SelectValue placeholder="Select style" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="modern">Modern (Default)</SelectItem>
+                        <SelectItem value="classic">Classic Grid</SelectItem>
+                        <SelectItem value="minimal">Minimalist</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className='text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2'>
+                  <LayoutTemplate className="size-3" /> Quotation Style
+                </label>
+                <Controller
+                  name="quotation_template"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="bg-white/5 border-white/5 h-11">
+                        <SelectValue placeholder="Select style" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="modern">Modern (Default)</SelectItem>
+                        <SelectItem value="classic">Classic Grid</SelectItem>
+                        <SelectItem value="minimal">Minimalist</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
             </div>
           </div>

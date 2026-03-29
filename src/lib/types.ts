@@ -3,6 +3,8 @@ export type DocumentType = 'invoice' | 'quotation' | 'tender' | 'boq' | 'letter'
 
 export type DocumentStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'rejected' | 'submitted' | 'awarded' | 'lost' | 'active' | 'signed' | 'expired';
 
+export type TemplateStyle = 'modern' | 'classic' | 'minimal';
+
 export interface LineItem {
   id: string;
   costCode?: string;
@@ -100,6 +102,8 @@ export interface CompanyProfile {
   gst_number?: string;
   bank_details?: string;
   last_active_at?: string;
+  invoice_template?: TemplateStyle;
+  quotation_template?: TemplateStyle;
 }
 
 export type CompanyDetails = CompanyProfile;
