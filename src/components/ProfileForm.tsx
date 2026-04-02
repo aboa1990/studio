@@ -17,7 +17,7 @@ import { initializeFirebase } from "@/firebase"
 import { errorEmitter } from "@/firebase/error-emitter"
 import { FirestorePermissionError } from "@/firebase/errors"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Upload, X, ImageIcon, Signature, Stamp, FileType, LayoutTemplate } from "lucide-react"
+import { Loader2, Upload, X, ImageIcon, Signature, Stamp, FileType, LayoutTemplate, Edit3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const { firestore, auth } = initializeFirebase();
@@ -120,25 +120,19 @@ export function ProfileForm() {
       createdAt: currentProfile?.createdAt || serverTimestamp(),
     };
 
-    const userProfileData = {
-      id: user.uid,
-      email: user.email,
-      displayName: user.displayName || data.name,
-      role: 'Admin',
-      companyProfileId: profileId,
-      updatedAt: serverTimestamp(),
-      createdAt: serverTimestamp(),
-    };
-
     setDoc(companyRef, profileData, { merge: true })
       .then(async () => {
-        await setDoc(userProfileRef, userProfileData, { merge: true })
+        await setDoc(userProfileRef, {
+          id: user.uid,
+          email: user.email,
+          displayName: user.displayName || data.name,
+          role: 'Admin',
+          companyProfileId: profileId,
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+        }, { merge: true })
           .catch(err => {
-             errorEmitter.emit('permission-error', new FirestorePermissionError({
-              path: userProfileRef.path,
-              operation: 'write',
-              requestResourceData: userProfileData
-            }));
+             console.error("User profile update failed", err);
           });
 
         await fetchProfiles();
@@ -173,6 +167,43 @@ export function ProfileForm() {
       })
       .finally(() => setLoading(false));
   };
+
+  const renderAssetSlot = (label: string, icon: any, fieldName: string, currentVal?: string, hint?: string) => (
+    <div className="space-y-3">
+      <label className='text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2'>
+        {icon} {label}
+      </label>
+      <div className={cn(
+        "relative group aspect-square rounded-xl border-2 border-dashed border-white/5 bg-white/5 flex flex-col items-center justify-center transition-all hover:border-primary/20 overflow-hidden",
+        currentVal && "border-solid"
+      )}>
+        {currentVal ? (
+          <>
+            <img src={currentVal} alt={`${label} Preview`} className="h-full w-full object-contain p-4" />
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+              <label className="cursor-pointer bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
+                <Upload className="size-3" /> Replace
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, fieldName)} />
+              </label>
+              <button 
+                type="button"
+                onClick={() => removeImage(fieldName)}
+                className="bg-destructive text-destructive-foreground px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
+              >
+                <X className="size-3" /> Remove
+              </button>
+            </div>
+          </>
+        ) : (
+          <label className="cursor-pointer flex flex-col items-center gap-2 p-4 text-center w-full h-full justify-center">
+            <Upload className="size-6 text-muted-foreground/40" />
+            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Upload {hint || 'Image'}</span>
+            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, fieldName)} />
+          </label>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <Card className="glass-card border-white/5 shadow-2xl">
@@ -232,127 +263,12 @@ export function ProfileForm() {
 
           <div className="space-y-6">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b border-white/5 pb-2">Branding & Assets</h3>
-            <p className="text-[9px] text-muted-foreground uppercase font-bold italic">Max size 800KB per image for reliable saving.</p>
+            <p className="text-[9px] text-muted-foreground uppercase font-bold italic">Files must be under 800KB for reliable cloud storage.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Logo Upload */}
-              <div className="space-y-3">
-                <label className='text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2'>
-                  <ImageIcon className="size-3" /> Company Logo
-                </label>
-                <div className={cn(
-                  "relative group aspect-square rounded-xl border-2 border-dashed border-white/5 bg-white/5 flex flex-col items-center justify-center transition-all hover:border-primary/20",
-                  watchLogo && "border-solid"
-                )}>
-                  {watchLogo ? (
-                    <>
-                      <img src={watchLogo} alt="Logo Preview" className="h-full w-full object-contain p-4" />
-                      <button 
-                        type="button"
-                        onClick={() => removeImage("logo_url")}
-                        className="absolute top-2 right-2 size-6 bg-destructive/10 text-destructive rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </>
-                  ) : (
-                    <label className="cursor-pointer flex flex-col items-center gap-2 p-4 text-center">
-                      <Upload className="size-6 text-muted-foreground/40" />
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Upload PNG/JPG</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, "logo_url")} />
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              {/* Signature Upload */}
-              <div className="space-y-3">
-                <label className='text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2'>
-                  <Signature className="size-3" /> Digital Signature
-                </label>
-                <div className={cn(
-                  "relative group aspect-square rounded-xl border-2 border-dashed border-white/5 bg-white/5 flex flex-col items-center justify-center transition-all hover:border-primary/20",
-                  watchSignature && "border-solid"
-                )}>
-                  {watchSignature ? (
-                    <>
-                      <img src={watchSignature} alt="Signature Preview" className="h-full w-full object-contain p-4" />
-                      <button 
-                        type="button"
-                        onClick={() => removeImage("signature_url")}
-                        className="absolute top-2 right-2 size-6 bg-destructive/10 text-destructive rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </>
-                  ) : (
-                    <label className="cursor-pointer flex flex-col items-center gap-2 p-4 text-center">
-                      <Upload className="size-6 text-muted-foreground/40" />
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Upload PNG</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, "signature_url")} />
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              {/* Seal Upload */}
-              <div className="space-y-3">
-                <label className='text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2'>
-                  <Stamp className="size-3" /> Company Seal
-                </label>
-                <div className={cn(
-                  "relative group aspect-square rounded-xl border-2 border-dashed border-white/5 bg-white/5 flex flex-col items-center justify-center transition-all hover:border-primary/20",
-                  watchSeal && "border-solid"
-                )}>
-                  {watchSeal ? (
-                    <>
-                      <img src={watchSeal} alt="Seal Preview" className="h-full w-full object-contain p-4" />
-                      <button 
-                        type="button"
-                        onClick={() => removeImage("seal_url")}
-                        className="absolute top-2 right-2 size-6 bg-destructive/10 text-destructive rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </>
-                  ) : (
-                    <label className="cursor-pointer flex flex-col items-center gap-2 p-4 text-center">
-                      <Upload className="size-6 text-muted-foreground/40" />
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Upload PNG</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, "seal_url")} />
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              {/* Letterhead Upload */}
-              <div className="space-y-3">
-                <label className='text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2'>
-                  <FileType className="size-3" /> Letterhead Header
-                </label>
-                <div className={cn(
-                  "relative group aspect-square rounded-xl border-2 border-dashed border-white/5 bg-white/5 flex flex-col items-center justify-center transition-all hover:border-primary/20",
-                  watchLetterhead && "border-solid"
-                )}>
-                  {watchLetterhead ? (
-                    <>
-                      <img src={watchLetterhead} alt="Letterhead Preview" className="h-full w-full object-contain p-4" />
-                      <button 
-                        type="button"
-                        onClick={() => removeImage("letterhead_url")}
-                        className="absolute top-2 right-2 size-6 bg-destructive/10 text-destructive rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </>
-                  ) : (
-                    <label className="cursor-pointer flex flex-col items-center gap-2 p-4 text-center">
-                      <Upload className="size-6 text-muted-foreground/40" />
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Upload Wide Header</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, "letterhead_url")} />
-                    </label>
-                  )}
-                </div>
-              </div>
+              {renderAssetSlot("Company Logo", <ImageIcon className="size-3" />, "logo_url", watchLogo, "Logo")}
+              {renderAssetSlot("Digital Signature", <Signature className="size-3" />, "signature_url", watchSignature, "Signature")}
+              {renderAssetSlot("Company Seal", <Stamp className="size-3" />, "seal_url", watchSeal, "Seal")}
+              {renderAssetSlot("Letterhead Header", <FileType className="size-3" />, "letterhead_url", watchLetterhead, "Header")}
             </div>
           </div>
 
